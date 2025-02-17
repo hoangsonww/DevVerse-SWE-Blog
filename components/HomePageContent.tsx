@@ -42,9 +42,9 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             margin: '0 auto'
           }}
         >
-          DevVerse CS Blog is your go-to source for deep dives into computer science and technology.
+          DevVerse Blog is your go-to source for deep dives into computer science and technology.
           Explore in-depth articles on AI/ML, web frameworks, microservices, and cutting-edge tech innovations.
-          Stay informed, inspired, and ready to tackle the latest trends in computer science.
+          Stay informed, inspired, and ready to tackle the latest trends in computer science and software development.
         </p>
       </motion.header>
 
@@ -170,7 +170,17 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           transition={{ type: 'spring', stiffness: 300 }}
         >
           Next.js
-        </motion.a>{' '}
+        </motion.a>,{' '}
+        <motion.a
+          href="https://nextjs.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'var(--link-color)', textDecoration: 'underline', display: 'inline-block' }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+        >
+          MDX
+        </motion.a>,{' '}
         and{' '}
         <motion.a
           href="https://vercel.com/"
