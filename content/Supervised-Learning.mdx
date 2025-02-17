@@ -1,0 +1,110 @@
+import MdxLayout from '@/components/MdxLayout'
+
+export const metadata = {
+  title: "Supervised vs. Unsupervised Learning",
+  description: "An in-depth comparison of supervised and unsupervised learning, exploring key differences, methodologies, and applications in machine learning.",
+  topics: ["Machine Learning", "Artificial Intelligence"]
+}
+
+export default function LearningContent({ children }) {
+  return <MdxLayout>{children}</MdxLayout>
+}
+
+# Supervised vs. Unsupervised Learning
+
+In the field of **Artificial Intelligence** and **Machine Learning**, understanding the differences between supervised and unsupervised learning is fundamental. Both paradigms have their own strengths, weaknesses, and applications. In this article, we will explore these two methodologies in depth, providing examples and code snippets to illustrate key concepts.
+
+## What is Supervised Learning?
+
+Supervised learning is a type of machine learning where the algorithm is trained on **labeled data**. In other words, each training example comes with an input and the corresponding desired output (label). The goal is to learn a mapping from inputs to outputs that can be used to predict the labels of unseen data.
+
+### Key Characteristics:
+- **Labeled Data:** Requires datasets with input-output pairs.
+- **Prediction:** Focused on predicting outcomes.
+- **Evaluation:** Performance can be measured using metrics such as accuracy, precision, and recall.
+
+### Example of Supervised Learning:
+Below is a simple example using Python's scikit-learn library to train a linear regression model:
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+import numpy as np
+
+# Generate some sample data
+X = np.array([[1], [2], [3], [4], [5]])
+y = np.array([2, 4, 6, 8, 10])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create and train the model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Make predictions
+predictions = model.predict(X_test)
+print("Predictions:", predictions)
+```
+
+## What is Unsupervised Learning?
+
+Unsupervised learning deals with **unlabeled data**. The algorithm tries to identify patterns or groupings in the data without any explicit instructions on what to predict. It is particularly useful for clustering, anomaly detection, and dimensionality reduction.
+
+### Key Characteristics:
+- **Unlabeled Data:** No predefined output labels.
+- **Pattern Discovery:** Focused on finding hidden structures.
+- **Evaluation:** More subjective, often evaluated using metrics like the silhouette score for clustering.
+
+### Example of Unsupervised Learning:
+Below is an example of using K-Means clustering to group data points:
+
+```python
+from sklearn.cluster import KMeans
+import numpy as np
+
+# Generate some sample data
+data = np.array([
+    [1, 2],
+    [1, 4],
+    [1, 0],
+    [10, 2],
+    [10, 4],
+    [10, 0]
+])
+
+# Initialize and fit the model
+kmeans = KMeans(n_clusters=2, random_state=42)
+kmeans.fit(data)
+
+# Get cluster labels
+labels = kmeans.labels_
+print("Cluster labels:", labels)
+```
+
+## Key Differences Between Supervised and Unsupervised Learning
+
+| Aspect                | Supervised Learning               | Unsupervised Learning            |
+|-----------------------|-----------------------------------|----------------------------------|
+| **Data**              | Labeled                           | Unlabeled                        |
+| **Objective**         | Predict outcomes                  | Discover hidden patterns         |
+| **Evaluation**        | Clear performance metrics         | Metrics like silhouette score    |
+| **Applications**      | Classification, Regression        | Clustering, Anomaly Detection    |
+
+## Real-World Applications
+
+### Supervised Learning:
+- **Medical Diagnosis:** Predicting diseases from patient data.
+- **Financial Forecasting:** Predicting stock market trends.
+- **Image Recognition:** Identifying objects within images.
+
+### Unsupervised Learning:
+- **Customer Segmentation:** Grouping customers based on purchasing behavior.
+- **Anomaly Detection:** Detecting unusual patterns in network traffic.
+- **Dimensionality Reduction:** Techniques like PCA to simplify complex data.
+
+## Conclusion
+
+Both supervised and unsupervised learning offer powerful methods to extract insights from data. The choice between the two depends on the nature of the problem, the availability of labeled data, and the desired outcome. Understanding these methods is key to applying machine learning effectively in various domains.
+
+Feel free to explore further and experiment with different models and techniques to see how they perform on your specific datasets.

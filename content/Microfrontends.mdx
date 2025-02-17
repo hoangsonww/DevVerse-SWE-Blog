@@ -1,0 +1,242 @@
+import MdxLayout from '@/components/MdxLayout'
+
+export const metadata = {
+  title: "The Microfrontends Architecture",
+  description: "An in-depth guide to Microfrontend architecture: its introduction, benefits, techniques, and best practices for building scalable, maintainable, and flexible frontend systems.",
+  topics: ["Web Architecture", "Web Development"]
+}
+
+export default function MicrofrontendsContent({ children }) {
+  return <MdxLayout>{children}</MdxLayout>
+}
+
+# Microfrontends
+
+Microfrontend architecture is an approach where a frontend application is decomposed into individual, semi-independent “microapps” that work together to form a cohesive user experience. Inspired by microservices, this design promotes flexibility, independent deployment, and cross-functional team ownership. In this guide, we explore the fundamentals, benefits, and various techniques used to implement Microfrontends.
+
+---
+
+## I. Introduction to Microfrontend
+
+Microfrontend architecture decomposes a large frontend monolith into smaller, manageable pieces, each responsible for a specific business domain. Unlike traditional monolithic applications, microfrontends allow independent teams to develop, test, and deploy features end-to-end with minimal coordination.
+
+**Key Concepts:**
+- **Decomposition:** Breaking down the frontend into “microapps.”
+- **Independence:** Each microapp can be developed with its own tech stack.
+- **Scalability:** Teams can work on separate features simultaneously without impacting the entire system.
+
+---
+
+## II. Benefits of Microfrontend Architecture
+
+Microfrontends offer several advantages:
+
+- **Independent Technology Choices:** Each team can choose the best framework or library for their microapp.
+- **Faster Development & Deployment:** Smaller, isolated teams can iterate quickly.
+- **Improved Testing:** Isolated features mean simpler and more focused testing.
+- **Enhanced Maintainability:** Changes in one microapp do not require a complete system redeployment.
+- **Scalability:** Systems can grow as teams add or update microapps independently.
+
+---
+
+## III. History of Microfrontend
+
+Microfrontend ideas have evolved alongside microservices. Initially, frontend applications were monolithic; as applications grew in complexity, the need for decoupled, independently deployable frontend modules became clear. Early experiments led to the modern microfrontend practices we use today.
+
+For more detailed mind maps and historical context, refer to the [GitHub Micro Frontends Mindmaps](https://github.com/santoshshinde2012/micro-frontends-mindmaps).
+
+---
+
+## IV. Why Microfrontend Matters
+
+In modern web applications, the frontend is becoming increasingly complex. A monolithic frontend can become unwieldy and difficult to maintain. Microfrontend architecture enables:
+- **Better Team Autonomy:** Each team owns a business domain from UI to backend integration.
+- **Faster Iteration:** Smaller codebases lead to faster testing and deployment.
+- **Technology Agnosticism:** Teams can choose different technologies without affecting others.
+- **Resilience:** Failures in one module do not bring down the entire application.
+
+---
+
+## V. How Microfrontend Works
+
+Microfrontend architecture employs best practices to ensure that each microapp remains isolated yet cohesive within the larger application. Key strategies include:
+
+- **Technology Independence:** Teams can update their stack independently.
+- **Code Isolation:** Avoid sharing runtime or global state.
+- **Namespace Conventions:** Use team-specific prefixes to avoid CSS and storage conflicts.
+- **Progressive Enhancement:** Design microapps to function even if JavaScript fails.
+
+---
+
+## VI. How to Adopt Microfrontend Architecture
+
+There are multiple strategies to implement microfrontends. Below are some common techniques:
+
+### 1. Webpack Module Federation
+
+Webpack Module Federation allows separate builds to form a single application by dynamically loading remote modules.
+
+**Example Webpack Module Federation configuration:**
+
+```js
+// webpack.config.js (for a microapp)
+module.exports = {
+  // ...other configuration
+  plugins: [
+    new ModuleFederationPlugin({
+      name: "microapp",
+      filename: "remoteEntry.js",
+      exposes: {
+        './Component': './src/Component',
+      },
+      remotes: {
+        shell: "shell@https://your-domain.com/remoteEntry.js"
+      },
+      shared: { react: { singleton: true }, "react-dom": { singleton: true } },
+    }),
+  ],
+};
+```
+
+**Benefits:**
+- Fast transition with no need for complete re-architecture.
+- Shared dependencies without duplication.
+
+---
+
+### 2. Iframes
+
+Iframes embed separate applications within a parent container, ensuring strong isolation of CSS and JavaScript.
+
+**Simple Iframe Example:**
+
+```html
+<iframe src="https://childapp.com" width="100%" height="600" title="Child Application"></iframe>
+```
+
+**Pros & Cons:**
+- **Pros:** Excellent isolation and security.
+- **Cons:** SEO limitations and potential performance overhead.
+
+---
+
+### 3. Through NGINX
+
+NGINX can act as a reverse proxy to route requests to different microapps based on URL paths.
+
+**Sample NGINX Configuration:**
+
+```nginx
+worker_processes 4;
+events { worker_connections 1024; }
+
+http {
+  server {
+    listen 80;
+    root /usr/share/nginx/html;
+
+    location /users {
+      try_files $uri /users/index.html;
+    }
+    location /customers {
+      try_files $uri /customers/index.html;
+    }
+    location /admins {
+      try_files $uri /admins/index.html;
+    }
+  }
+}
+```
+
+---
+
+### 4. Web Components
+
+Custom elements and the Shadow DOM allow for creating encapsulated components that can be used across different frameworks.
+
+**Basic Example of a Custom Element:**
+
+```js
+class MyIcon extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+  connectedCallback() {
+    this.shadowRoot.innerHTML = `<span>🌸</span>`;
+  }
+}
+customElements.define('my-icon', MyIcon);
+```
+
+**Usage in HTML:**
+
+```html
+<my-icon></my-icon>
+```
+
+---
+
+### 5. React / Vue Component Libraries
+
+Microapps can be developed as libraries (npm packages) and integrated into a shell application via dynamic imports.
+
+**Example in React:**
+
+```jsx
+import Customers from 'customers-library';
+
+export default function Dashboard() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <Customers />
+    </div>
+  );
+}
+```
+
+---
+
+### 6. Monorepos
+
+A monorepo strategy stores multiple projects in a single repository, simplifying dependency management and code sharing.
+
+**Advantages:**
+- Unified dependency management.
+- Atomic commits across projects.
+- Easier refactoring and code reuse.
+
+---
+
+### 7. Using Frameworks (e.g., Single-SPA)
+
+Single-SPA is a framework that orchestrates multiple microapps on the same page, allowing independent deployments and lazy loading.
+
+**Core Concepts:**
+- **Root Config:** Registers microapps with lifecycle methods (bootstrap, mount, unmount).
+- **Lazy Loading:** Microapps load on demand based on URL routes.
+
+---
+
+### 8. Customized Orchestrator
+
+A custom orchestrator can dynamically load and manage microapps based on user context and routing. This can be implemented on both server and client sides to optimize performance and user experience.
+
+---
+
+## VII. Best Practices & Scaling Frontends with Microfrontends
+
+- **Standardize UI/UX:** Use a shared style guide (e.g., Material Design, Bootstrap).
+- **Define Clear Boundaries:** Each microapp should have a well-defined scope.
+- **Ensure Loose Coupling:** Minimize shared runtime dependencies.
+- **Implement Robust Communication:** Use events or shared state management tools carefully.
+- **Plan for Scalability:** Organize microapps by business domain and adopt continuous deployment practices.
+
+---
+
+## VIII. Conclusion
+
+Microfrontend architecture represents a paradigm shift in frontend development, enabling scalability, team autonomy, and rapid iteration. By breaking down a monolithic frontend into smaller, manageable pieces, organizations can more effectively innovate and respond to market demands. Whether using Webpack Module Federation, iframes, web components, or other techniques, the goal remains the same: building resilient, maintainable, and flexible applications.
+
+Explore further resources and experiment with different approaches to find the best fit for your project needs.
