@@ -29,7 +29,10 @@ function generateSitemap() {
         ${sitemapEntries}
     </urlset>`;
 
-  fs.writeFileSync(path.join(process.cwd(), "public", "sitemap-posts.xml"), sitemap);
+  fs.writeFileSync(
+    path.join(process.cwd(), "public", "sitemap-posts.xml"),
+    sitemap,
+  );
   console.log("✅ Successfully generated dynamic sitemap for blog posts!");
 }
 
