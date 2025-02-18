@@ -57,8 +57,8 @@ export default function BackToTopButton() {
           position: fixed;
           bottom: 2rem;
           right: 2rem;
-          background-color: ${isDark ? "#f7f7f7" : "#121212"};
-          color: ${isDark ? "#121212" : "#f7f7f7"};
+          background-color: #0070f3;
+          color: #fff;
           border: none;
           border-radius: 8px;
           width: 3rem;
@@ -79,6 +79,7 @@ export default function BackToTopButton() {
             box-shadow 0.2s ease;
         }
         .back-to-top:hover {
+          backdrop-filter: blur(5px);
           transform: scale(1.1);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }

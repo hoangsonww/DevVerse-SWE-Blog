@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import BackToTopButton from "@/components/BackToTopButton";
 import React from "react";
 
 interface Params {
@@ -32,15 +33,18 @@ export default async function TopicPage({ params }: PageProps) {
   }
 
   return (
-    <article
-      style={{
-        padding: "2rem 0",
-        backgroundColor: "var(--background-color)",
-        color: "var(--text-color)",
-        transition: "background-color 0.3s ease, color 0.3s ease",
-      }}
-    >
-      <MDXComponent />
-    </article>
+    <>
+      <article
+        style={{
+          padding: "2rem 0",
+          backgroundColor: "var(--background-color)",
+          color: "var(--text-color)",
+          transition: "background-color 0.3s ease, color 0.3s ease",
+        }}
+      >
+        <MDXComponent />
+      </article>
+      <BackToTopButton />
+    </>
   );
 }
