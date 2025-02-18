@@ -24,13 +24,17 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   const allTopics = Array.from(allTopicsSet).sort();
 
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10); // Show 10 articles initially
 
   const filteredArticles = selectedTopic
     ? articles.filter((article) => article.topics.includes(selectedTopic))
     : articles;
 
+  const displayedArticles = filteredArticles.slice(0, visibleCount);
+
   return (
     <div>
+      {/* Topic Filter */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,7 +53,10 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
         >
           <motion.button
             whileHover={{ scale: 1.05 }}
-            onClick={() => setSelectedTopic(null)}
+            onClick={() => {
+              setSelectedTopic(null);
+              setVisibleCount(10); // Reset visible articles when topic is changed
+            }}
             style={{
               padding: "0.5rem 1rem",
               borderRadius: "4px",
@@ -68,7 +75,10 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             <motion.button
               key={topic}
               whileHover={{ scale: 1.05 }}
-              onClick={() => setSelectedTopic(topic)}
+              onClick={() => {
+                setSelectedTopic(topic);
+                setVisibleCount(10); // Reset visible articles when topic is changed
+              }}
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "4px",
@@ -87,6 +97,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
         </div>
       </motion.div>
 
+      {/* Articles Grid */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -97,7 +108,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           gap: "2rem",
         }}
       >
-        {filteredArticles.map((article) => (
+        {displayedArticles.map((article) => (
           <InteractiveCard
             key={article.slug}
             slug={article.slug}
@@ -106,6 +117,30 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           />
         ))}
       </motion.div>
+
+      {/* Load More Button */}
+      {visibleCount < filteredArticles.length && (
+        <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setVisibleCount((prev) => prev + 10)}
+            style={{
+              padding: "0.75rem 1.5rem",
+              borderRadius: "8px",
+              border: "2px solid #0070f3",
+              backgroundColor: "#0070f3",
+              color: "#fff",
+              cursor: "pointer",
+              transition: "background-color 0.2s",
+              font: "inherit",
+              fontSize: "1rem",
+            }}
+          >
+            Load More Articles
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 }
