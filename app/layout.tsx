@@ -42,7 +42,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "DevVerse CS Blog",
     description: "Sharing Computer Science Knowledge",
-    creator: "@yourtwitterhandle", // Replace with your Twitter handle
+    creator: "@movieverse",
     images: ["https://devverse-swe.vercel.app/android-chrome-512x512.png"],
   },
 };
