@@ -207,22 +207,24 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             alignItems: "center",
           }}
         >
-          <motion.img
-            src="/profile.jpg"
-            alt="Profile Picture"
-            variants={imageVariants}
-            initial="initial"
-            animate="animate"
-            whileHover="hover"
-            style={{
-              width: "120px",
-              height: "120px",
-              borderRadius: "50%",
-              objectFit: "cover",
-              marginBottom: "1rem",
-              cursor: "pointer",
-            }}
-          />
+          <a href="https://sonnguyenhoang.com" target="_blank" rel="noopener noreferrer">
+            <motion.img
+              src="/profile.jpg"
+              alt="Profile Picture"
+              variants={imageVariants}
+              initial="initial"
+              animate="animate"
+              whileHover="hover"
+              style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                marginBottom: "1rem",
+                cursor: "pointer",
+              }}
+            />
+          </a>
           <h3 style={{ color: "var(--text-color)" }}>Son (David) Nguyen</h3>
           <p
             style={{
