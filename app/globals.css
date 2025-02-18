@@ -24,10 +24,13 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--background-color) !important;
   color: var(--text-color) !important;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  overflow-x: hidden;
 }
 
 a {
@@ -56,7 +59,9 @@ a:hover {
   font-size: 1.12rem;
   background-color: var(--background-color) !important;
   color: var(--text-color) !important;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .mdx-container,

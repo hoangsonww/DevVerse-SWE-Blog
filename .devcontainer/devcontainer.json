@@ -1,0 +1,20 @@
+{
+  "name": "devverse-cs-swe-blog",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "editor.formatOnSave": true
+  },
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "eamodio.gitlens"
+  ],
+  "postCreateCommand": "npm install",
+  "remoteUser": "node",
+  "forwardPorts": [3000]
+}

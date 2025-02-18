@@ -21,7 +21,11 @@ export default function Footer() {
       }}
     >
       &copy; {year ? year : "Loading..."}{" "}
-      <a href="https://github.com/hoangsonww" target="_blank" rel="noopener noreferrer">
+      <a
+        href="https://github.com/hoangsonww"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         Son (David) Nguyen
       </a>
       . All rights reserved.
