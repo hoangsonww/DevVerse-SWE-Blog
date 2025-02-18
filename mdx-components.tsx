@@ -31,6 +31,19 @@ export function useMDXComponents(
         {...(props as ImageProps)}
       />
     ),
+    blockquote: (props) => (
+      <blockquote
+        style={{
+          borderLeft: "4px solid #888",
+          paddingLeft: "1rem",
+          marginBottom: "1rem",
+          color: "#666",
+          fontStyle: "italic",
+          margin: 0
+        }}
+        {...props}
+      />
+    ),
     ...components,
   };
 }
