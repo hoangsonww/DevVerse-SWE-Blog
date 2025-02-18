@@ -1,5 +1,15 @@
 {
   "name": "devverse-cs-swe-blog",
+  "private": false,
+  "author": "Son Nguyen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoangsonww/DevVerse-SWE-Blog.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hoangsonww/DevVerse-SWE-Blog/issues"
+  },
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
