@@ -1,4 +1,13 @@
 import { notFound } from "next/navigation";
+import React from "react";
+
+interface Params {
+  slug: string;
+}
+
+interface PageProps {
+  params: Promise<Params>;
+}
 
 export async function generateStaticParams() {
   const fs = await import("fs/promises");
@@ -12,13 +21,9 @@ export async function generateStaticParams() {
     }));
 }
 
-export default async function TopicPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function TopicPage({ params }: PageProps) {
   // Await params before destructuring to satisfy Next.js requirements.
-  const { slug } = await Promise.resolve(params);
+  const { slug } = await params;
   let MDXComponent: React.ComponentType<any>;
   try {
     MDXComponent = (await import(`@/content/${slug}.mdx`)).default;
