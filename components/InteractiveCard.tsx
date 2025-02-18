@@ -1,5 +1,5 @@
 "use client";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FiFileText } from "react-icons/fi";
 
@@ -40,11 +40,11 @@ export default function InteractiveCard({
     transform: hover ? "translateY(-4px)" : "translateY(0)",
     boxShadow: hover
       ? isDark
-        ? "0 4px 20px rgba(255, 255, 255, 0.8)"  // Light-ish shadow when dark & hovered
-        : "0 4px 20px rgba(0, 0, 0, 0.3)"        // Dark-ish shadow when light & hovered
+        ? "0 4px 20px rgba(255, 255, 255, 0.8)" // Light-ish shadow when dark & hovered
+        : "0 4px 20px rgba(0, 0, 0, 0.3)" // Dark-ish shadow when light & hovered
       : isDark
-        ? "0 4px 10px rgba(255, 255, 255, 0.4)"  // Light-ish but subtle shadow when dark & not hovered
-        : "0 4px 10px rgba(0, 0, 0, 0.2)",      // Dark-ish but subtle shadow when light & not hovered
+        ? "0 4px 10px rgba(255, 255, 255, 0.4)" // Light-ish but subtle shadow when dark & not hovered
+        : "0 4px 10px rgba(0, 0, 0, 0.2)", // Dark-ish but subtle shadow when light & not hovered
     minHeight: "200px",
     display: "flex",
     flexDirection: "column",

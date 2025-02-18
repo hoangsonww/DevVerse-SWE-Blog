@@ -207,7 +207,11 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             alignItems: "center",
           }}
         >
-          <a href="https://sonnguyenhoang.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://sonnguyenhoang.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <motion.img
               src="/profile.jpg"
               alt="Profile Picture"
