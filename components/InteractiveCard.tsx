@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import { FiFileText } from "react-icons/fi";
 
@@ -15,6 +15,21 @@ export default function InteractiveCard({
   description,
 }: CardProps) {
   const [hover, setHover] = React.useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  // Listen for changes to the dark mode class on the document.
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    checkDarkMode();
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const cardStyle: React.CSSProperties = {
     border: "1px solid #eaeaea",
@@ -23,8 +38,13 @@ export default function InteractiveCard({
     backgroundColor: "#fff",
     transition: "transform 0.2s ease, box-shadow 0.2s ease",
     transform: hover ? "translateY(-4px)" : "translateY(0)",
-    boxShadow: hover ? "0 4px 14px rgba(0, 0, 0, 0.1)" : "none",
-    // Use minHeight instead of a fixed height so the card grows to fit its content
+    boxShadow: hover
+      ? isDark
+        ? "0 4px 20px rgba(255, 255, 255, 0.8)"  // Light-ish shadow when dark & hovered
+        : "0 4px 20px rgba(0, 0, 0, 0.3)"        // Dark-ish shadow when light & hovered
+      : isDark
+        ? "0 4px 10px rgba(255, 255, 255, 0.4)"  // Light-ish but subtle shadow when dark & not hovered
+        : "0 4px 10px rgba(0, 0, 0, 0.2)",      // Dark-ish but subtle shadow when light & not hovered
     minHeight: "200px",
     display: "flex",
     flexDirection: "column",
