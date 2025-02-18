@@ -39,7 +39,7 @@ export function useMDXComponents(
           marginBottom: "1rem",
           color: "#666",
           fontStyle: "italic",
-          margin: 0
+          margin: 0,
         }}
         {...props}
       />
