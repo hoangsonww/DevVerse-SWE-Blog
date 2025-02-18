@@ -25,12 +25,12 @@ export const metadata = {
   openGraph: {
     title: "DevVerse Blog - Your Source for Computer Science & SWE Knowledge",
     description: "Sharing Computer Science Knowledge",
-    url: "https://your-domain.com",
+    url: "https://devverse-swe.vercel.app",
     siteName:
       "DevVerse CS Blog - Your Source for Computer Science & SWE Knowledge",
     images: [
       {
-        url: "https://your-domain.com/android-chrome-512x512.png",
+        url: "https://devverse-swe.vercel.app/android-chrome-512x512.png",
         width: 512,
         height: 512,
       },
@@ -43,7 +43,7 @@ export const metadata = {
     title: "DevVerse CS Blog",
     description: "Sharing Computer Science Knowledge",
     creator: "@yourtwitterhandle", // Replace with your Twitter handle
-    images: ["https://your-domain.com/android-chrome-512x512.png"],
+    images: ["https://devverse-swe.vercel.app/android-chrome-512x512.png"],
   },
 };
 
