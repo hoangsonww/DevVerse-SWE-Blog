@@ -138,6 +138,15 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             }}
           >
             Load More Articles
+            {/* Arrow down icon */}
+            <motion.span
+              style={{ marginLeft: "0.5rem" }}
+              initial={{ y: 0 }}
+              animate={{ y: 3 }}
+              transition={{ yoyo: Infinity, duration: 0.5 }}
+            >
+              ↓
+            </motion.span>
           </motion.button>
         </div>
       )}

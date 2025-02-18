@@ -33,6 +33,7 @@ const imageVariants = {
 export default function HomePageContent({ articles }: HomePageContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredArticles, setFilteredArticles] = useState(articles);
+  const [isFocused, setIsFocused] = useState(false);
 
   const debounce = (func: Function, delay: number) => {
     let timer: NodeJS.Timeout;
@@ -104,7 +105,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         </p>
       </motion.header>
 
-      {/* Search Bar */}
+      {/* Motion Search Bar */}
       <div
         style={{
           display: "flex",
@@ -112,7 +113,12 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           marginBottom: "2rem",
         }}
       >
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          whileFocus={{ scale: 1.1 }}
+          whileTap={{ scale: 1 }}
+          transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
           style={{
             display: "flex",
             alignItems: "center",
@@ -120,18 +126,28 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             border: "2px solid var(--border-color, #ccc)",
             borderRadius: "12px",
             padding: "0.75rem 1rem",
-            width: "400px",
             boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+            width: isFocused || searchTerm ? "500px" : "400px",
+            transition: "width 0.3s ease-in-out",
           }}
         >
           <FaSearch
-            style={{ marginRight: "0.75rem", color: "var(--text-color)" }}
+            style={{
+              marginRight: "0.75rem",
+              color: isFocused ? "#0070f3" : "var(--text-color)",
+              transition: "color 0.3s ease",
+            }}
           />
-          <input
+          <motion.input
             type="text"
             placeholder="Search articles..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
             style={{
               border: "none",
               outline: "none",
@@ -142,7 +158,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               color: "var(--text-color)",
             }}
           />
-        </div>
+        </motion.div>
       </div>
 
       <motion.div
