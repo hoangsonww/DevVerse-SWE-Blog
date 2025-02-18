@@ -48,9 +48,9 @@ Feel free to contribute your own articles, improve the existing content, or cust
 
 ## Live Application
 
-The blog is deployed on Vercel and can be accessed at [https://devverse-cs-swe-blog.vercel.app/](https://devverse-cs-swe-blog.vercel.app/).
+The blog is deployed on Vercel and can be accessed at [https://devverse-swe.vercel.app/](https://devverse-swe.vercel.app/).
 
-The backup deployment is available on Netlify at [https://devverse-cs-swe-blog.netlify.app/](https://devverse-cs-swe-blog.netlify.app/).
+The backup deployment is available on Netlify at [https://devverse-swe.netlify.app](https://devverse-swe.netlify.app).
 
 Feel free to explore the content and features of the blog! 🚀
 
@@ -131,7 +131,7 @@ devverse-cs-swe-blog/
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/hoangsonww/DevVerse-CS-SWE-Blog.git
+   git clone https://github.com/hoangsonww/DevVerse-SWE-Blog.git
    cd DevVerse-CS-SWE-Blog
    ```
 
