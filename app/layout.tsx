@@ -49,39 +49,38 @@ export const metadata = {
 };
 
 export default function RootLayout({
-  children,
-}: {
+                                     children,
+                                   }: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-          integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
-          crossOrigin="anonymous"
-        />
-        {/* Google Tag (gtag.js) */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-FG083YTDHQ"
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`
+    <head>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+        integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
+        crossOrigin="anonymous"
+      />
+      {/* Google Tag (gtag.js) */}
+      <Script
+        strategy="beforeInteractive"
+        src="https://www.googletagmanager.com/gtag/js?id=G-FG083YTDHQ"
+      />
+      <Script id="gtag-init" strategy="beforeInteractive">
+        {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-FG083YTDHQ');
           `}
-        </Script>
-      </head>
-      <body className={inter.className}>
-        <Navbar />
-        <main className="container">{children}</main>
-        <Footer />
-      </body>
+      </Script>
+    </head>
+    <body className={inter.className}>
+    <Navbar />
+    <main className="container">{children}</main>
+    <Footer />
+    </body>
     </html>
   );
 }
