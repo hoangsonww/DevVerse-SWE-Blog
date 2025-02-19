@@ -81,7 +81,7 @@ export default function InteractiveCard({
   };
 
   return (
-    <Link href={`/topics/${slug}`} style={{ textDecoration: "none" }}>
+    <Link href={`/articles/${slug}`} style={{ textDecoration: "none" }}>
       <div
         style={cardStyle}
         onMouseOver={() => setHover(true)}

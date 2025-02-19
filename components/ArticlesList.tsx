@@ -16,7 +16,7 @@ interface ArticlesListProps {
 }
 
 export default function ArticlesList({ articles }: ArticlesListProps) {
-  // Compute distinct topics across all articles.
+  // Compute distinct articles across all articles.
   const allTopicsSet = new Set<string>();
   articles.forEach((article) => {
     article.topics.forEach((topic) => allTopicsSet.add(topic));

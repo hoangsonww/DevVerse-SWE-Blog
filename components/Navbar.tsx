@@ -52,9 +52,9 @@ export default function Navbar() {
         <span>Home</span>
       </span>
     );
-  } else if (segments[0] === "topics") {
+  } else if (segments[0] === "articles") {
     if (segments.length === 1) {
-      // e.g., /topics
+      // e.g., /articles
       breadcrumb = (
         <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <Link
@@ -81,12 +81,12 @@ export default function Navbar() {
             }}
           >
             <FiBook />
-            <span>Topics</span>
+            <span>Articles</span>
           </Link>
         </span>
       );
     } else {
-      // e.g., /topics/ai-ml
+      // e.g., /articles/ai-ml
       breadcrumb = (
         <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <Link
@@ -113,7 +113,7 @@ export default function Navbar() {
             }}
           >
             <FiBook />
-            <span>Topics</span>
+            <span>Articles</span>
           </Link>
           <FiChevronRight />
           <span>{formatSlug(segments[1])}</span>
@@ -192,7 +192,14 @@ export default function Navbar() {
           .darkmode {
             width: 100%;
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
+            padding: 0;
+          }
+          .darkmode button {
+            width: 100%;
+            padding: 0;
+            text-align: left;
+            font-size: 1.3rem;
           }
         }
       `}</style>

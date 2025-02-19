@@ -1,13 +1,14 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "TailwindCSS: A Comprehensive Guide",
-  description: "An in-depth exploration of TailwindCSS, covering its core concepts, installation, configuration, customization, and best practices for building modern, responsive web designs.",
-  topics: ["TailwindCSS", "Web Development", "CSS", "Design"]
-}
+  description:
+    "An in-depth exploration of TailwindCSS, covering its core concepts, installation, configuration, customization, and best practices for building modern, responsive web designs.",
+  topics: ["Web Development", "Design"],
+};
 
 export default function TailwindCSSArticle({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # TailwindCSS: A Comprehensive Guide
@@ -89,6 +90,14 @@ module.exports = {
 };
 ```
 
+**Note:** If you are using a framework like Next.js or a library like React, ensure that you set your `styles.css` (or equivalent) file to:
+
+```css
+@import "tailwindcss";
+```
+
+This tells your build process to include TailwindCSS in your final CSS bundle, so it does not get purged.
+
 ### Key Configuration Options
 
 - **`content`:**
@@ -110,12 +119,14 @@ TailwindCSS is built around utility classes. Instead of writing custom CSS, you 
 <div class="bg-container-background text-text-color p-6 rounded-lg shadow-md">
   <h1 class="text-3xl font-bold mb-4">Hello, TailwindCSS!</h1>
   <p class="text-lg">
-    This is a simple example of how TailwindCSS can help you rapidly build a modern UI.
+    This is a simple example of how TailwindCSS can help you rapidly build a
+    modern UI.
   </p>
 </div>
 ```
 
 Each class corresponds to a specific style:
+
 - `bg-container-background`: Sets the background color.
 - `text-text-color`: Sets the text color.
 - `p-6`: Applies padding.
@@ -214,8 +225,13 @@ Imagine a landing page built entirely with TailwindCSS:
 <section class="bg-blue-600 text-white py-20">
   <div class="container mx-auto px-4 text-center">
     <h1 class="text-5xl font-bold mb-6">Welcome to Our Product</h1>
-    <p class="text-xl mb-8">Building responsive, modern web applications with ease.</p>
-    <a href="#get-started" class="bg-white text-blue-600 py-3 px-6 rounded-full shadow hover:bg-gray-100 transition">
+    <p class="text-xl mb-8">
+      Building responsive, modern web applications with ease.
+    </p>
+    <a
+      href="#get-started"
+      class="bg-white text-blue-600 py-3 px-6 rounded-full shadow hover:bg-gray-100 transition"
+    >
       Get Started
     </a>
   </div>
@@ -245,4 +261,4 @@ By mastering TailwindCSS, you can build beautiful, performant, and maintainable 
 
 ---
 
-*This comprehensive guide provides an in-depth look at TailwindCSS, from installation and configuration to advanced customization and best practices. Dive into TailwindCSS and transform your approach to building modern, responsive web designs!*
+_This comprehensive guide provides an in-depth look at TailwindCSS, from installation and configuration to advanced customization and best practices. Dive into TailwindCSS and transform your approach to building modern, responsive web designs!_

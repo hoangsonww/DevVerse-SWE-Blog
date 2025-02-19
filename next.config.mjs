@@ -5,6 +5,9 @@ import remarkMath from 'remark-math';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    domains: ['onnx.ai', 'google.com', 'github.com', 'raw.githubusercontent.com', 'microsoft.com', 'medium.com', 'miro.medium.com']
+  },
   // Allow .js, .jsx, .ts, .tsx, .md, and .mdx files as pages/components
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx']
 }

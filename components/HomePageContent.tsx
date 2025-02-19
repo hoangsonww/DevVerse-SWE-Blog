@@ -98,10 +98,11 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           }}
         >
           DevVerse Blog is your go-to source for deep dives into computer
-          science and technology. Explore in-depth articles on AI/ML, web
-          frameworks, microservices, and cutting-edge tech innovations. Stay
-          informed, inspired, and ready to tackle the latest trends in computer
-          science and software development. 🚀
+          science and technology. Explore more than{" "}
+          <strong>{articles.length}</strong> articles covering frameworks,
+          microservices, and cutting-edge tech innovations. Stay informed,
+          inspired, and ready to tackle the latest trends in computer science
+          and software development. 🚀
         </p>
       </motion.header>
 

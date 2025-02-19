@@ -1,13 +1,19 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "Explainable AI: Making Machine Learning Transparent",
-  description: "A comprehensive exploration of Explainable AI (XAI), covering its technical foundations, importance in modern machine learning, and real-world applications.",
-  topics: ["Artificial Intelligence", "Machine Learning", "Tech Innovations", "Ethics in AI"]
-}
+  description:
+    "A comprehensive exploration of Explainable AI (XAI), covering its technical foundations, importance in modern machine learning, and real-world applications.",
+  topics: [
+    "Artificial Intelligence",
+    "Machine Learning",
+    "Tech Innovations",
+    "Ethics in AI",
+  ],
+};
 
 export default function ExplainableAIArticle({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # Explainable AI: Making Machine Learning Transparent
@@ -71,6 +77,7 @@ These techniques treat the machine learning model as a black box and work by app
 LIME creates a local surrogate model—a simpler, interpretable model (like linear regression)—that approximates the behavior of the black-box model in the vicinity of a specific prediction.
 
 **Process:**
+
 1. **Perturbation:** The original data point is slightly perturbed to generate a new set of samples.
 2. **Prediction:** The black-box model makes predictions on these new samples.
 3. **Surrogate Fitting:** An interpretable model is fitted to these perturbed samples to understand which features drive the prediction.
@@ -110,6 +117,7 @@ exp.show_in_notebook(show_table=True, show_all=False)
 SHAP leverages Shapley values from cooperative game theory to assign each feature an importance score for a given prediction. It considers all possible combinations of features, providing a fair and consistent measure of each feature’s contribution.
 
 **Process:**
+
 - **Shapley Value Computation:** For every feature, SHAP calculates the contribution by considering the difference in model output with and without that feature, averaged over all possible feature combinations.
 - **Visualization:** SHAP values can be visualized using various plots (waterfall, beeswarm, etc.) to provide a clear picture of how each feature affects the prediction.
 
@@ -135,23 +143,23 @@ shap.plots.waterfall(shap_values[0])
 For models that are inherently interpretable, the explanation is often embedded in the model structure itself.
 
 - **Decision Trees:**
-The tree structure clearly shows the path taken from the root to a leaf, making it easy to trace how a decision was reached. Each split is based on a feature threshold, providing immediate insight into the model's logic.
+  The tree structure clearly shows the path taken from the root to a leaf, making it easy to trace how a decision was reached. Each split is based on a feature threshold, providing immediate insight into the model's logic.
 
 - **Linear Models:**
-In models like linear or logistic regression, the weights (coefficients) assigned to each feature provide a direct measure of its influence. This direct relationship allows for straightforward interpretation of the model’s behavior.
+  In models like linear or logistic regression, the weights (coefficients) assigned to each feature provide a direct measure of its influence. This direct relationship allows for straightforward interpretation of the model’s behavior.
 
 ### 3.3 Advanced Techniques and Hybrid Models
 
 Researchers are exploring more advanced techniques to bridge the gap between accuracy and interpretability:
 
 - **Layer-wise Relevance Propagation (LRP):**
-This technique distributes the prediction value backward through the network layers, attributing relevance scores to each input feature. It’s particularly useful in deep neural networks where traditional interpretability methods fall short.
+  This technique distributes the prediction value backward through the network layers, attributing relevance scores to each input feature. It’s particularly useful in deep neural networks where traditional interpretability methods fall short.
 
 - **Saliency Maps and Grad-CAM:**
-Commonly used in computer vision, these techniques highlight areas of an input image that have the highest influence on the prediction. They offer intuitive visual explanations for model decisions in image recognition tasks.
+  Commonly used in computer vision, these techniques highlight areas of an input image that have the highest influence on the prediction. They offer intuitive visual explanations for model decisions in image recognition tasks.
 
 - **Hybrid Models:**
-These models combine the strengths of both interpretable and high-performance systems. For example, a deep neural network might be paired with a simpler surrogate model that explains its decisions, offering a balance between raw performance and interpretability.
+  These models combine the strengths of both interpretable and high-performance systems. For example, a deep neural network might be paired with a simpler surrogate model that explains its decisions, offering a balance between raw performance and interpretability.
 
 ---
 
@@ -162,22 +170,22 @@ While XAI holds great promise, several challenges remain that complicate its wid
 ### 4.1 Trade-Off Between Accuracy and Interpretability
 
 - **Complexity vs. Transparency:**
-High-performing models, such as deep neural networks, often achieve their success through layers of abstraction that hinder straightforward interpretation. Simplifying these models to make them interpretable can sometimes compromise their accuracy.
+  High-performing models, such as deep neural networks, often achieve their success through layers of abstraction that hinder straightforward interpretation. Simplifying these models to make them interpretable can sometimes compromise their accuracy.
 
 ### 4.2 Scalability and Computational Costs
 
 - **Resource Intensive:**
-Methods like SHAP, which require evaluating multiple combinations of features, can be computationally expensive—especially for models with a large number of features or when deployed in real-time systems.
+  Methods like SHAP, which require evaluating multiple combinations of features, can be computationally expensive—especially for models with a large number of features or when deployed in real-time systems.
 
 ### 4.3 Human-Centric Design
 
 - **Interpretability vs. Comprehensibility:**
-It’s not enough for a model to be explainable—the explanation must be understandable to a non-technical audience. Crafting explanations that are both technically accurate and intuitively clear is a significant design challenge.
+  It’s not enough for a model to be explainable—the explanation must be understandable to a non-technical audience. Crafting explanations that are both technically accurate and intuitively clear is a significant design challenge.
 
 ### 4.4 Evolving Models and Dynamic Data
 
 - **Continuous Learning:**
-In environments where models are updated regularly with new data, maintaining consistent and up-to-date explanations can be challenging. Dynamic models require adaptive XAI techniques that can evolve alongside them.
+  In environments where models are updated regularly with new data, maintaining consistent and up-to-date explanations can be challenging. Dynamic models require adaptive XAI techniques that can evolve alongside them.
 
 ---
 
@@ -204,34 +212,34 @@ The field of Explainable AI is rapidly evolving, and several promising research 
 ### 6.1 Interactive and Adaptive Explanations
 
 - **User Feedback Integration:**
-Future systems could allow end users to interact with explanations—adjusting parameters or exploring alternative scenarios—to gain deeper insights and provide feedback that refines the model.
+  Future systems could allow end users to interact with explanations—adjusting parameters or exploring alternative scenarios—to gain deeper insights and provide feedback that refines the model.
 
 - **Tailored Explanations:**
-Explanations might be dynamically tailored to the user’s level of expertise, ensuring that both technical and non-technical stakeholders can understand the model’s reasoning.
+  Explanations might be dynamically tailored to the user’s level of expertise, ensuring that both technical and non-technical stakeholders can understand the model’s reasoning.
 
 ### 6.2 Integration with Augmented Analytics
 
 - **Enhanced Visualization:**
-Combining XAI techniques with advanced data visualization tools can create richer, more intuitive dashboards that help stakeholders explore and understand AI decisions in real time.
+  Combining XAI techniques with advanced data visualization tools can create richer, more intuitive dashboards that help stakeholders explore and understand AI decisions in real time.
 
 - **Contextual Insights:**
-Future systems may integrate contextual data (e.g., historical trends or external factors) to provide a more holistic explanation of model behavior.
+  Future systems may integrate contextual data (e.g., historical trends or external factors) to provide a more holistic explanation of model behavior.
 
 ### 6.3 Standardization and Regulatory Frameworks
 
 - **Benchmarking Interpretability:**
-Establishing standardized metrics and benchmarks for explainability will be essential for comparing different XAI methods and ensuring they meet regulatory requirements.
+  Establishing standardized metrics and benchmarks for explainability will be essential for comparing different XAI methods and ensuring they meet regulatory requirements.
 
 - **Ethical AI Guidelines:**
-As governments and organizations develop more comprehensive ethical AI frameworks, explainability will be a key component in achieving transparency and accountability.
+  As governments and organizations develop more comprehensive ethical AI frameworks, explainability will be a key component in achieving transparency and accountability.
 
 ### 6.4 Hybrid Models and Novel Architectures
 
 - **Balancing Performance and Interpretability:**
-Research into hybrid architectures—where a high-performing model is coupled with a transparent surrogate—could yield systems that do not sacrifice accuracy for interpretability.
+  Research into hybrid architectures—where a high-performing model is coupled with a transparent surrogate—could yield systems that do not sacrifice accuracy for interpretability.
 
 - **Self-Explaining Neural Networks:**
-Emerging techniques aim to embed explainability directly into the architecture of deep learning models, making them inherently more transparent without additional post-hoc methods.
+  Emerging techniques aim to embed explainability directly into the architecture of deep learning models, making them inherently more transparent without additional post-hoc methods.
 
 ---
 
@@ -241,12 +249,12 @@ Explainable AI represents a fundamental shift in how we develop, deploy, and tru
 
 In this article, we have explored the multifaceted nature of XAI—from its theoretical underpinnings and technical methodologies to its real-world applications and future directions. Whether you are a researcher, developer, or policymaker, embracing explainability is crucial for harnessing the full potential of AI in a responsible and ethical manner.
 
-*Further reading and references:*
+_Further reading and references:_
 
-- Doshi-Velez, F., & Kim, B. (2017). *Towards A Rigorous Science of Interpretable Machine Learning*. arXiv preprint arXiv:1702.08608.
-- Rudin, C. (2019). *Stop Explaining Black Box Machine Learning Models for High Stakes Decisions and Use Interpretable Models Instead*. Nature Machine Intelligence.
-- Molnar, C. (2020). *Interpretable Machine Learning: A Guide for Making Black Box Models Explainable*.
-- Samek, W., Montavon, G., Lapuschkin, S., Anders, C. J., & Müller, K. R. (2019). *Explainable AI: Interpreting, Explaining and Visualizing Deep Learning*. Springer.
+- Doshi-Velez, F., & Kim, B. (2017). _Towards A Rigorous Science of Interpretable Machine Learning_. arXiv preprint arXiv:1702.08608.
+- Rudin, C. (2019). _Stop Explaining Black Box Machine Learning Models for High Stakes Decisions and Use Interpretable Models Instead_. Nature Machine Intelligence.
+- Molnar, C. (2020). _Interpretable Machine Learning: A Guide for Making Black Box Models Explainable_.
+- Samek, W., Montavon, G., Lapuschkin, S., Anders, C. J., & Müller, K. R. (2019). _Explainable AI: Interpreting, Explaining and Visualizing Deep Learning_. Springer.
 
 By continuing to innovate and refine XAI techniques, we move closer to a future where AI systems are not only powerful but also open, fair, and truly understandable.
 

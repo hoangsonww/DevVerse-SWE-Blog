@@ -1,13 +1,14 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "Real-Time Communication with WebSockets in Node.js",
-  description: "A comprehensive guide on leveraging WebSockets in Node.js to build real-time applications, covering the basics, implementation with the ws library, and best practices.",
-  topics: ["Web Development", "Node.js", "Real-Time Applications"]
-}
+  description:
+    "A comprehensive guide on leveraging WebSockets in Node.js to build real-time applications, covering the basics, implementation with the ws library, and best practices.",
+  topics: ["Web Development"],
+};
 
 export default function WebSocketContent({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # Real-Time Communication with WebSockets in Node.js
@@ -73,39 +74,40 @@ npm install ws
 Create a file named `server.js` and add the following code:
 
 ```javascript
-const WebSocket = require('ws');
+const WebSocket = require("ws");
 
 // Create a WebSocket server on port 8080
 const wss = new WebSocket.Server({ port: 8080 });
 
-wss.on('connection', (ws) => {
-  console.log('New client connected');
+wss.on("connection", (ws) => {
+  console.log("New client connected");
 
   // Send a welcome message when a client connects
-  ws.send('Welcome to the WebSocket server!');
+  ws.send("Welcome to the WebSocket server!");
 
   // Handle incoming messages from clients
-  ws.on('message', (message) => {
+  ws.on("message", (message) => {
     console.log(`Received: ${message}`);
     // Echo the received message back to the client
     ws.send(`Server received: ${message}`);
   });
 
   // Handle client disconnection
-  ws.on('close', () => {
-    console.log('Client disconnected');
+  ws.on("close", () => {
+    console.log("Client disconnected");
   });
 
   // Handle errors
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
+  ws.on("error", (error) => {
+    console.error("WebSocket error:", error);
   });
 });
 
-console.log('WebSocket server is running on ws://localhost:8080');
+console.log("WebSocket server is running on ws://localhost:8080");
 ```
 
 **Explanation:**
+
 - **Connection Event:** When a client connects, the server logs the event and sends a welcome message.
 - **Message Handling:** For each incoming message, the server logs the message and echoes it back.
 - **Disconnection & Error Handling:** Proper events are set up to log disconnections and errors, which is crucial for debugging.
@@ -123,42 +125,43 @@ Create a file named `client.html` and add the following code:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>WebSocket Client</title>
-</head>
-<body>
-  <h1>WebSocket Client</h1>
-  <script>
-    // Connect to the WebSocket server
-    const socket = new WebSocket('ws://localhost:8080');
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Client</title>
+  </head>
+  <body>
+    <h1>WebSocket Client</h1>
+    <script>
+      // Connect to the WebSocket server
+      const socket = new WebSocket("ws://localhost:8080");
 
-    // When the connection is open, send a message to the server
-    socket.addEventListener('open', () => {
-      console.log('Connected to the server');
-      socket.send('Hello, Server!');
-    });
+      // When the connection is open, send a message to the server
+      socket.addEventListener("open", () => {
+        console.log("Connected to the server");
+        socket.send("Hello, Server!");
+      });
 
-    // Listen for messages from the server
-    socket.addEventListener('message', (event) => {
-      console.log('Message from server:', event.data);
-    });
+      // Listen for messages from the server
+      socket.addEventListener("message", (event) => {
+        console.log("Message from server:", event.data);
+      });
 
-    // Handle connection closure
-    socket.addEventListener('close', () => {
-      console.log('Disconnected from the server');
-    });
+      // Handle connection closure
+      socket.addEventListener("close", () => {
+        console.log("Disconnected from the server");
+      });
 
-    // Handle errors
-    socket.addEventListener('error', (error) => {
-      console.error('WebSocket error:', error);
-    });
-  </script>
-</body>
+      // Handle errors
+      socket.addEventListener("error", (error) => {
+        console.error("WebSocket error:", error);
+      });
+    </script>
+  </body>
 </html>
 ```
 
 **Explanation:**
+
 - The client connects to the WebSocket server at `ws://localhost:8080`.
 - Once connected, it sends a greeting message.
 - It listens for messages from the server and logs them to the console.
@@ -173,46 +176,46 @@ Building real-time applications involves more than just setting up a basic conne
 ### 5.1 Scalability
 
 - **Load Balancing:**
-For applications with many concurrent connections, use load balancers that support sticky sessions or implement clustering. This distributes client connections across multiple server instances.
+  For applications with many concurrent connections, use load balancers that support sticky sessions or implement clustering. This distributes client connections across multiple server instances.
 
 - **Horizontal Scaling:**
-Deploy multiple Node.js server instances behind a reverse proxy or use technologies like Docker and Kubernetes to manage scaling efficiently.
+  Deploy multiple Node.js server instances behind a reverse proxy or use technologies like Docker and Kubernetes to manage scaling efficiently.
 
 - **Message Broadcasting:**
-Implement mechanisms to broadcast messages to multiple clients, which is common in chat applications or live updates. The server can loop through all active connections to send updates.
+  Implement mechanisms to broadcast messages to multiple clients, which is common in chat applications or live updates. The server can loop through all active connections to send updates.
 
 ### 5.2 Security
 
 - **Using Secure WebSockets:**
-Always use `wss://` (WebSocket Secure) in production to encrypt data between the client and server.
+  Always use `wss://` (WebSocket Secure) in production to encrypt data between the client and server.
 
 - **Authentication and Authorization:**
-Integrate token-based authentication (like JWT) during the WebSocket handshake to ensure that only authorized clients can connect.
+  Integrate token-based authentication (like JWT) during the WebSocket handshake to ensure that only authorized clients can connect.
 
 - **Input Validation:**
-Validate all incoming messages to prevent injection attacks and other malicious behavior.
+  Validate all incoming messages to prevent injection attacks and other malicious behavior.
 
 - **Rate Limiting:**
-Implement rate limiting to mitigate denial-of-service (DoS) attacks and ensure fair usage of resources.
+  Implement rate limiting to mitigate denial-of-service (DoS) attacks and ensure fair usage of resources.
 
 ### 5.3 Error Handling and Recovery
 
 - **Reconnection Logic:**
-On the client side, implement reconnection strategies to automatically attempt to reconnect if the connection is lost.
+  On the client side, implement reconnection strategies to automatically attempt to reconnect if the connection is lost.
 
 - **Graceful Shutdowns:**
-Design your server to handle shutdowns gracefully by notifying connected clients and allowing them to reconnect once the server is back online.
+  Design your server to handle shutdowns gracefully by notifying connected clients and allowing them to reconnect once the server is back online.
 
 ### 5.4 Monitoring and Logging
 
 - **Connection Metrics:**
-Track the number of active connections, message rates, and error rates to monitor the health of your WebSocket server.
+  Track the number of active connections, message rates, and error rates to monitor the health of your WebSocket server.
 
 - **Detailed Logging:**
-Log key events such as connections, disconnections, errors, and message exchanges. This is critical for debugging and maintaining the system.
+  Log key events such as connections, disconnections, errors, and message exchanges. This is critical for debugging and maintaining the system.
 
 - **Performance Profiling:**
-Regularly profile your application to identify bottlenecks and optimize resource usage.
+  Regularly profile your application to identify bottlenecks and optimize resource usage.
 
 ---
 
@@ -249,9 +252,9 @@ Real-time data feeds, such as stock tickers, live sports scores, and IoT sensor 
 For many real-time applications, broadcasting messages to all connected clients is essential. You can implement broadcasting by iterating over all active connections:
 
 ```javascript
-wss.on('connection', (ws) => {
+wss.on("connection", (ws) => {
   // Broadcast a message to all clients
-  ws.on('message', (message) => {
+  ws.on("message", (message) => {
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(`Broadcast: ${message}`);
@@ -266,24 +269,24 @@ wss.on('connection', (ws) => {
 Real-world applications often need to handle various types of messages. Consider using a simple protocol (e.g., JSON messages with a type field) to differentiate between different kinds of data:
 
 ```javascript
-ws.on('message', (data) => {
+ws.on("message", (data) => {
   let message;
   try {
     message = JSON.parse(data);
   } catch (error) {
-    console.error('Invalid JSON:', data);
+    console.error("Invalid JSON:", data);
     return;
   }
 
   switch (message.type) {
-    case 'chat':
+    case "chat":
       // Handle chat message
       break;
-    case 'update':
+    case "update":
       // Handle data update
       break;
     default:
-      console.warn('Unknown message type:', message.type);
+      console.warn("Unknown message type:", message.type);
   }
 });
 ```
@@ -291,10 +294,10 @@ ws.on('message', (data) => {
 ### 7.3 Integrating with Other Technologies
 
 - **Socket.io:**
-For more advanced features like automatic reconnection, room management, and broadcasting, consider libraries like Socket.io. While this article focuses on the `ws` library, exploring alternatives can be beneficial for larger projects.
+  For more advanced features like automatic reconnection, room management, and broadcasting, consider libraries like Socket.io. While this article focuses on the `ws` library, exploring alternatives can be beneficial for larger projects.
 
 - **RESTful APIs:**
-Combine WebSockets with traditional REST APIs to handle both real-time and non-real-time data needs efficiently.
+  Combine WebSockets with traditional REST APIs to handle both real-time and non-real-time data needs efficiently.
 
 ---
 
@@ -303,16 +306,16 @@ Combine WebSockets with traditional REST APIs to handle both real-time and non-r
 While WebSockets offer significant advantages, there are challenges to be aware of:
 
 - **Connection Management:**
-Maintaining persistent connections for thousands of clients requires careful resource management and robust server architecture.
+  Maintaining persistent connections for thousands of clients requires careful resource management and robust server architecture.
 
 - **Firewall and Proxy Issues:**
-Some networks and proxies may block WebSocket connections. It’s important to test your application in various environments.
+  Some networks and proxies may block WebSocket connections. It’s important to test your application in various environments.
 
 - **Data Consistency:**
-In systems where both HTTP and WebSocket communications are used, ensuring consistency across different communication channels can be challenging.
+  In systems where both HTTP and WebSocket communications are used, ensuring consistency across different communication channels can be challenging.
 
 - **Complexity in Error Handling:**
-Building robust reconnection and error-handling logic is essential but can add complexity to your codebase.
+  Building robust reconnection and error-handling logic is essential but can add complexity to your codebase.
 
 ---
 
@@ -321,16 +324,16 @@ Building robust reconnection and error-handling logic is essential but can add c
 Real-time web technologies are rapidly evolving. Here are some emerging trends:
 
 - **Serverless WebSockets:**
-Services like AWS API Gateway now support WebSocket APIs, enabling scalable, serverless real-time applications.
+  Services like AWS API Gateway now support WebSocket APIs, enabling scalable, serverless real-time applications.
 
 - **Edge Computing:**
-Moving real-time processing closer to users at the network edge can further reduce latency and improve performance.
+  Moving real-time processing closer to users at the network edge can further reduce latency and improve performance.
 
 - **Enhanced Protocols:**
-Future developments may include enhancements to the WebSocket protocol itself or new protocols designed specifically for real-time applications.
+  Future developments may include enhancements to the WebSocket protocol itself or new protocols designed specifically for real-time applications.
 
 - **Integration with AI:**
-Real-time applications incorporating AI for predictive analytics or natural language processing can further enhance user experiences.
+  Real-time applications incorporating AI for predictive analytics or natural language processing can further enhance user experiences.
 
 ---
 
@@ -347,18 +350,18 @@ Explore further enhancements with alternative libraries, serverless solutions, a
 ## 11. Further Reading and Resources
 
 - **Official Documentation:**
-[WebSocket API on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
-[ws Library Documentation](https://www.npmjs.com/package/ws)
+  [WebSocket API on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+  [ws Library Documentation](https://www.npmjs.com/package/ws)
 
 - **Tutorials and Courses:**
-Explore tutorials on platforms like Udemy, Coursera, and Pluralsight focused on real-time web development with Node.js and WebSockets.
+  Explore tutorials on platforms like Udemy, Coursera, and Pluralsight focused on real-time web development with Node.js and WebSockets.
 
 - **Books:**
-*"Node.js Design Patterns"* by Mario Casciaro and Luciano Mammino provides insights into building scalable Node.js applications, including real-time systems.
+  _"Node.js Design Patterns"_ by Mario Casciaro and Luciano Mammino provides insights into building scalable Node.js applications, including real-time systems.
 
 - **Communities:**
-Join forums, GitHub repositories, and online communities such as Stack Overflow or the Node.js Slack channel to discuss best practices and troubleshoot issues related to WebSockets.
+  Join forums, GitHub repositories, and online communities such as Stack Overflow or the Node.js Slack channel to discuss best practices and troubleshoot issues related to WebSockets.
 
 ---
 
-*This comprehensive guide on real-time communication with WebSockets in Node.js is designed to equip you with the knowledge and tools to build scalable, secure, and efficient real-time applications. Dive in, experiment, and innovate to create interactive web experiences that stand out in today’s digital landscape.*
+_This comprehensive guide on real-time communication with WebSockets in Node.js is designed to equip you with the knowledge and tools to build scalable, secure, and efficient real-time applications. Dive in, experiment, and innovate to create interactive web experiences that stand out in today’s digital landscape._

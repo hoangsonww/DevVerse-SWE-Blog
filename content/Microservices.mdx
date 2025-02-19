@@ -1,13 +1,14 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "The Microservices Architecture",
-  description: "Explore the world of microservices, containerization, and scalable systems. Learn about the benefits, challenges, and real-world applications of microservices architecture.",
-  topics: ["Web Architecture", "Web Development"]
-}
+  description:
+    "Explore the world of microservices, containerization, and scalable systems. Learn about the benefits, challenges, and real-world applications of microservices architecture.",
+  topics: ["Web Architecture", "Web Development"],
+};
 
 export default function MicroservicesContent({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # Microservices Architecture
@@ -144,10 +145,10 @@ spec:
         app: microservice
     spec:
       containers:
-      - name: microservice
-        image: your-docker-repo/microservice:latest
-        ports:
-        - containerPort: 3000
+        - name: microservice
+          image: your-docker-repo/microservice:latest
+          ports:
+            - containerPort: 3000
 ```
 
 This YAML file demonstrates how to deploy multiple instances (replicas) of a microservice, ensuring high availability and load balancing across the cluster.
@@ -189,16 +190,16 @@ In this configuration, NGINX routes requests to the appropriate backend services
 Microservices architecture is widely adopted in various industries and applications:
 
 - **E-commerce Platforms:**
-Separate services handle user authentication, product catalog management, shopping carts, payment processing, and order fulfillment—enabling agile updates and independent scaling.
+  Separate services handle user authentication, product catalog management, shopping carts, payment processing, and order fulfillment—enabling agile updates and independent scaling.
 
 - **Streaming Services:**
-Services for content delivery, recommendation engines, user profiles, and billing can operate independently, ensuring that high demand in one area does not overwhelm the entire system.
+  Services for content delivery, recommendation engines, user profiles, and billing can operate independently, ensuring that high demand in one area does not overwhelm the entire system.
 
 - **Financial Systems:**
-Critical functionalities such as risk assessment, transaction processing, and fraud detection are isolated, enhancing security and fault tolerance.
+  Critical functionalities such as risk assessment, transaction processing, and fraud detection are isolated, enhancing security and fault tolerance.
 
 - **Healthcare Systems:**
-Microservices allow healthcare applications to manage patient records, appointment scheduling, and telemedicine services independently, ensuring compliance and data privacy.
+  Microservices allow healthcare applications to manage patient records, appointment scheduling, and telemedicine services independently, ensuring compliance and data privacy.
 
 ---
 
@@ -207,19 +208,19 @@ Microservices allow healthcare applications to manage patient records, appointme
 Successfully implementing a microservices architecture involves more than just technical design. Consider the following best practices:
 
 - **Robust CI/CD Pipelines:**
-Automate testing, deployment, and monitoring to ensure that each microservice can be updated independently with minimal downtime.
+  Automate testing, deployment, and monitoring to ensure that each microservice can be updated independently with minimal downtime.
 
 - **Centralized Logging and Monitoring:**
-Use tools like ELK Stack, Prometheus, and Grafana to aggregate logs and metrics from all services, making it easier to diagnose issues in distributed systems.
+  Use tools like ELK Stack, Prometheus, and Grafana to aggregate logs and metrics from all services, making it easier to diagnose issues in distributed systems.
 
 - **Service Contracts and API Versioning:**
-Clearly define service interfaces and maintain backward compatibility through versioning, reducing the risk of breaking dependencies.
+  Clearly define service interfaces and maintain backward compatibility through versioning, reducing the risk of breaking dependencies.
 
 - **Security Best Practices:**
-Secure each microservice with proper authentication, authorization, and encryption. Consider using service meshes (e.g., Istio) for securing inter-service communications.
+  Secure each microservice with proper authentication, authorization, and encryption. Consider using service meshes (e.g., Istio) for securing inter-service communications.
 
 - **Resiliency Patterns:**
-Implement patterns like circuit breakers, retries, and bulkheads to improve fault tolerance and mitigate cascading failures.
+  Implement patterns like circuit breakers, retries, and bulkheads to improve fault tolerance and mitigate cascading failures.
 
 ---
 
@@ -228,16 +229,16 @@ Implement patterns like circuit breakers, retries, and bulkheads to improve faul
 The evolution of microservices is driving innovations that further simplify and enhance distributed architectures:
 
 - **Serverless Architectures:**
-Combining microservices with serverless computing allows for even more granular scaling and reduced operational overhead.
+  Combining microservices with serverless computing allows for even more granular scaling and reduced operational overhead.
 
 - **Service Meshes:**
-Service meshes provide advanced traffic management, security, and observability, streamlining the complexity of inter-service communication.
+  Service meshes provide advanced traffic management, security, and observability, streamlining the complexity of inter-service communication.
 
 - **Event-Driven Architectures:**
-Incorporating event streaming platforms like Kafka facilitates asynchronous communication between services, improving decoupling and scalability.
+  Incorporating event streaming platforms like Kafka facilitates asynchronous communication between services, improving decoupling and scalability.
 
 - **Edge Computing Integration:**
-Distributing microservices closer to the data source (at the edge) reduces latency and enhances real-time processing capabilities.
+  Distributing microservices closer to the data source (at the edge) reduces latency and enhances real-time processing capabilities.
 
 ---
 

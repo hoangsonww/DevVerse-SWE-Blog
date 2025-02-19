@@ -9,6 +9,7 @@
   --container-background: #f7f7f7;
   --footer-background-color: #f7f7f7;
   --footer-border-color: #eaeaea;
+  --border-color: #eaeaea;
 }
 
 .dark {
@@ -20,6 +21,7 @@
   --container-background: #121212;
   --footer-background-color: #121212;
   --footer-border-color: #fff;
+  --border-color: #fff;
 }
 
 body {
@@ -31,6 +33,15 @@ body {
     background-color 0.3s ease,
     color 0.3s ease;
   overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-color) !important;
 }
 
 a {

@@ -1,13 +1,14 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "Supervised vs. Unsupervised Learning",
-  description: "An in-depth, comprehensive comparison of supervised and unsupervised learning, exploring theoretical foundations, algorithms, evaluation metrics, advanced topics, and real-world applications.",
-  topics: ["Machine Learning", "Artificial Intelligence"]
-}
+  description:
+    "An in-depth, comprehensive comparison of supervised and unsupervised learning, exploring theoretical foundations, algorithms, evaluation metrics, advanced articles, and real-world applications.",
+  topics: ["Machine Learning", "Artificial Intelligence"],
+};
 
 export default function LearningContent({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # Supervised vs. Unsupervised Learning
@@ -61,6 +62,7 @@ Supervised learning involves training a model using data that includes both inpu
 ### 2.3 Evaluation Metrics
 
 For supervised learning, performance is measured using various metrics depending on the task:
+
 - **For Classification:**
   Metrics such as accuracy, precision, recall, and F1 score help determine how well the model distinguishes between classes.
 - **For Regression:**
@@ -102,37 +104,38 @@ Unsupervised learning works with data that does not include explicit labels. The
 ### 3.1 Core Concepts
 
 - **Unlabeled Data:**
-The input data does not come with predefined outputs. The algorithm must infer the structure on its own.
+  The input data does not come with predefined outputs. The algorithm must infer the structure on its own.
 
 - **Discovering Patterns:**
-Unsupervised learning focuses on clustering similar data points, reducing the complexity of data by finding a simpler representation, or detecting anomalies that do not fit the general pattern.
+  Unsupervised learning focuses on clustering similar data points, reducing the complexity of data by finding a simpler representation, or detecting anomalies that do not fit the general pattern.
 
 - **Learning Process:**
-The model examines the data to identify similarities and differences, grouping similar instances together without any prior knowledge of what the output should be.
+  The model examines the data to identify similarities and differences, grouping similar instances together without any prior knowledge of what the output should be.
 
 ### 3.2 Common Algorithms
 
 - **K-Means Clustering:**
-This algorithm partitions data into a predetermined number of clusters based on similarity. It iteratively assigns data points to the nearest cluster center and then updates the centers.
+  This algorithm partitions data into a predetermined number of clusters based on similarity. It iteratively assigns data points to the nearest cluster center and then updates the centers.
 
 - **Hierarchical Clustering:**
-Instead of specifying the number of clusters in advance, hierarchical clustering builds a tree-like structure (dendrogram) that shows data grouped at different levels of similarity.
+  Instead of specifying the number of clusters in advance, hierarchical clustering builds a tree-like structure (dendrogram) that shows data grouped at different levels of similarity.
 
 - **DBSCAN (Density-Based Spatial Clustering of Applications with Noise):**
-DBSCAN groups together points that are closely packed and marks points in sparse regions as outliers. It is particularly effective for data with irregular cluster shapes.
+  DBSCAN groups together points that are closely packed and marks points in sparse regions as outliers. It is particularly effective for data with irregular cluster shapes.
 
 - **Dimensionality Reduction Techniques:**
-Methods such as Principal Component Analysis (PCA) and t-Distributed Stochastic Neighbor Embedding (t-SNE) simplify high-dimensional data into fewer dimensions, making it easier to visualize and interpret patterns.
+  Methods such as Principal Component Analysis (PCA) and t-Distributed Stochastic Neighbor Embedding (t-SNE) simplify high-dimensional data into fewer dimensions, making it easier to visualize and interpret patterns.
 
 ### 3.3 Evaluation Metrics
 
 Evaluating unsupervised learning can be more challenging because there are no ground truth labels:
+
 - **Silhouette Score:**
-Measures how similar an object is to its own cluster compared to other clusters.
+  Measures how similar an object is to its own cluster compared to other clusters.
 - **Davies-Bouldin Index:**
-A lower score indicates that clusters are well separated and compact.
+  A lower score indicates that clusters are well separated and compact.
 - **Qualitative Assessment:**
-Often, visual inspection of clusters or reduced-dimension plots provides valuable insight into the quality of the grouping.
+  Often, visual inspection of clusters or reduced-dimension plots provides valuable insight into the quality of the grouping.
 
 ### 3.4 Practical Example: K-Means Clustering in Python
 
@@ -170,24 +173,24 @@ This example shows how K-Means groups the data into clusters based on the inhere
 ### 4.1 Fundamental Differences
 
 - **Data Requirements:**
-Supervised learning relies on labeled examples, whereas unsupervised learning uses data without any labels.
+  Supervised learning relies on labeled examples, whereas unsupervised learning uses data without any labels.
 
 - **Goals:**
-In supervised learning, the goal is to predict or classify new instances based on past examples. In unsupervised learning, the objective is to uncover hidden structures or groupings in the data.
+  In supervised learning, the goal is to predict or classify new instances based on past examples. In unsupervised learning, the objective is to uncover hidden structures or groupings in the data.
 
 - **Evaluation Methods:**
-Supervised learning benefits from well-defined metrics since the actual outcomes are known. Unsupervised learning often requires more subjective evaluation, relying on internal metrics or visual analysis.
+  Supervised learning benefits from well-defined metrics since the actual outcomes are known. Unsupervised learning often requires more subjective evaluation, relying on internal metrics or visual analysis.
 
 - **Complexity and Preparation:**
-Supervised learning typically requires a significant investment in labeling data, while unsupervised learning may require careful preprocessing and domain expertise to interpret results.
+  Supervised learning typically requires a significant investment in labeling data, while unsupervised learning may require careful preprocessing and domain expertise to interpret results.
 
 ### 4.2 When to Use Each Approach
 
 - **Supervised Learning:**
-Best used when you have a large set of labeled data and need to make predictions about future events, such as classifying emails as spam or non-spam.
+  Best used when you have a large set of labeled data and need to make predictions about future events, such as classifying emails as spam or non-spam.
 
 - **Unsupervised Learning:**
-Ideal when labels are unavailable or when you want to explore the underlying structure of the data, such as segmenting customers into different groups based on purchasing behavior.
+  Ideal when labels are unavailable or when you want to explore the underlying structure of the data, such as segmenting customers into different groups based on purchasing behavior.
 
 ---
 
@@ -216,9 +219,9 @@ Transfer learning involves adapting a pre-trained model to a new but related tas
 ### 6.1 Data Quality and Labeling
 
 - **For Supervised Learning:**
-The quality and quantity of labeled data greatly influence model performance. Poor or biased labels can lead to inaccurate predictions.
+  The quality and quantity of labeled data greatly influence model performance. Poor or biased labels can lead to inaccurate predictions.
 - **For Unsupervised Learning:**
-Interpreting the patterns discovered can be challenging, and the results often require domain knowledge to validate.
+  Interpreting the patterns discovered can be challenging, and the results often require domain knowledge to validate.
 
 ### 6.2 Scalability and Computation
 
@@ -231,9 +234,9 @@ Understanding how a model makes decisions is crucial. Supervised models, especia
 ### 6.4 Future Trends
 
 - **Hybrid Models:**
-Combining supervised and unsupervised methods is a growing trend. For instance, pre-training a model with unsupervised techniques and then fine-tuning it with labeled data can yield powerful results.
+  Combining supervised and unsupervised methods is a growing trend. For instance, pre-training a model with unsupervised techniques and then fine-tuning it with labeled data can yield powerful results.
 - **Automated Machine Learning (AutoML):**
-Tools that automatically select, tune, and evaluate models are becoming increasingly popular, helping to streamline the machine learning pipeline.
+  Tools that automatically select, tune, and evaluate models are becoming increasingly popular, helping to streamline the machine learning pipeline.
 
 ---
 
@@ -242,29 +245,29 @@ Tools that automatically select, tune, and evaluate models are becoming increasi
 ### 7.1 Applications of Supervised Learning
 
 - **Medical Diagnosis:**
-Models that predict diseases based on patient data have improved early diagnosis and treatment planning.
+  Models that predict diseases based on patient data have improved early diagnosis and treatment planning.
 - **Financial Forecasting:**
-Supervised models are used to predict market trends, assess risk, and automate trading strategies.
+  Supervised models are used to predict market trends, assess risk, and automate trading strategies.
 - **Image and Speech Recognition:**
-Deep learning models trained on vast amounts of labeled data enable accurate recognition systems for various applications.
+  Deep learning models trained on vast amounts of labeled data enable accurate recognition systems for various applications.
 
 ### 7.2 Applications of Unsupervised Learning
 
 - **Customer Segmentation:**
-Grouping customers based on behavioral data allows companies to tailor marketing strategies and improve customer experiences.
+  Grouping customers based on behavioral data allows companies to tailor marketing strategies and improve customer experiences.
 - **Anomaly Detection:**
-Detecting unusual patterns in network traffic or transactions helps in fraud detection and system security.
+  Detecting unusual patterns in network traffic or transactions helps in fraud detection and system security.
 - **Data Visualization and Reduction:**
-Techniques like PCA or t-SNE help in reducing the dimensionality of data, making it easier to visualize complex datasets.
+  Techniques like PCA or t-SNE help in reducing the dimensionality of data, making it easier to visualize complex datasets.
 
 ### 7.3 Industry Case Studies
 
 - **Healthcare Analytics:**
-Hospitals use supervised learning for predicting patient outcomes and unsupervised learning for discovering patterns in patient data that lead to improved treatment protocols.
+  Hospitals use supervised learning for predicting patient outcomes and unsupervised learning for discovering patterns in patient data that lead to improved treatment protocols.
 - **E-Commerce Personalization:**
-Retailers leverage supervised models to recommend products and unsupervised techniques to segment users and uncover purchasing trends.
+  Retailers leverage supervised models to recommend products and unsupervised techniques to segment users and uncover purchasing trends.
 - **Industrial IoT:**
-Predictive maintenance systems use supervised learning to forecast equipment failures while unsupervised learning identifies unexpected patterns in sensor data.
+  Predictive maintenance systems use supervised learning to forecast equipment failures while unsupervised learning identifies unexpected patterns in sensor data.
 
 ---
 
@@ -281,17 +284,17 @@ By keeping up with advances in these areas and leveraging modern tools, you can 
 ## 9. Further Reading and Resources
 
 - **Books:**
-- *"Deep Learning"* by Ian Goodfellow, Yoshua Bengio, and Aaron Courville – A comprehensive resource on modern deep learning techniques.
-- *"Machine Learning Yearning"* by Andrew Ng – Insights on how to structure machine learning projects.
+  - _"Deep Learning"_ by Ian Goodfellow, Yoshua Bengio, and Aaron Courville – A comprehensive resource on modern deep learning techniques.
+  - _"Machine Learning Yearning"_ by Andrew Ng – Insights on how to structure machine learning projects.
 - **Online Courses:**
-- Coursera’s *Machine Learning* by Andrew Ng – A foundational course that covers key concepts in supervised learning.
-- Fast.ai’s *Practical Deep Learning for Coders* – A hands-on course to build and deploy deep learning models.
+  - Coursera’s _Machine Learning_ by Andrew Ng – A foundational course that covers key concepts in supervised learning.
+  - Fast.ai’s _Practical Deep Learning for Coders_ – A hands-on course to build and deploy deep learning models.
 - **Tools and Libraries:**
-- scikit-learn for classical machine learning algorithms.
-- TensorFlow and PyTorch for deep learning applications.
-- Keras for an accessible interface to build neural networks.
+  - scikit-learn for classical machine learning algorithms.
+  - TensorFlow and PyTorch for deep learning applications.
+  - Keras for an accessible interface to build neural networks.
 - **Research and Blogs:**
-- The Machine Learning Mastery blog for practical guides.
-- Papers with Code for cutting-edge research and implementations.
+  - The Machine Learning Mastery blog for practical guides.
+  - Papers with Code for cutting-edge research and implementations.
 
 ---

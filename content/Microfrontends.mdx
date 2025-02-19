@@ -1,13 +1,14 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "The Microfrontends Architecture",
-  description: "An in-depth guide to Microfrontend architecture: its introduction, benefits, techniques, and best practices for building scalable, maintainable, and flexible frontend systems.",
-  topics: ["Web Architecture", "Web Development"]
-}
+  description:
+    "An in-depth guide to Microfrontend architecture: its introduction, benefits, techniques, and best practices for building scalable, maintainable, and flexible frontend systems.",
+  topics: ["Web Architecture", "Web Development"],
+};
 
 export default function MicrofrontendsContent({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # Microfrontends
@@ -25,6 +26,7 @@ Microfrontend architecture is an approach where a frontend application is decomp
 As web applications grow in complexity and size, maintaining a single, monolithic frontend codebase becomes increasingly challenging. Microfrontend architecture addresses these challenges by breaking the frontend into smaller, self-contained modules—each responsible for a specific business domain or feature.
 
 **Key Concepts:**
+
 - **Decomposition:** Breaking down the monolithic frontend into “microapps” that focus on specific functionalities.
 - **Independence:** Each microapp can be developed, tested, and deployed independently, often by autonomous cross-functional teams.
 - **Team Autonomy:** Different teams can choose different technology stacks based on their specific needs, without affecting the entire system.
@@ -37,18 +39,22 @@ As web applications grow in complexity and size, maintaining a single, monolithi
 Microfrontends offer a range of significant benefits compared to monolithic frontends:
 
 ### 1. Independent Technology Choices
+
 - **Flexibility:** Teams can choose the best framework or library (e.g., React, Vue, Angular) that suits their microapp’s requirements.
 - **Modernization:** Legacy parts of an application can be incrementally rewritten using modern technologies without a complete overhaul.
 
 ### 2. Faster Development and Deployment
+
 - **Parallel Development:** Multiple teams can work on different microapps simultaneously, reducing inter-team dependencies.
 - **Continuous Deployment:** Smaller, isolated modules allow for frequent, independent deployments, which accelerates the release cycle.
 
 ### 3. Improved Testing and Quality Assurance
+
 - **Focused Testing:** Each microapp can have its own dedicated testing suite, making it easier to isolate and fix issues.
 - **Resilience:** Failures or bugs in one microapp do not impact the entire application, leading to a more resilient overall system.
 
 ### 4. Enhanced Scalability and Maintainability
+
 - **Modular Growth:** New features can be added as new microapps, scaling the application organically.
 - **Simplified Maintenance:** Smaller codebases reduce the cognitive load on developers, leading to easier maintenance and quicker feature enhancements.
 
@@ -83,14 +89,17 @@ In today's dynamic digital landscape, user experiences must be fast, responsive,
 Microfrontend architecture employs several strategies to ensure that independently developed modules can seamlessly integrate into a cohesive application:
 
 ### 1. Technology Independence
+
 - **Decoupled Builds:** Each microapp is built independently and may use its own build tools, frameworks, and libraries.
 - **Versioning:** Teams manage versions separately, enabling incremental updates without breaking the entire system.
 
 ### 2. Code Isolation
+
 - **Encapsulation:** Use techniques like the Shadow DOM, module scopes, or iframes to ensure that each microapp’s styles and scripts do not conflict with others.
 - **Namespace Conventions:** Adopt naming conventions (e.g., team-specific prefixes) to avoid clashes in global variables, CSS classes, or storage keys.
 
 ### 3. Integration Strategies
+
 - **Dynamic Imports:** Load microapps on-demand using dynamic imports in modern JavaScript.
 - **Routing:** A shell or container application handles global routing and delegates specific URL segments to corresponding microapps.
 - **Event-Based Communication:** Use custom events or shared state management libraries to allow microapps to communicate while remaining loosely coupled.
@@ -102,9 +111,11 @@ Microfrontend architecture employs several strategies to ensure that independent
 There are several approaches to building microfrontend architectures. Each technique comes with its own set of advantages and challenges.
 
 ### 1. Webpack Module Federation
+
 Webpack Module Federation is a cutting-edge feature that enables separate builds to dynamically load code from each other. This approach minimizes duplication of shared dependencies and allows for seamless integration of independently deployed microapps.
 
 **Example Webpack Configuration:**
+
 ```js
 // webpack.config.js (for a microapp)
 module.exports = {
@@ -114,10 +125,10 @@ module.exports = {
       name: "microapp",
       filename: "remoteEntry.js",
       exposes: {
-        './Component': './src/Component',
+        "./Component": "./src/Component",
       },
       remotes: {
-        shell: "shell@https://your-domain.com/remoteEntry.js"
+        shell: "shell@https://your-domain.com/remoteEntry.js",
       },
       shared: { react: { singleton: true }, "react-dom": { singleton: true } },
     }),
@@ -126,25 +137,36 @@ module.exports = {
 ```
 
 **Benefits:**
+
 - No need for a complete re-architecture.
 - Efficient dependency sharing.
 
 ### 2. Iframes
+
 Iframes provide strong isolation by embedding an entire application within a parent page. This method is especially useful when complete encapsulation is necessary.
 
 **Simple Iframe Example:**
+
 ```html
-<iframe src="https://childapp.com" width="100%" height="600" title="Child Application"></iframe>
+<iframe
+  src="https://childapp.com"
+  width="100%"
+  height="600"
+  title="Child Application"
+></iframe>
 ```
 
 **Pros & Cons:**
+
 - **Pros:** Excellent isolation, strong security boundaries.
 - **Cons:** SEO challenges and potential performance overhead.
 
 ### 3. Reverse Proxy with NGINX
+
 NGINX can be used as a reverse proxy to route requests to different microapps based on URL paths. This approach centralizes routing at the server level.
 
 **Sample NGINX Configuration:**
+
 ```nginx
 worker_processes 4;
 events { worker_connections 1024; }
@@ -168,33 +190,38 @@ http {
 ```
 
 ### 4. Web Components
+
 Web Components enable the creation of encapsulated, reusable custom elements that can be used in any framework or library. The Shadow DOM provides style isolation, ensuring that component styles do not leak into the global scope.
 
 **Basic Custom Element Example:**
+
 ```js
 class MyIcon extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
   }
   connectedCallback() {
     this.shadowRoot.innerHTML = `<span>🌸</span>`;
   }
 }
-customElements.define('my-icon', MyIcon);
+customElements.define("my-icon", MyIcon);
 ```
 
 **Usage in HTML:**
+
 ```html
 <my-icon></my-icon>
 ```
 
 ### 5. Component Libraries for React/Vue
+
 Develop microapps as libraries (npm packages) and integrate them into a container application via dynamic imports. This enables teams to develop and version their components independently.
 
 **Example in React:**
+
 ```jsx
-import Customers from 'customers-library';
+import Customers from "customers-library";
 
 export default function Dashboard() {
   return (
@@ -207,22 +234,27 @@ export default function Dashboard() {
 ```
 
 ### 6. Monorepos
+
 A monorepo houses multiple projects within a single repository, facilitating unified dependency management, code sharing, and consistent development practices. Tools like Lerna or Yarn Workspaces are commonly used in monorepo setups.
 
 **Advantages:**
+
 - Simplified dependency management.
 - Easier cross-project refactoring.
 - Atomic commits across microapps.
 
 ### 7. Single-SPA and Similar Frameworks
+
 Single-SPA orchestrates multiple microapps on a single page by defining lifecycle methods (bootstrap, mount, unmount) for each module. This approach supports lazy loading and independent deployment.
 
 **Core Concepts:**
+
 - **Root Config:** Manages microapp registration and routing.
 - **Lifecycle Management:** Each microapp defines its own lifecycle functions.
 - **Lazy Loading:** Load microapps on demand to optimize performance.
 
 ### 8. Custom Orchestrators
+
 Some organizations build custom orchestrators tailored to their unique needs. These orchestrators dynamically load and manage microapps based on user context, roles, or device type. Custom solutions can offer optimized performance and specialized features that off-the-shelf tools might not support.
 
 ---
@@ -230,22 +262,27 @@ Some organizations build custom orchestrators tailored to their unique needs. Th
 ## VII. Best Practices and Strategies for Scaling Microfrontends
 
 ### 1. Standardize UI/UX Guidelines
+
 - **Design Systems:** Develop a shared style guide or design system (e.g., Material Design) to ensure consistency across microapps.
 - **Component Libraries:** Share common UI components across teams to reduce duplication and maintain uniformity.
 
 ### 2. Define Clear Boundaries
+
 - **Domain-Driven Design:** Align microapps with business domains to ensure clear separation of concerns.
 - **API Contracts:** Define clear interfaces for communication between microapps, reducing interdependencies.
 
 ### 3. Ensure Loose Coupling
+
 - **Independent Deployment:** Avoid shared runtime dependencies as much as possible to allow microapps to be deployed independently.
 - **Communication Protocols:** Use event buses or custom events for inter-microapp communication while maintaining isolation.
 
 ### 4. Embrace Continuous Integration and Deployment
+
 - **Automated Testing:** Implement robust testing pipelines for each microapp.
 - **Deployment Pipelines:** Use CI/CD tools to streamline independent deployments, ensuring quick rollbacks if issues occur.
 
 ### 5. Monitor and Optimize Performance
+
 - **Analytics:** Monitor load times, resource usage, and user interactions for each microapp.
 - **Performance Budget:** Establish performance budgets to ensure that microapps remain fast and responsive even as they grow.
 
@@ -256,16 +293,16 @@ Some organizations build custom orchestrators tailored to their unique needs. Th
 While microfrontends offer numerous benefits, they also introduce certain complexities:
 
 - **Integration Complexity:**
-Ensuring smooth integration of independently developed microapps can be challenging, particularly when managing shared state or cross-cutting concerns.
+  Ensuring smooth integration of independently developed microapps can be challenging, particularly when managing shared state or cross-cutting concerns.
 
 - **Versioning and Dependency Management:**
-Synchronizing dependencies across multiple microapps requires careful versioning and testing, especially in monorepo vs. multi-repo environments.
+  Synchronizing dependencies across multiple microapps requires careful versioning and testing, especially in monorepo vs. multi-repo environments.
 
 - **Increased Operational Overhead:**
-Managing multiple deployments, monitoring systems, and communication channels may require additional infrastructure and tooling.
+  Managing multiple deployments, monitoring systems, and communication channels may require additional infrastructure and tooling.
 
 - **Consistency and User Experience:**
-Achieving a consistent look and feel across diverse microapps demands strict adherence to shared guidelines and collaboration between teams.
+  Achieving a consistent look and feel across diverse microapps demands strict adherence to shared guidelines and collaboration between teams.
 
 ---
 
@@ -274,16 +311,16 @@ Achieving a consistent look and feel across diverse microapps demands strict adh
 The microfrontend approach is continually evolving, with several emerging trends shaping its future:
 
 - **Enhanced Tooling and Frameworks:**
-New tools and frameworks will further simplify microfrontend development and orchestration, making it more accessible to teams of all sizes.
+  New tools and frameworks will further simplify microfrontend development and orchestration, making it more accessible to teams of all sizes.
 
 - **Server-Side Rendering and Edge Integration:**
-Integrating microfrontends with server-side rendering and edge computing promises even faster load times and improved SEO performance.
+  Integrating microfrontends with server-side rendering and edge computing promises even faster load times and improved SEO performance.
 
 - **Automated Orchestration and Intelligent Routing:**
-Future orchestrators may incorporate machine learning to optimize microapp loading and routing based on user behavior and device capabilities.
+  Future orchestrators may incorporate machine learning to optimize microapp loading and routing based on user behavior and device capabilities.
 
 - **Greater Emphasis on Security and Privacy:**
-As microfrontends become more widespread, advanced security practices and standards will emerge to safeguard distributed architectures.
+  As microfrontends become more widespread, advanced security practices and standards will emerge to safeguard distributed architectures.
 
 ---
 
@@ -300,18 +337,21 @@ As you explore microfrontend architectures, consider adopting best practices aro
 ## XI. Further Reading and Resources
 
 - **Official Documentation and Blogs:**
-- [Micro Frontends Mindmaps on GitHub](https://github.com/santoshshinde2012/micro-frontends-mindmaps)
-- Blogs by industry leaders sharing real-world experiences with microfrontends.
+
+  - [Micro Frontends Mindmaps on GitHub](https://github.com/santoshshinde2012/micro-frontends-mindmaps)
+  - Blogs by industry leaders sharing real-world experiences with microfrontends.
 
 - **Books:**
-- *"Building Microfrontends"* by Luca Mezzalira – A deep dive into designing and building microfrontend architectures.
+
+  - _"Building Microfrontends"_ by Luca Mezzalira – A deep dive into designing and building microfrontend architectures.
 
 - **Online Courses and Workshops:**
-- Courses on platforms like Pluralsight, Udemy, and Coursera that cover advanced frontend architectures.
+
+  - Courses on platforms like Pluralsight, Udemy, and Coursera that cover advanced frontend architectures.
 
 - **Community and Forums:**
-- Join online communities, Slack channels, and forums dedicated to microfrontend architecture to stay updated on best practices and emerging trends.
+  - Join online communities, Slack channels, and forums dedicated to microfrontend architecture to stay updated on best practices and emerging trends.
 
 ---
 
-*This comprehensive guide to microfrontends covers everything from basic concepts and benefits to advanced implementation techniques and future trends. Use it as a roadmap to transform your frontend architecture and build modern, scalable web applications that meet the demands of today’s digital landscape.*
+_This comprehensive guide to microfrontends covers everything from basic concepts and benefits to advanced implementation techniques and future trends. Use it as a roadmap to transform your frontend architecture and build modern, scalable web applications that meet the demands of today’s digital landscape._

@@ -1,13 +1,14 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "Building RESTful APIs with Express.js",
-  description: "An in-depth guide to creating robust RESTful APIs using Express.js, covering routing, middleware, error handling, and best practices.",
-  topics: ["Web Development", "Node.js", "API Design"]
-}
+  description:
+    "An in-depth guide to creating robust RESTful APIs using Express.js, covering routing, middleware, error handling, and best practices.",
+  topics: ["Web Development", "API Design"],
+};
 
 export default function APIContent({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # Building RESTful APIs with Express.js
@@ -23,6 +24,7 @@ In modern web development, **RESTful APIs** are the backbone of communication be
 A RESTful API (Representational State Transfer) is an architectural style for designing networked applications. It uses standard HTTP methods like `GET`, `POST`, `PUT`, and `DELETE` to interact with resources, and it leverages the stateless nature of HTTP for scalability and simplicity.
 
 ### Core Principles of REST:
+
 - **Stateless Communication:** Each request from client to server must contain all the information needed to understand and process the request.
 - **Uniform Interface:** A standardized way to interact with resources using HTTP verbs.
 - **Resource-Based:** Everything is treated as a resource (e.g., users, posts, products).
@@ -31,6 +33,7 @@ A RESTful API (Representational State Transfer) is an architectural style for de
 ## Why Express.js?
 
 Express.js is renowned for its simplicity and minimalism, making it a go-to choice for developers looking to create APIs quickly. Its robust set of features includes:
+
 - **Routing:** Easy definition of routes to handle various HTTP methods.
 - **Middleware Support:** A powerful mechanism to handle request processing, logging, authentication, etc.
 - **Extensibility:** Integrates seamlessly with databases, templating engines, and other third-party libraries.
@@ -52,7 +55,7 @@ npm install express
 Let's start by creating a simple server. Create a file named `server.js` and add the following code:
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
 
@@ -60,8 +63,8 @@ const port = 3000;
 app.use(express.json());
 
 // Basic route
-app.get('/', (req, res) => {
-  res.send('Welcome to our RESTful API built with Express.js!');
+app.get("/", (req, res) => {
+  res.send("Welcome to our RESTful API built with Express.js!");
 });
 
 app.listen(port, () => {
@@ -80,29 +83,29 @@ A RESTful API revolves around various endpoints. Let's create a set of routes to
 Create a new folder called `routes` and inside it, create a file named `users.js`:
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 // Sample in-memory user data
 let users = [
-  { id: 1, name: 'Alice', email: 'alice@example.com' },
-  { id: 2, name: 'Bob', email: 'bob@example.com' },
+  { id: 1, name: "Alice", email: "alice@example.com" },
+  { id: 2, name: "Bob", email: "bob@example.com" },
 ];
 
 // GET /users - Retrieve all users
-router.get('/', (req, res) => {
+router.get("/", (req, res) => {
   res.json(users);
 });
 
 // GET /users/:id - Retrieve a single user by ID
-router.get('/:id', (req, res) => {
-  const user = users.find(u => u.id === parseInt(req.params.id));
-  if (!user) return res.status(404).json({ error: 'User not found' });
+router.get("/:id", (req, res) => {
+  const user = users.find((u) => u.id === parseInt(req.params.id));
+  if (!user) return res.status(404).json({ error: "User not found" });
   res.json(user);
 });
 
 // POST /users - Create a new user
-router.post('/', (req, res) => {
+router.post("/", (req, res) => {
   const { name, email } = req.body;
   const newUser = { id: users.length + 1, name, email };
   users.push(newUser);
@@ -110,9 +113,9 @@ router.post('/', (req, res) => {
 });
 
 // PUT /users/:id - Update a user
-router.put('/:id', (req, res) => {
-  const user = users.find(u => u.id === parseInt(req.params.id));
-  if (!user) return res.status(404).json({ error: 'User not found' });
+router.put("/:id", (req, res) => {
+  const user = users.find((u) => u.id === parseInt(req.params.id));
+  if (!user) return res.status(404).json({ error: "User not found" });
 
   const { name, email } = req.body;
   user.name = name || user.name;
@@ -121,8 +124,8 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /users/:id - Delete a user
-router.delete('/:id', (req, res) => {
-  users = users.filter(u => u.id !== parseInt(req.params.id));
+router.delete("/:id", (req, res) => {
+  users = users.filter((u) => u.id !== parseInt(req.params.id));
   res.status(204).send();
 });
 
@@ -134,22 +137,22 @@ module.exports = router;
 Now, integrate this router into your main `server.js` file:
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
 
 // Import the users router
-const usersRouter = require('./routes/users');
+const usersRouter = require("./routes/users");
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
 // Mount the users router at /users
-app.use('/users', usersRouter);
+app.use("/users", usersRouter);
 
 // Basic route
-app.get('/', (req, res) => {
-  res.send('Welcome to our RESTful API built with Express.js!');
+app.get("/", (req, res) => {
+  res.send("Welcome to our RESTful API built with Express.js!");
 });
 
 app.listen(port, () => {
@@ -176,10 +179,10 @@ module.exports = function (req, res, next) {
 Integrate the logging middleware into your server:
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
-const logger = require('./middleware/loggingMiddleware');
+const logger = require("./middleware/loggingMiddleware");
 
 app.use(logger);
 app.use(express.json());
@@ -194,7 +197,7 @@ Express allows you to define error-handling middleware to catch and process erro
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ error: "Something went wrong!" });
 });
 ```
 
@@ -214,7 +217,7 @@ npm install helmet
 ```
 
 ```javascript
-const helmet = require('helmet');
+const helmet = require("helmet");
 app.use(helmet());
 ```
 
@@ -233,17 +236,17 @@ npm install --save-dev jest supertest
 Create a test file `server.test.js`:
 
 ```javascript
-const request = require('supertest');
-const express = require('express');
+const request = require("supertest");
+const express = require("express");
 const app = express();
-const usersRouter = require('./routes/users');
+const usersRouter = require("./routes/users");
 
 app.use(express.json());
-app.use('/users', usersRouter);
+app.use("/users", usersRouter);
 
-describe('GET /users', () => {
-  it('should return an array of users', async () => {
-    const res = await request(app).get('/users');
+describe("GET /users", () => {
+  it("should return an array of users", async () => {
+    const res = await request(app).get("/users");
     expect(res.statusCode).toEqual(200);
     expect(Array.isArray(res.body)).toBeTruthy();
   });

@@ -1,13 +1,20 @@
-import MdxLayout from '@/components/MdxLayout'
+import MdxLayout from "@/components/MdxLayout";
 
 export const metadata = {
   title: "InfluxDB: A Deep Dive into the Time Series Database",
-  description: "An in-depth exploration of InfluxDB, its architecture, performance optimizations, advanced features, and real-world use cases in real-time monitoring and analytics.",
-  topics: ["InfluxDB", "Database", "Monitoring", "Time Series", "Databases", "Tech Innovations"]
-}
+  description:
+    "An in-depth exploration of InfluxDB, its architecture, performance optimizations, advanced features, and real-world use cases in real-time monitoring and analytics.",
+  topics: [
+    "Databases",
+    "Monitoring",
+    "Time Series",
+    "Databases",
+    "Tech Innovations",
+  ],
+};
 
 export default function InfluxDBArticle({ children }) {
-  return <MdxLayout>{children}</MdxLayout>
+  return <MdxLayout>{children}</MdxLayout>;
 }
 
 # InfluxDB: A Deep Dive into the Time Series Database
@@ -23,6 +30,7 @@ InfluxDB is a high-performance, open-source time series database purpose-built t
 ## 1. Introduction
 
 In a world driven by real-time data, managing time-stamped information efficiently is paramount. InfluxDB was designed from the ground up for this purpose. It distinguishes itself with:
+
 - **High-Speed Ingestion:** Capable of processing millions of data points per second.
 - **Efficient Storage:** Optimized for compressing and retaining large volumes of time series data.
 - **Powerful Querying:** Supports both SQL-like InfluxQL and the expressive Flux language for dynamic analysis.
@@ -34,11 +42,13 @@ This article provides a thorough exploration of how InfluxDB achieves these goal
 ## 2. InfluxDB Overview
 
 InfluxDB is not just another database—it’s a purpose-built solution for time series data. Unlike traditional relational databases, it’s engineered to handle continuous streams of data, making it ideal for:
+
 - **Monitoring and Observability:** Tracking system and application metrics.
 - **IoT Applications:** Collecting and analyzing sensor data in real time.
 - **Analytics and Reporting:** Aggregating time-based data for trends and insights.
 
 Key advantages include:
+
 - **Scalability:** Both vertical and horizontal scaling options.
 - **Flexible Data Retention:** Configurable policies to manage data lifecycle.
 - **Ease of Use:** Intuitive query languages and integration with popular tools.
@@ -188,28 +198,28 @@ Organizations use InfluxDB to analyze operational data in real time, gaining ins
 Here’s a practical example demonstrating how to write data to InfluxDB using the Node.js client:
 
 ```javascript
-const { InfluxDB, Point } = require('@influxdata/influxdb-client');
+const { InfluxDB, Point } = require("@influxdata/influxdb-client");
 
-const url = 'http://localhost:8086';
-const token = 'YOUR_INFLUXDB_TOKEN';
-const org = 'YOUR_ORG';
-const bucket = 'YOUR_BUCKET';
+const url = "http://localhost:8086";
+const token = "YOUR_INFLUXDB_TOKEN";
+const org = "YOUR_ORG";
+const bucket = "YOUR_BUCKET";
 
 const influxDB = new InfluxDB({ url, token });
 const writeApi = influxDB.getWriteApi(org, bucket);
-writeApi.useDefaultTags({ host: 'server1' });
+writeApi.useDefaultTags({ host: "server1" });
 
-const point = new Point('temperature')
-  .floatField('value', 23.5)
+const point = new Point("temperature")
+  .floatField("value", 23.5)
   .timestamp(new Date());
 
 writeApi.writePoint(point);
 writeApi
   .close()
   .then(() => {
-    console.log('WRITE FINISHED');
+    console.log("WRITE FINISHED");
   })
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
   });
 ```
@@ -221,30 +231,31 @@ This example illustrates how InfluxDB integrates seamlessly with Node.js, making
 ## 9. Challenges and Considerations
 
 While InfluxDB is a robust solution, there are some challenges to consider:
+
 - **Scalability Limitations:**
-For extremely high-scale environments, planning for a clustered deployment is essential.
+  For extremely high-scale environments, planning for a clustered deployment is essential.
 
 - **Operational Complexity:**
-Fine-tuning retention policies, shard durations, and buffer sizes requires careful monitoring and adjustments.
+  Fine-tuning retention policies, shard durations, and buffer sizes requires careful monitoring and adjustments.
 
 - **Ecosystem Maturity:**
-Although InfluxDB has a vibrant ecosystem, integrating it with legacy systems or other databases might require additional engineering efforts.
+  Although InfluxDB has a vibrant ecosystem, integrating it with legacy systems or other databases might require additional engineering efforts.
 
 ---
 
 ## 10. Best Practices for Deployment
 
 - **Monitor Continuously:**
-Set up dashboards and alerts to track ingestion rates, query performance, and storage utilization.
+  Set up dashboards and alerts to track ingestion rates, query performance, and storage utilization.
 
 - **Plan for Growth:**
-Design your deployment with scalability in mind—consider clustering if you expect high data volumes.
+  Design your deployment with scalability in mind—consider clustering if you expect high data volumes.
 
 - **Regular Maintenance:**
-Periodically review retention policies and compression settings to optimize performance and manage costs.
+  Periodically review retention policies and compression settings to optimize performance and manage costs.
 
 - **Stay Updated:**
-Keep up with the latest releases and best practices from the InfluxData community to leverage new features and improvements.
+  Keep up with the latest releases and best practices from the InfluxData community to leverage new features and improvements.
 
 ---
 
