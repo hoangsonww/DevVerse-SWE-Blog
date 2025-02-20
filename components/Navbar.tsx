@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiHome, FiChevronRight, FiBook, FiSun, FiMoon } from "react-icons/fi";
+import { DarkModeContext } from "@/provider/DarkModeProvider";
 
 function formatSlug(slug: string): string {
   return slug
@@ -16,31 +17,31 @@ export default function Navbar() {
   const segments = pathname.split("/").filter(Boolean);
 
   // State for dark mode, with initial value from localStorage.
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useContext(DarkModeContext);
 
-  // On mount, load dark mode preference from localStorage.
-  useEffect(() => {
-    const storedPreference = localStorage.getItem("darkMode");
-    if (storedPreference) {
-      const isDark = storedPreference === "true";
-      setDarkMode(isDark);
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  }, []);
-
-  // Update document and localStorage on darkMode change.
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    localStorage.setItem("darkMode", darkMode.toString());
-  }, [darkMode]);
+  // // On mount, load dark mode preference from localStorage.
+  // useEffect(() => {
+  //   const storedPreference = localStorage.getItem("darkMode");
+  //   if (storedPreference) {
+  //     const isDark = storedPreference === "true";
+  //     setDarkMode(isDark);
+  //     if (isDark) {
+  //       document.documentElement.classList.add("dark");
+  //     } else {
+  //       document.documentElement.classList.remove("dark");
+  //     }
+  //   }
+  // }, []);
+  //
+  // // Update document and localStorage on darkMode change.
+  // useEffect(() => {
+  //   if (darkMode) {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  //   localStorage.setItem("darkMode", darkMode.toString());
+  // }, [darkMode]);
 
   let breadcrumb: React.ReactNode;
 

@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
-import Image, { ImageProps } from "next/image";
+import Image from "next/image";
+import CodeBlock from "@/ui/CodeBlock";
 
 export function useMDXComponents(
   components: MDXComponents = {},
@@ -52,56 +53,51 @@ export function useMDXComponents(
     ),
     strong: (props) => <strong style={{ fontWeight: "bold" }} {...props} />,
     em: (props) => <em style={{ fontStyle: "italic" }} {...props} />,
-    code: (props) => (
-      <code
-        style={{
-          backgroundColor: "#f4f4f4",
-          padding: "0.2em 0.4em",
-          paddingLeft: 0,
-          paddingRight: 0,
-          borderRadius: "3px",
-          fontFamily: "monospace",
-          color: "#333",
-        }}
-        {...props}
-      />
-    ),
-    pre: (props) => (
-      <pre
-        style={{
-          backgroundColor: "#f4f4f4",
-          padding: "1em",
-          overflowX: "auto",
-          borderRadius: "5px",
-          marginBottom: "1rem",
-        }}
-        {...props}
-      />
-    ),
-    hr: (props) => (
-      <hr
-        style={{
-          border: "none",
-          borderTop: "1px solid #eee",
-          margin: "2rem 0",
-        }}
-        {...props}
-      />
-    ),
 
-    // Lists
-    ul: (props) => (
-      <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }} {...props} />
-    ),
-    ol: (props) => (
-      <ol style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }} {...props} />
-    ),
-    li: (props) => <li style={{ marginBottom: "0.5rem" }} {...props} />,
+    // Inline code: if no language is specified
+    code: (props) => {
+      if (!props.className) {
+        return (
+          <code
+            style={{
+              backgroundColor: "#000",
+              padding: "0.2em 0.4em",
+              borderRadius: "3px",
+              fontFamily: "monospace",
+              color: "#fff",
+            }}
+            {...props}
+          />
+        );
+      }
+      // If a language is specified, delegate to CodeBlock for highlighting.
+      return <CodeBlock {...props} />;
+    },
+
+    // For preformatted code blocks, also use CodeBlock when possible.
+    pre: (props) => {
+      const child = props.children;
+      if (child && child.props && child.props.className) {
+        return <CodeBlock {...child.props} />;
+      }
+      return (
+        <pre
+          style={{
+            backgroundColor: "#000",
+            padding: "1em",
+            overflowX: "auto",
+            borderRadius: "5px",
+            marginBottom: "1rem",
+            color: "#000", // ensure default text color is black
+          }}
+          {...props}
+        />
+      );
+    },
 
     // Images with default width/height if not provided
     img: (props: any) => {
       const { src, alt } = props;
-
       return (
         <div
           style={{
@@ -115,7 +111,7 @@ export function useMDXComponents(
             alt={alt || "MDX Image"}
             width={200}
             height={200}
-            style={{ objectFit: "contain" }} // Ensure it scales properly
+            style={{ objectFit: "contain" }}
           />
         </div>
       );
@@ -150,9 +146,7 @@ export function useMDXComponents(
         />
       </div>
     ),
-    thead: (props) => (
-      <thead style={{ backgroundColor: "#f9f9f9" }} {...props} />
-    ),
+    thead: (props) => <thead style={{ background: "none" }} {...props} />,
     tbody: (props) => <tbody {...props} />,
     tr: (props) => <tr style={{ borderBottom: "1px solid #ddd" }} {...props} />,
     th: (props) => (

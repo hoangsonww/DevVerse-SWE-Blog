@@ -1,0 +1,27 @@
+/* Enforce the blue color using high specificity */
+.interactive-card h2,
+.interactive-card-title,
+.interactive-card h2:where(:not(.override)) {
+  color: #0070f3 !important; /* Override any other styles */
+}
+
+/* Ensure the icon always remains blue */
+.interactive-card-icon {
+  color: #0070f3 !important;
+}
+
+/* Override potential global dark mode styles */
+html.dark .interactive-card h2,
+html.dark .interactive-card-title {
+  color: #0070f3 !important;
+}
+
+/* Ensure no parent styles affect the h2 */
+.interactive-card h2:not([style]) {
+  color: #0070f3 !important;
+}
+
+/* Extra specificity just in case */
+body .interactive-card h2 {
+  color: #0070f3 !important;
+}

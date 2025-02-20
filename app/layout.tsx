@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { DarkModeProvider } from "@/provider/DarkModeProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -77,9 +78,11 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={inter.className}>
-        <Navbar />
-        <main className="container">{children}</main>
-        <Footer />
+        <DarkModeProvider>
+          <Navbar />
+          <main className="container">{children}</main>
+          <Footer />
+        </DarkModeProvider>
       </body>
     </html>
   );
