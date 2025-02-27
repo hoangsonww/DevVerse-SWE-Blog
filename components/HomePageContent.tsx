@@ -54,11 +54,11 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           (article) =>
             article.title.toLowerCase().includes(term.toLowerCase()) ||
             (article.description &&
-              article.description.toLowerCase().includes(term.toLowerCase())),
-        ),
+              article.description.toLowerCase().includes(term.toLowerCase()))
+        )
       );
     }, 300),
-    [articles],
+    [articles]
   );
 
   useEffect(() => {
@@ -199,7 +199,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             color: "var(--text-color)",
           }}
         >
-          About the Creator
+          About The Creator
         </h2>
         <div
           style={{
@@ -240,7 +240,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           >
             A passionate developer and tech enthusiast sharing insights and
             expertise on computer science, software development, and emerging
-            technologies.
+            technologies. Let's connect and build the future together! 👨🏻‍💻
           </p>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -303,6 +303,74 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               <FaEnvelope />
             </motion.a>
           </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Website Info Card */}
+      <motion.section
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.7, duration: 0.6 }}
+        style={{
+          marginTop: "3rem",
+          padding: "2rem",
+          border: "1px solid var(--border-color, #eaeaea)",
+          borderRadius: "8px",
+          backgroundColor: "var(--container-background)",
+        }}
+      >
+        <h2
+          style={{
+            textAlign: "center",
+            marginBottom: "1rem",
+            color: "var(--text-color)",
+          }}
+        >
+          About This Website
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <a
+            href="https://sonnguyenhoang.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <motion.img
+              src="/nextjs.jpeg"
+              alt="Profile Picture"
+              variants={imageVariants}
+              initial="initial"
+              animate="animate"
+              whileHover="hover"
+              style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                marginBottom: "1rem",
+                cursor: "pointer",
+              }}
+            />
+          </a>
+          <p
+            style={{
+              color: "var(--text-color)",
+              maxWidth: "400px",
+              textAlign: "center",
+            }}
+          >
+            This website is built and designed with <strong>Next.js</strong>,{" "}
+            <strong>MDX</strong>, <strong>Vercel</strong>, and{" "}
+            <strong>TailwindCSS</strong>. It serves as a hub for sharing software
+            engineering insights, technical tutorials, and the latest trends in
+            technology. Enjoy a fast, modern, and responsive user experience as
+            you explore our articles and resources! 🌐
+          </p>
         </div>
       </motion.section>
     </div>
