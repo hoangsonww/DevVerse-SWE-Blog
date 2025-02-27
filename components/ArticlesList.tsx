@@ -16,21 +16,32 @@ interface ArticlesListProps {
 }
 
 export default function ArticlesList({ articles }: ArticlesListProps) {
-  // Compute distinct articles across all articles.
+  // Collect all distinct topics across the articles.
   const allTopicsSet = new Set<string>();
   articles.forEach((article) => {
     article.topics.forEach((topic) => allTopicsSet.add(topic));
   });
   const allTopics = Array.from(allTopicsSet).sort();
 
+  // State for the currently selected topic and how many articles to show.
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(10); // Show 10 articles initially
+  // State for how many topics are visible.
+  const [visibleTopicsCount, setVisibleTopicsCount] = useState(10);
 
+  // Filter the articles by the selected topic (if any).
   const filteredArticles = selectedTopic
     ? articles.filter((article) => article.topics.includes(selectedTopic))
     : articles;
 
+  // Slice the filtered list to show only the visible portion.
   const displayedArticles = filteredArticles.slice(0, visibleCount);
+  // Only show a subset of topics.
+  const displayedTopics = allTopics.slice(0, visibleTopicsCount);
+
+  // Prepare values for the dynamic count display.
+  const totalFiltered = filteredArticles.length;
+  const totalDisplayed = displayedArticles.length;
 
   return (
     <div>
@@ -49,13 +60,15 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             flexWrap: "wrap",
             gap: "1rem",
             marginTop: "1rem",
+            alignItems: "center",
           }}
         >
+          {/* Button for All Topics */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             onClick={() => {
               setSelectedTopic(null);
-              setVisibleCount(10); // Reset visible articles when topic is changed
+              setVisibleCount(10); // Reset when changing topics
             }}
             style={{
               padding: "0.5rem 1rem",
@@ -71,13 +84,15 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             <FaTags style={{ marginRight: "0.5rem" }} />
             All Topics
           </motion.button>
-          {allTopics.map((topic) => (
+
+          {/* Buttons for Each Topic (limited by visibleTopicsCount) */}
+          {displayedTopics.map((topic) => (
             <motion.button
               key={topic}
               whileHover={{ scale: 1.05 }}
               onClick={() => {
                 setSelectedTopic(topic);
-                setVisibleCount(10); // Reset visible articles when topic is changed
+                setVisibleCount(10); // Reset when changing topics
               }}
               style={{
                 padding: "0.5rem 1rem",
@@ -94,6 +109,26 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
               {topic}
             </motion.button>
           ))}
+
+          {/* More Topics Button */}
+          {visibleTopicsCount < allTopics.length && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              onClick={() => setVisibleTopicsCount((prev) => prev + 10)}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                border: "2px dashed #0070f3",
+                backgroundColor: "#fff",
+                color: "#0070f3",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+                font: "inherit",
+              }}
+            >
+              More Topics ...
+            </motion.button>
+          )}
         </div>
       </motion.div>
 
@@ -118,7 +153,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
         ))}
       </motion.div>
 
-      {/* Load More Button */}
+      {/* Load More Articles Button */}
       {visibleCount < filteredArticles.length && (
         <div style={{ textAlign: "center", marginTop: "2rem" }}>
           <motion.button
@@ -138,7 +173,6 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             }}
           >
             Load More Articles
-            {/* Arrow down icon */}
             <motion.span
               style={{ marginLeft: "0.5rem" }}
               initial={{ y: 0 }}
@@ -150,6 +184,19 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           </motion.button>
         </div>
       )}
+
+      {/* Dynamic Article Count */}
+      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+        {totalFiltered > 0 ? (
+          <p>
+            Showing <strong>1 – {totalDisplayed}</strong> of{" "}
+            <strong>{totalFiltered}</strong> article
+            {totalFiltered === 1 ? "" : "s"}
+          </p>
+        ) : (
+          <p>No articles found.</p>
+        )}
+      </div>
     </div>
   );
 }
