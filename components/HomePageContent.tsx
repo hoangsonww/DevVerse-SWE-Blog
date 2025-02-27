@@ -54,11 +54,11 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           (article) =>
             article.title.toLowerCase().includes(term.toLowerCase()) ||
             (article.description &&
-              article.description.toLowerCase().includes(term.toLowerCase()))
-        )
+              article.description.toLowerCase().includes(term.toLowerCase())),
+        ),
       );
     }, 300),
-    [articles]
+    [articles],
   );
 
   useEffect(() => {
@@ -336,7 +336,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           }}
         >
           <a
-            href="https://sonnguyenhoang.com"
+            href="https://devverse-swe.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -366,10 +366,10 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           >
             This website is built and designed with <strong>Next.js</strong>,{" "}
             <strong>MDX</strong>, <strong>Vercel</strong>, and{" "}
-            <strong>TailwindCSS</strong>. It serves as a hub for sharing software
-            engineering insights, technical tutorials, and the latest trends in
-            technology. Enjoy a fast, modern, and responsive user experience as
-            you explore our articles and resources! 🌐
+            <strong>TailwindCSS</strong>. It serves as a hub for sharing
+            software engineering insights, technical tutorials, and the latest
+            trends in technology. Enjoy a fast, modern, and responsive user
+            experience as you explore our articles and resources! 🌐
           </p>
         </div>
       </motion.section>
