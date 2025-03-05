@@ -36,7 +36,7 @@ async function getArticles(): Promise<Article[]> {
         } catch (err) {
           return { slug, title: slug, description: "", topics: [] };
         }
-      })
+      }),
   );
 
   return articles;
