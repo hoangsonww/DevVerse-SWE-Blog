@@ -12,9 +12,27 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "DevVerse Blog - Your Source for Computer Science & SWE Knowledge",
+  title:
+    "DevVerse Blog - Your Source for Computer Science & Software Engineering Knowledge",
   description:
-    "A collection of articles and resources on computer science and software engineering.",
+    "A collection of articles and resources on computer science and software engineering, covering topics like algorithms, web development, AI, and more.",
+  keywords: [
+    "Computer Science",
+    "Software Engineering",
+    "Coding",
+    "Programming",
+    "Web Development",
+    "AI",
+    "Machine Learning",
+    "Cloud Computing",
+    "Data Structures",
+    "Algorithms",
+    "DevOps",
+    "Cybersecurity",
+    "Frontend Development",
+    "Backend Development",
+  ],
+  robots: "index, follow",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
@@ -26,7 +44,7 @@ export const metadata = {
   manifest: "/manifest.json",
   openGraph: {
     title: "DevVerse Blog - Your Source for Computer Science & SWE Knowledge",
-    description: "Sharing Computer Science Knowledge",
+    description: "Sharing Computer Science Knowledge and Resources",
     url: "https://devverse-swe.vercel.app",
     siteName:
       "DevVerse CS Blog - Your Source for Computer Science & SWE Knowledge",
@@ -35,6 +53,7 @@ export const metadata = {
         url: "https://devverse-swe.vercel.app/android-chrome-512x512.png",
         width: 512,
         height: 512,
+        alt: "DevVerse Blog Logo",
       },
     ],
     locale: "en_US",
@@ -44,9 +63,19 @@ export const metadata = {
     card: "summary_large_image",
     title: "DevVerse CS Blog",
     description: "Sharing Computer Science Knowledge",
+    site: "@devverse",
     creator: "@movieverse",
     images: ["https://devverse-swe.vercel.app/android-chrome-512x512.png"],
   },
+  additionalMeta: [
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
+    { name: "theme-color", content: "#000000" },
+    { name: "apple-mobile-web-app-capable", content: "yes" },
+    {
+      name: "apple-mobile-web-app-status-bar-style",
+      content: "black-translucent",
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -57,6 +86,37 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta charSet="UTF-8" />
+        <meta name="author" content="DevVerse Team" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://devverse-swe.vercel.app" />
+        <meta
+          property="og:image"
+          content="https://devverse-swe.vercel.app/android-chrome-512x512.png"
+        />
+        <meta
+          name="twitter:image"
+          content="https://devverse-swe.vercel.app/android-chrome-512x512.png"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "DevVerse Blog",
+              url: "https://devverse-swe.vercel.app",
+              author: {
+                "@type": "Organization",
+                name: "DevVerse Team",
+              },
+              description:
+                "A collection of articles and resources on computer science and software engineering.",
+              image:
+                "https://devverse-swe.vercel.app/android-chrome-512x512.png",
+            }),
+          }}
+        />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
@@ -89,6 +149,16 @@ export default function RootLayout({
             gtag('config', 'G-FG083YTDHQ');
           `}
         </Script>
+        <title>
+          DevVerse Blog - Your Source for Computer Science & Software
+          Engineering Knowledge
+        </title>
+        <meta name="google-adsense-account" content="ca-pub-6608388491200814" />
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6608388491200814"
+          crossOrigin="anonymous"
+        ></Script>
       </head>
       <body className={inter.className}>
         <DarkModeProvider>
