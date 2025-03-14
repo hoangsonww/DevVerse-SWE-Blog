@@ -23,6 +23,7 @@ export const metadata = {
     "Programming",
     "Web Development",
     "AI",
+    "Artificial Intelligence",
     "Machine Learning",
     "Cloud Computing",
     "Data Structures",
@@ -66,16 +67,7 @@ export const metadata = {
     site: "@devverse",
     creator: "@movieverse",
     images: ["https://devverse-swe.vercel.app/android-chrome-512x512.png"],
-  },
-  additionalMeta: [
-    { name: "viewport", content: "width=device-width, initial-scale=1" },
-    { name: "theme-color", content: "#000000" },
-    { name: "apple-mobile-web-app-capable", content: "yes" },
-    {
-      name: "apple-mobile-web-app-status-bar-style",
-      content: "black-translucent",
-    },
-  ],
+  }
 };
 
 export default function RootLayout({
