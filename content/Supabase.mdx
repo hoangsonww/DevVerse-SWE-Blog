@@ -20,6 +20,7 @@ export default function SupabaseArticle({ children }) {
 # Supabase: The Ultimate Deep Dive into the Open Source Firebase Alternative
 
 ### Author: Son Nguyen
+
 > Date: 2024-11-28
 
 Supabase is revolutionizing backend development as the open source alternative to Firebase. Leveraging the power of PostgreSQL along with real-time capabilities, built-in authentication, robust file storage, and edge functions, Supabase delivers a modern, scalable, and developer-friendly platform. This article provides an extensive deep dive into Supabase’s inner workings, complete with numerous code examples, advanced use cases, and best practices to help you harness its full potential.
@@ -45,11 +46,13 @@ Supabase is built on several key components that work together to offer a full-f
 ### 2.1. PostgreSQL: The Heart of Supabase
 
 At its core, Supabase uses PostgreSQL—a powerful, ACID-compliant relational database known for its robustness and advanced features. Supabase leverages PostgreSQL’s extensibility with:
+
 - **Advanced SQL Queries:** Support for joins, window functions, JSON operations, and full-text search.
 - **Extensions:** Tools like PostGIS for geospatial queries and pg_cron for scheduling.
 - **Auto-generated APIs:** Utilizing [PostgREST](https://postgrest.org/), every table is exposed as a RESTful endpoint instantly.
 
 #### Example: Creating a Table and Querying Data
+
 ```sql
 -- Create a table for user profiles
 CREATE TABLE profiles (
@@ -69,18 +72,22 @@ SELECT id, username, email FROM profiles WHERE created_at > NOW() - INTERVAL '7 
 Supabase automatically creates RESTful endpoints for your PostgreSQL tables. This means that once your schema is defined, you have a complete API available without any additional code.
 
 #### Example: Fetching Data via REST API (JavaScript)
+
 ```js
 // Using fetch to retrieve profiles from the Supabase auto-generated API
 async function getProfiles() {
-  const response = await fetch('https://your-supabase-url.supabase.co/rest/v1/profiles', {
-    headers: {
-      apiKey: 'your-anon-key',
-      Authorization: 'Bearer your-anon-key',
-      'Content-Type': 'application/json'
-    }
-  });
+  const response = await fetch(
+    "https://your-supabase-url.supabase.co/rest/v1/profiles",
+    {
+      headers: {
+        apiKey: "your-anon-key",
+        Authorization: "Bearer your-anon-key",
+        "Content-Type": "application/json",
+      },
+    },
+  );
   const data = await response.json();
-  console.log('Profiles:', data);
+  console.log("Profiles:", data);
 }
 
 getProfiles();
@@ -91,16 +98,18 @@ getProfiles();
 Supabase provides a robust authentication system that supports multiple providers including email/password, OAuth (Google, GitHub, etc.), and third-party logins. It integrates seamlessly with PostgreSQL through Row Level Security (RLS) to enforce data access rules.
 
 #### Features:
+
 - **User Registration & Login**
 - **Password Recovery & Email Confirmations**
 - **Custom Claims and Role Management**
 
 #### Example: User Authentication with Supabase Client
-```js
-import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://your-supabase-url.supabase.co';
-const supabaseKey = 'your-anon-key';
+```js
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = "https://your-supabase-url.supabase.co";
+const supabaseKey = "your-anon-key";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Sign up a new user
@@ -109,8 +118,8 @@ async function signUp(email, password) {
     email,
     password,
   });
-  if (error) console.error('Sign-up error:', error);
-  else console.log('Sign-up successful:', data);
+  if (error) console.error("Sign-up error:", error);
+  else console.log("Sign-up successful:", data);
 }
 
 // Log in an existing user
@@ -119,12 +128,12 @@ async function signIn(email, password) {
     email,
     password,
   });
-  if (error) console.error('Sign-in error:', error);
-  else console.log('Logged in user:', data);
+  if (error) console.error("Sign-in error:", error);
+  else console.log("Logged in user:", data);
 }
 
-signUp('newuser@example.com', 'SuperSecure123!');
-signIn('newuser@example.com', 'SuperSecure123!');
+signUp("newuser@example.com", "SuperSecure123!");
+signIn("newuser@example.com", "SuperSecure123!");
 ```
 
 ### 2.4. Real-Time Subscriptions
@@ -132,12 +141,13 @@ signIn('newuser@example.com', 'SuperSecure123!');
 One of Supabase’s most powerful features is real-time data updates. Using PostgreSQL’s replication and websockets, Supabase allows you to subscribe to changes on any table, enabling live updates for your application.
 
 #### Example: Subscribing to Real-Time Changes in React
-```jsx
-import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://your-supabase-url.supabase.co';
-const supabaseKey = 'your-anon-key';
+```jsx
+import React, { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = "https://your-supabase-url.supabase.co";
+const supabaseKey = "your-anon-key";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function RealTimeMessages() {
@@ -146,21 +156,21 @@ export default function RealTimeMessages() {
   useEffect(() => {
     // Fetch initial messages
     async function fetchMessages() {
-      const { data, error } = await supabase.from('messages').select('*');
+      const { data, error } = await supabase.from("messages").select("*");
       if (!error) setMessages(data);
     }
     fetchMessages();
 
     // Subscribe to changes on the "messages" table
     const subscription = supabase
-      .channel('public:messages')
+      .channel("public:messages")
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'messages' },
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages" },
         (payload) => {
-          console.log('Change received!', payload);
+          console.log("Change received!", payload);
           setMessages((prev) => [...prev, payload.new]);
-        }
+        },
       )
       .subscribe();
 
@@ -188,28 +198,29 @@ export default function RealTimeMessages() {
 Supabase includes a dedicated storage service for handling files and media. This service supports direct file uploads, secure access controls, and integrates with your authentication system.
 
 #### Example: Uploading and Retrieving a File
+
 ```js
 // Upload a file using the Supabase Storage API
 async function uploadFile(file) {
   const { data, error } = await supabase.storage
-    .from('avatars')
+    .from("avatars")
     .upload(`public/${file.name}`, file);
   if (error) {
-    console.error('Upload error:', error);
+    console.error("Upload error:", error);
     return;
   }
-  console.log('File uploaded:', data);
+  console.log("File uploaded:", data);
 }
 
 // Get a public URL for a file
 async function getPublicUrl(path) {
-  const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-  console.log('Public URL:', data.publicUrl);
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  console.log("Public URL:", data.publicUrl);
 }
 
 // Usage example:
 // Assume `fileInput` is an input element of type file
-document.getElementById('fileInput').addEventListener('change', (e) => {
+document.getElementById("fileInput").addEventListener("change", (e) => {
   const file = e.target.files[0];
   uploadFile(file).then(() => getPublicUrl(`public/${file.name}`));
 });
@@ -220,35 +231,41 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
 Supabase Edge Functions allow you to write serverless functions that run close to your users, reducing latency. These functions are typically written in JavaScript or TypeScript and are ideal for custom API endpoints, webhooks, or background tasks.
 
 #### Example: Creating an Edge Function
+
 1. **Create a function file (`hello-world.ts`):**
+
 ```ts
 // hello-world.ts
-import { serve } from 'std/server';
+import { serve } from "std/server";
 
 serve(async (req) => {
   const { searchParams } = new URL(req.url);
-  const name = searchParams.get('name') || 'World';
+  const name = searchParams.get("name") || "World";
   return new Response(`Hello, ${name}!`, {
-    headers: { 'Content-Type': 'text/plain' },
+    headers: { "Content-Type": "text/plain" },
   });
 });
-   ```
+```
 
 2. **Deploy the function using the Supabase CLI:**
+
 ```bash
 supabase functions deploy hello-world
-   ```
+```
 
 3. **Call the function from your client:**
+
 ```js
 async function callEdgeFunction() {
-  const response = await fetch('https://your-supabase-url.functions.supabase.co/hello-world?name=Alex');
+  const response = await fetch(
+    "https://your-supabase-url.functions.supabase.co/hello-world?name=Alex",
+  );
   const text = await response.text();
   console.log(text); // "Hello, Alex!"
 }
 
 callEdgeFunction();
-   ```
+```
 
 ---
 
@@ -259,20 +276,22 @@ Supabase integrates seamlessly with modern front-end frameworks. Let’s walk th
 ### 3.1. Setting Up the Project
 
 1. **Install Dependencies:**
+
 ```bash
 npx create-react-app supabase-demo
 cd supabase-demo
 npm install @supabase/supabase-js
-   ```
+```
 
 2. **Configure Supabase Client (`src/supabaseClient.js`):**
+
 ```js
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
-   ```
+```
 
 ### 3.2. Implementing Authentication
 
@@ -280,33 +299,44 @@ Create a simple authentication form that allows users to sign up and log in.
 
 ```jsx
 // src/Auth.js
-import React, { useState } from 'react';
-import { supabase } from './supabaseClient';
+import React, { useState } from "react";
+import { supabase } from "./supabaseClient";
 
 export default function Auth() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSignUp = async () => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) setMessage(error.message);
-    else setMessage('Check your email for confirmation!');
+    else setMessage("Check your email for confirmation!");
   };
 
   const handleSignIn = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) setMessage(error.message);
-    else setMessage('Successfully signed in!');
+    else setMessage("Successfully signed in!");
   };
 
   return (
     <div>
       <h2>Authentication</h2>
-      <input type="email" placeholder="Email" value={email}
-        onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" value={password}
-        onChange={(e) => setPassword(e.target.value)} />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
       <div>
         <button onClick={handleSignUp}>Sign Up</button>
         <button onClick={handleSignIn}>Sign In</button>
@@ -323,27 +353,34 @@ Integrate a chat component that utilizes real-time subscriptions to update messa
 
 ```jsx
 // src/Chat.js
-import React, { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import React, { useEffect, useState } from "react";
+import { supabase } from "./supabaseClient";
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
-  const [newMsg, setNewMsg] = useState('');
+  const [newMsg, setNewMsg] = useState("");
 
   useEffect(() => {
     // Load initial messages
     async function loadMessages() {
-      const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: true });
       if (!error) setMessages(data);
     }
     loadMessages();
 
     // Subscribe to new messages
     const channel = supabase
-      .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        setMessages((prev) => [...prev, payload.new]);
-      })
+      .channel("public:messages")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new]);
+        },
+      )
       .subscribe();
 
     return () => {
@@ -352,8 +389,10 @@ export default function Chat() {
   }, []);
 
   const sendMessage = async () => {
-    const { error } = await supabase.from('messages').insert([{ content: newMsg }]);
-    if (!error) setNewMsg('');
+    const { error } = await supabase
+      .from("messages")
+      .insert([{ content: newMsg }]);
+    if (!error) setNewMsg("");
   };
 
   return (
@@ -382,8 +421,8 @@ Create a component to handle avatar uploads and display the uploaded image.
 
 ```jsx
 // src/AvatarUpload.js
-import React, { useState } from 'react';
-import { supabase } from './supabaseClient';
+import React, { useState } from "react";
+import { supabase } from "./supabaseClient";
 
 export default function AvatarUpload() {
   const [uploading, setUploading] = useState(false);
@@ -392,17 +431,19 @@ export default function AvatarUpload() {
   const uploadAvatar = async (event) => {
     setUploading(true);
     const file = event.target.files[0];
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
-    let { error } = await supabase.storage.from('avatars').upload(filePath, file);
+    let { error } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file);
     if (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       setUploading(false);
       return;
     }
-    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
     setAvatarUrl(data.publicUrl);
     setUploading(false);
   };
@@ -412,7 +453,13 @@ export default function AvatarUpload() {
       <h2>Avatar Upload</h2>
       <input type="file" onChange={uploadAvatar} />
       {uploading && <p>Uploading...</p>}
-      {avatarUrl && <img src={avatarUrl} alt="Avatar" style={{ width: '100px', borderRadius: '50%' }} />}
+      {avatarUrl && (
+        <img
+          src={avatarUrl}
+          alt="Avatar"
+          style={{ width: "100px", borderRadius: "50%" }}
+        />
+      )}
     </div>
   );
 }
@@ -424,10 +471,10 @@ Combine the authentication, chat, and file upload components in your main applic
 
 ```jsx
 // src/App.js
-import React from 'react';
-import Auth from './Auth';
-import Chat from './Chat';
-import AvatarUpload from './AvatarUpload';
+import React from "react";
+import Auth from "./Auth";
+import Chat from "./Chat";
+import AvatarUpload from "./AvatarUpload";
 
 function App() {
   return (
@@ -454,6 +501,7 @@ export default App;
 - **Custom Functions and Triggers:** Write PostgreSQL functions and triggers to automate tasks.
 
 #### Example: Creating an Index and a Trigger Function
+
 ```sql
 -- Create an index on the "created_at" column of the messages table for faster sorting
 CREATE INDEX idx_messages_created_at ON messages(created_at);
@@ -485,6 +533,7 @@ FOR EACH ROW EXECUTE FUNCTION log_new_message();
 - **CI/CD Pipelines:** Integrate tests and automated deployments using services like GitHub Actions, GitLab CI, or CircleCI.
 
 #### Example: Running Supabase Locally
+
 ```bash
 # Install the Supabase CLI
 npm install -g supabase
@@ -498,13 +547,17 @@ supabase start
 Supabase works well with frameworks like Next.js, Nuxt.js, and Svelte. Its flexibility allows you to use it for server-side rendering, static site generation, and client-side applications.
 
 #### Example: Using Supabase in Next.js (Server-side Rendering)
+
 ```jsx
 // pages/index.js
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 export async function getServerSideProps() {
-  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-  const { data: profiles } = await supabase.from('profiles').select('*');
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+  );
+  const { data: profiles } = await supabase.from("profiles").select("*");
   return { props: { profiles } };
 }
 
@@ -514,7 +567,9 @@ export default function Home({ profiles }) {
       <h1>User Profiles</h1>
       <ul>
         {profiles.map((profile) => (
-          <li key={profile.id}>{profile.username} - {profile.email}</li>
+          <li key={profile.id}>
+            {profile.username} - {profile.email}
+          </li>
         ))}
       </ul>
     </div>
@@ -567,4 +622,3 @@ Supabase is a game-changer in backend development, offering an open source, scal
 - **Community Discussions:** [https://github.com/supabase/supabase/discussions](https://github.com/supabase/supabase/discussions)
 
 Happy coding! Explore the power of Supabase and build scalable, real-time applications with the confidence of full control and transparency.
-

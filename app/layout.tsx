@@ -67,7 +67,7 @@ export const metadata = {
     site: "@devverse",
     creator: "@movieverse",
     images: ["https://devverse-swe.vercel.app/android-chrome-512x512.png"],
-  }
+  },
 };
 
 export default function RootLayout({
