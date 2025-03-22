@@ -10,7 +10,7 @@ module.exports = {
   additionalPaths: async (config) => {
     const posts = getAllPosts();
     return posts.map((post) => ({
-      loc: `/topics/${post.slug}`,
+      loc: `/articles/${post.slug}`,
       lastmod: new Date().toISOString(),
       changefreq: "weekly",
       priority: 0.7,
