@@ -32,6 +32,7 @@ Mobile app development requires balancing rapid iteration with deep platform int
 React Native leverages a JavaScript engine (Hermes on Android or JavaScriptCore on iOS) that runs your app’s business logic. It then communicates with native UI components via a bridge. In its latest iteration (Fabric), the bridge is re‑architected to allow synchronous layout updates.
 
 #### Key Components:
+
 - **JS Thread:** Runs your JavaScript code.
 - **Bridge:** Serializes data between JavaScript and native code.
 - **Native Modules:** Perform operations like networking and file I/O.
@@ -48,7 +49,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.text}>You clicked {count} times</Text>
-      <Button title="Increment" onPress={() => setCount(c => c + 1)} />
+      <Button title="Increment" onPress={() => setCount((c) => c + 1)} />
     </SafeAreaView>
   );
 }
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
 Swift compiles ahead-of‑time (AOT), and with SwiftUI, you write declarative UI code that the compiler converts into efficient render trees. Swift’s concurrency model with `async/await` and actors is built into the language.
 
 #### Key Components:
+
 - **SwiftUI:** Declarative UI framework that efficiently diff‑computes UI updates.
 - **Concurrency:** Uses `async/await` to write clear asynchronous code.
 - **ABI Stability:** Since Swift 5.0, providing robust performance.
@@ -99,6 +101,7 @@ struct ContentView: View {
 Kotlin for Android, especially with Jetpack Compose, offers a modern approach to building UIs. Compose compiles Kotlin code into an efficient UI runtime, while coroutines enable smooth asynchronous programming.
 
 #### Key Components:
+
 - **Jetpack Compose:** Declarative UI toolkit that transforms Kotlin code into UI components.
 - **Coroutines & Flow:** For reactive and asynchronous programming.
 - **ART (Android Runtime):** Optimized for native performance.
@@ -148,10 +151,12 @@ fun CounterApp() {
 ## 2. Performance & Profiling Benchmarks
 
 We ran our tests on the following devices:
+
 - **iOS:** iPhone 13 Pro (iOS 17)
 - **Android:** Pixel 7 Pro (Android 14)
 
 **Test Metrics:**
+
 - **Cold Launch Time:** Measured from app start until the first rendered frame.
 - **Warm Launch Time:** Time to re‑open the app.
 - **CPU Intensive Task:** Execution time for a loop running 10M operations.
@@ -161,27 +166,29 @@ We ran our tests on the following devices:
 
 **Sample Benchmark Table:**
 
-| Workload                   | React Native (Fabric + Hermes) | SwiftUI           | Jetpack Compose   |
-|----------------------------|-------------------------------:|------------------:|------------------:|
-| Cold Launch (ms)           | 630 ± 20                       | 210 ± 10         | 240 ± 15          |
-| Warm Launch (ms)           | 250 ± 10                       | 120 ± 5          | 130 ± 8           |
-| CPU Intensive Loop (10M ops)| 1100 ± 30                     | 290 ± 10         | 330 ± 12          |
-| Average Frame (Scroll)     | 45ms                           | 16ms             | 18ms              |
-| Memory Peak (RSS)          | 52MB                           | 20MB             | 24MB              |
-| Battery Drain (1hr idle)   | 6%                             | 2.8%             | 3.1%              |
+| Workload                     | React Native (Fabric + Hermes) |  SwiftUI | Jetpack Compose |
+| ---------------------------- | -----------------------------: | -------: | --------------: |
+| Cold Launch (ms)             |                       630 ± 20 | 210 ± 10 |        240 ± 15 |
+| Warm Launch (ms)             |                       250 ± 10 |  120 ± 5 |         130 ± 8 |
+| CPU Intensive Loop (10M ops) |                      1100 ± 30 | 290 ± 10 |        330 ± 12 |
+| Average Frame (Scroll)       |                           45ms |     16ms |            18ms |
+| Memory Peak (RSS)            |                           52MB |     20MB |            24MB |
+| Battery Drain (1hr idle)     |                             6% |     2.8% |            3.1% |
 
-*Note:* Detailed flame charts and instrumentation screenshots were captured using Instruments (iOS) and Android Profiler.
+_Note:_ Detailed flame charts and instrumentation screenshots were captured using Instruments (iOS) and Android Profiler.
 
 ---
 
 ## 3. Memory, Battery, and Storage Footprint
 
 ### Memory & Binary Size
+
 - **React Native:** Typically larger due to the JS runtime and bundled libraries (approx. 12–15 MB binary size).
 - **Swift:** Native binary sizes around 5–7 MB with aggressive linker optimizations.
 - **Kotlin:** Binary sizes around 6–8 MB using ProGuard/R8 for code shrinking.
 
 ### Battery & Performance Optimizations
+
 - **React Native:** Hermes enables bytecode caching to reduce memory overhead. Use tools like Flipper for real‑time performance debugging.
 - **Swift:** Use Instruments to profile memory allocations and energy impact. SwiftUI’s diff‑algorithm reduces unnecessary re‑rendering.
 - **Kotlin:** Leverage Android Studio’s energy profiler and implement efficient state management with coroutines to minimize CPU wakeups.
@@ -191,6 +198,7 @@ We ran our tests on the following devices:
 ## 4. Developer Workflow & Tooling
 
 ### Environment Setup & Iteration
+
 - **React Native:**
 - Environment: Node.js, npm/yarn, Watchman.
 - Command: `npx react-native init MyApp`
@@ -206,17 +214,18 @@ We ran our tests on the following devices:
 
 #### IDE Comparison (Qualitative Metrics):
 
-| Feature                | VSCode + Expo (RN)  | Xcode (Swift)    | Android Studio (Kotlin) |
-|------------------------|---------------------|------------------|-------------------------|
-| Auto-complete          | Excellent           | Outstanding      | Outstanding             |
-| Debugging              | Chrome DevTools, Flipper | LLDB, Instruments | Android Profiler        |
-| Build Times            | Fast (JS bundling)  | Moderate         | Moderate                |
+| Feature       | VSCode + Expo (RN)       | Xcode (Swift)     | Android Studio (Kotlin) |
+| ------------- | ------------------------ | ----------------- | ----------------------- |
+| Auto-complete | Excellent                | Outstanding       | Outstanding             |
+| Debugging     | Chrome DevTools, Flipper | LLDB, Instruments | Android Profiler        |
+| Build Times   | Fast (JS bundling)       | Moderate          | Moderate                |
 
 ---
 
 ## 5. UI/UX Implementation Patterns
 
 ### Advanced Animations & Transitions
+
 - **React Native:** Use libraries like `react-native-reanimated` and `Lottie` for complex animations.
 
 **Example: Lottie Animation in React Native**
@@ -310,6 +319,7 @@ fun AnimatedBox() {
 React Native’s strength is its ability to tap into native capabilities when necessary. Below is an example of writing a native module in Swift and exposing it to JavaScript.
 
 ### iOS Native Module (Swift)
+
 1. **Swift Module:**
 
 ```swift
@@ -354,6 +364,7 @@ export async function multiplyNumbers(a: number, b: number): Promise<number> {
 ```
 
 ### Android Native Module (Kotlin)
+
 1. **Kotlin Module:**
 
 ```kotlin
@@ -395,13 +406,14 @@ class MyReactPackage : ReactPackage {
 ```
 
 3. **Using the Native Module in React Native:**
-_(Same as the iOS usage shown above.)_
+   _(Same as the iOS usage shown above.)_
 
 ---
 
 ## 7. Testing Strategies & Coverage
 
 ### React Native Testing
+
 - **Unit Testing:** Using Jest for JavaScript code.
 - **End-to-End Testing:** Using Detox for automated testing of the entire app flow.
 
@@ -420,6 +432,7 @@ it("renders correctly", () => {
 ```
 
 ### Swift Testing
+
 - **XCTest:** Use XCTest for unit tests and UI tests.
 - **Snapshot Testing:** Frameworks like iOSSnapshotTestCase for visual diff testing.
 
@@ -438,6 +451,7 @@ class ContentViewTests: XCTestCase {
 ```
 
 ### Kotlin Testing
+
 - **JUnit & Espresso:** For unit and UI tests.
 - **UI Automator:** For integration tests across activities.
 
@@ -472,9 +486,9 @@ name: Mobile CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-ios:
@@ -495,8 +509,8 @@ jobs:
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
-          java-version: '11'
+          distribution: "adopt"
+          java-version: "11"
       - name: Build Android
         run: ./gradlew assembleRelease
 
@@ -513,6 +527,7 @@ jobs:
 ## 9. Security & Compliance
 
 ### Mobile Security Considerations
+
 - **OWASP Mobile Top 10:** Implement proper input validation, secure storage (Keychain on iOS, Keystore on Android), and network certificate pinning.
 - **Encryption:** Use HTTPS, SSL pinning, and native APIs (SecKey on iOS, Android’s Keystore).
 - **CI/CD Secrets:** Leverage GitHub Actions’ secret storage and fastlane match for iOS certificate management.
@@ -522,6 +537,7 @@ jobs:
 ## 10. Cost Analysis & ROI Modeling
 
 When comparing mobile solutions:
+
 - **Development Hours:** A shared React Native codebase may reduce total dev hours by nearly 50% compared to two native apps.
 - **Maintenance:** One unified codebase simplifies updates but may incur extra costs when dealing with native bridges.
 - **Performance ROI:** For CPU/GPU‑intensive tasks, native Swift/Kotlin often yield better user retention and lower crash rates.
@@ -533,6 +549,7 @@ A detailed cost model would account for developer hourly rates, feature complexi
 ## 11. Real-World Case Studies
 
 Consider these examples:
+
 - **Startup MVP:** A team built a social media app in React Native. The shared codebase accelerated time‑to‑market by 40%, even though CPU‑intensive video processing was offloaded to native modules.
 - **Enterprise App:** A financial services company chose Swift and Kotlin to ensure low‑latency and maximum security. Their adoption of native frameworks resulted in a 25% improvement in user engagement.
 - **Hybrid Approach:** Some teams use React Native for the bulk of the UI while writing critical features (like payment processing) in native code, blending both approaches seamlessly.
@@ -542,10 +559,12 @@ Consider these examples:
 ## 12. Decision Matrix & Recommendations
 
 **When to Choose React Native:**
+
 - Rapid iteration and shared codebase for both iOS and Android.
 - MVPs, prototypes, or apps with standard UI that can offload performance‑critical tasks to native modules.
 
 **When to Choose Swift (iOS) or Kotlin (Android):**
+
 - High performance requirements, heavy animations, or GPU‑intensive tasks.
 - Apps that demand deep platform integration and where ultimate control of the user experience is paramount.
 
