@@ -7,18 +7,18 @@ type PreBlockProps = {
   children: React.ReactNode;
 };
 
-const PreBlock = ({ children }: PreBlockProps) => {
+const PreBlock: React.FC<PreBlockProps> = ({ children }) => {
   const { darkMode } = useContext(DarkModeContext);
 
   const preStyle: React.CSSProperties = {
-    backgroundColor: darkMode ? "#1e1e1e" : "#f5f5f5", // ✅ Dark: VS Code dark | Light: Light gray
-    color: darkMode ? "#ddd" : "#000", // ✅ Text: Light in dark mode, dark in light mode
+    backgroundColor: darkMode ? "#1e1e1e" : "#f5f5f5",
+    color: darkMode ? "#ddd" : "#000",
     padding: "1rem",
     borderRadius: "8px",
     overflowX: "auto",
     marginBottom: "1rem",
     fontFamily: "monospace",
-    whiteSpace: "pre-wrap", // ✅ Prevents horizontal scrolling for long lines
+    whiteSpace: "pre-wrap",
   };
 
   return <pre style={preStyle}>{children}</pre>;

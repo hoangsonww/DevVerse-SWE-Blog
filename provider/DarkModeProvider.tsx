@@ -19,23 +19,21 @@ export const DarkModeContext = createContext<DarkModeContextValue>({
 });
 
 export function DarkModeProvider({ children }: PropsWithChildren) {
-  const [darkMode, setDarkMode] = useState(false);
-
-  // On mount, load initial preference from localStorage
-  useEffect(() => {
-    const storedPreference = localStorage.getItem("darkMode");
-    if (storedPreference) {
-      const isDark = storedPreference === "true";
-      setDarkMode(isDark);
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check if window exists (i.e. client side)
+    if (typeof window !== "undefined") {
+      // Try to get user preference from localStorage
+      const storedPreference = localStorage.getItem("darkMode");
+      if (storedPreference !== null) {
+        return storedPreference === "true";
       }
+      // Fallback to system preference
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
-  }, []);
+    return false;
+  });
 
-  // Whenever darkMode changes, write to localStorage and toggle the .dark class
+  // Update document and localStorage when darkMode changes.
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode ? "true" : "false");
     if (darkMode) {

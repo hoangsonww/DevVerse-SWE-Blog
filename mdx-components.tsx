@@ -1,6 +1,8 @@
 import type { MDXComponents } from "mdx/types";
 import Image from "next/image";
 import CodeBlock from "@/ui/CodeBlock";
+import PreBlock from "@/ui/PreBlock";
+import InlineCode from "@/ui/InlineCode";
 
 export function useMDXComponents(
   components: MDXComponents = {},
@@ -57,42 +59,21 @@ export function useMDXComponents(
     // Inline code: if no language is specified
     code: (props) => {
       if (!props.className) {
-        return (
-          <code
-            style={{
-              backgroundColor: "#000",
-              padding: "0.2em 0.4em",
-              borderRadius: "3px",
-              fontFamily: "monospace",
-              color: "#fff",
-            }}
-            {...props}
-          />
-        );
+        return <InlineCode {...props} />;
       }
       // If a language is specified, delegate to CodeBlock for highlighting.
       return <CodeBlock {...props} />;
     },
 
-    // For preformatted code blocks, also use CodeBlock when possible.
+    // Preformatted code blocks:
     pre: (props) => {
       const child = props.children;
       if (child && child.props && child.props.className) {
+        // If a language/className is detected, use CodeBlock
         return <CodeBlock {...child.props} />;
       }
-      return (
-        <pre
-          style={{
-            backgroundColor: "#000",
-            padding: "1em",
-            overflowX: "auto",
-            borderRadius: "5px",
-            marginBottom: "1rem",
-            color: "#000", // ensure default text color is black
-          }}
-          {...props}
-        />
-      );
+      // Otherwise, use our PreBlock that supports dark/light mode.
+      return <PreBlock {...props} />;
     },
 
     // Images with default width/height if not provided

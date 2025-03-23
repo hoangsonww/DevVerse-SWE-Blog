@@ -151,6 +151,23 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6608388491200814"
           crossOrigin="anonymous"
         ></Script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+                (function() {
+                  try {
+                    const storedPreference = localStorage.getItem('darkMode');
+                    const isDark = storedPreference !== null 
+                      ? storedPreference === 'true' 
+                      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (isDark) {
+                      document.documentElement.classList.add('dark');
+                    }
+                  } catch (e) {}
+                })();
+              `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         <DarkModeProvider>

@@ -25,7 +25,7 @@ export default function InteractiveCard({
     transition: "transform 0.2s ease, box-shadow 0.2s ease",
     transform: hover ? "translateY(-4px)" : "translateY(0)",
     boxShadow: hover
-      ? "0 4px 20px rgba(0, 0, 0, 0.3)" // Hover effect
+      ? "0 4px 20px rgba(0, 0, 0, 0.3)"
       : "0 4px 10px rgba(0, 0, 0, 0.2)",
     minHeight: "200px",
     display: "flex",
