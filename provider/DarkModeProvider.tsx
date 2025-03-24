@@ -3,8 +3,8 @@
 import React, {
   createContext,
   useContext,
+  useLayoutEffect,
   useState,
-  useEffect,
   PropsWithChildren,
 } from "react";
 
@@ -19,33 +19,43 @@ export const DarkModeContext = createContext<DarkModeContextValue>({
 });
 
 export function DarkModeProvider({ children }: PropsWithChildren) {
-  const [darkMode, setDarkMode] = useState(() => {
-    // Check if window exists (i.e. client side)
-    if (typeof window !== "undefined") {
-      // Try to get user preference from localStorage
-      const storedPreference = localStorage.getItem("darkMode");
-      if (storedPreference !== null) {
-        return storedPreference === "true";
-      }
-      // Fallback to system preference
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState<boolean | null>(null);
 
-  // Update document and localStorage when darkMode changes.
-  useEffect(() => {
-    localStorage.setItem("darkMode", darkMode ? "true" : "false");
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+  useLayoutEffect(() => {
+    let initial: boolean;
+    try {
+      const stored = localStorage.getItem("darkMode");
+      if (stored !== null) {
+        initial = stored === "true";
+      } else {
+        initial = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      }
+    } catch {
+      initial = false;
     }
+
+    document.documentElement.classList.toggle("dark", initial);
+    setDarkMode(initial);
+  }, []);
+
+  // Only update class/storage once preference changes
+  useLayoutEffect(() => {
+    if (darkMode === null) return;
+    localStorage.setItem("darkMode", darkMode.toString());
+    document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
+  // Don’t render children until we know darkMode — prevents flash
+  if (darkMode === null) {
+    return null;
+  }
+
   return (
+    // @ts-ignore
     <DarkModeContext.Provider value={{ darkMode, setDarkMode }}>
       {children}
     </DarkModeContext.Provider>
   );
 }
+
+export const useDarkMode = () => useContext(DarkModeContext);

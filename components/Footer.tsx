@@ -3,13 +3,18 @@ import { useEffect, useState } from "react";
 
 export default function Footer() {
   const [year, setYear] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setYear(new Date().getFullYear().toString()); // Ensure it's a string to match SSR output
+    setYear(new Date().getFullYear().toString());
+    setMounted(true);
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <footer
+      className="fade-in"
       style={{
         textAlign: "center",
         padding: "1rem 2rem",
@@ -20,7 +25,7 @@ export default function Footer() {
         transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
-      &copy; {year ? year : "Loading..."}{" "}
+      &copy; {year}{" "}
       <a
         href="https://github.com/hoangsonww"
         target="_blank"

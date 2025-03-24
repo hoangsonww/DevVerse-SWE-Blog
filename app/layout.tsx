@@ -78,6 +78,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+                (function() {
+                  try {
+                    const storedPreference = localStorage.getItem('darkMode');
+                    const isDark = storedPreference !== null 
+                      ? storedPreference === 'true' 
+                      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (isDark) {
+                      document.documentElement.classList.add('dark');
+                    }
+                  } catch (e) {}
+                })();
+              `,
+          }}
+        />
         <meta charSet="UTF-8" />
         <meta name="author" content="DevVerse Team" />
         <meta property="og:type" content="website" />
@@ -90,6 +107,12 @@ export default function RootLayout({
           name="twitter:image"
           content="https://devverse-swe.vercel.app/android-chrome-512x512.png"
         />
+        <style>{`
+          html { background-color: #f7f7f7 }
+          html.dark { background-color: #121212 }
+          nav.navbar { background-color: #f7f7f7 }
+          html.dark nav.navbar { background-color: #121212 }
+        `}</style>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -115,19 +138,6 @@ export default function RootLayout({
           integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
           crossOrigin="anonymous"
         />
-        {/* Inline dark mode initialization */}
-        <Script id="dark-mode-init" strategy="beforeInteractive">
-          {`
-            (function() {
-              try {
-                const darkMode = localStorage.getItem('darkMode');
-                if (darkMode === 'true') {
-                  document.documentElement.classList.add('dark');
-                }
-              } catch (e) {}
-            })();
-          `}
-        </Script>
         {/* Google Tag (gtag.js) */}
         <Script
           strategy="beforeInteractive"
@@ -151,28 +161,16 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6608388491200814"
           crossOrigin="anonymous"
         ></Script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-                (function() {
-                  try {
-                    const storedPreference = localStorage.getItem('darkMode');
-                    const isDark = storedPreference !== null 
-                      ? storedPreference === 'true' 
-                      : window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    if (isDark) {
-                      document.documentElement.classList.add('dark');
-                    }
-                  } catch (e) {}
-                })();
-              `,
-          }}
-        />
       </head>
       <body className={inter.className}>
         <DarkModeProvider>
           <Navbar />
-          <main className="container">{children}</main>
+          <main
+            className="container"
+            style={{ backgroundColor: "var(--background-color)" }}
+          >
+            {children}
+          </main>
           <Footer />
         </DarkModeProvider>
       </body>

@@ -35,6 +35,7 @@ export default async function TopicPage({ params }: PageProps) {
   return (
     <>
       <article
+        className="animate-fade-down"
         style={{
           padding: "2rem 0",
           backgroundColor: "var(--background-color)",

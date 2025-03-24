@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiHome, FiChevronRight, FiBook, FiSun, FiMoon } from "react-icons/fi";
@@ -15,40 +15,17 @@ function formatSlug(slug: string): string {
 export default function Navbar() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
+  const isHomePage = segments.length === 0;
 
-  // State for dark mode, with initial value from localStorage.
+  // State for dark mode from context.
   const { darkMode, setDarkMode } = useContext(DarkModeContext);
-
-  // // On mount, load dark mode preference from localStorage.
-  // useEffect(() => {
-  //   const storedPreference = localStorage.getItem("darkMode");
-  //   if (storedPreference) {
-  //     const isDark = storedPreference === "true";
-  //     setDarkMode(isDark);
-  //     if (isDark) {
-  //       document.documentElement.classList.add("dark");
-  //     } else {
-  //       document.documentElement.classList.remove("dark");
-  //     }
-  //   }
-  // }, []);
-  //
-  // // Update document and localStorage on darkMode change.
-  // useEffect(() => {
-  //   if (darkMode) {
-  //     document.documentElement.classList.add("dark");
-  //   } else {
-  //     document.documentElement.classList.remove("dark");
-  //   }
-  //   localStorage.setItem("darkMode", darkMode.toString());
-  // }, [darkMode]);
 
   let breadcrumb: React.ReactNode;
 
-  if (segments.length === 0) {
+  if (isHomePage) {
     // On the home page
     breadcrumb = (
-      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+      <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
         <FiHome />
         <span>Home</span>
       </span>
@@ -143,7 +120,10 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="navbar">
+      <nav
+        className="navbar"
+        style={{ backgroundColor: "var(--background-color)" }}
+      >
         <div className="breadcrumb">{breadcrumb}</div>
         <div className="darkmode">
           <button
@@ -155,6 +135,17 @@ export default function Navbar() {
         </div>
       </nav>
       <style jsx>{`
+        @keyframes fadeDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .navbar {
           display: flex;
           flex-wrap: wrap;
@@ -164,11 +155,14 @@ export default function Navbar() {
           background-color: var(--background-color);
           border-bottom: 1px solid var(--border-color, #eaeaea);
           transition: background-color 0.3s ease;
+          animation: fadeDown 0.6s ease forwards;
         }
+
         .breadcrumb {
           font-size: 1.125rem;
           flex: 1 1 auto;
         }
+
         .darkmode button {
           border: none;
           background: none;
@@ -179,28 +173,29 @@ export default function Navbar() {
           display: flex;
           align-items: center;
         }
-        /* Responsive adjustments for mobile */
+
+        /* Responsive */
         @media (max-width: 600px) {
           .navbar {
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: ${isHomePage ? "row" : "column"};
+            align-items: ${isHomePage ? "center" : "flex-start"};
           }
           .breadcrumb {
-            margin-bottom: 1rem;
-            width: 100%;
+            margin-bottom: ${isHomePage ? "0" : "1rem"};
+            width: ${isHomePage ? "auto" : "100%"};
             text-align: left;
           }
           .darkmode {
-            width: 100%;
+            width: ${isHomePage ? "auto" : "100%"};
             display: flex;
-            justify-content: flex-start;
+            justify-content: ${isHomePage ? "flex-end" : "flex-start"};
             padding: 0;
           }
           .darkmode button {
-            width: 100%;
+            width: ${isHomePage ? "auto" : "100%"};
             padding: 0;
-            text-align: left;
-            font-size: 1.3rem;
+            text-align: ${isHomePage ? "right" : "left"};
+            font-size: ${isHomePage ? "1.5rem" : "1.3rem"};
           }
         }
       `}</style>

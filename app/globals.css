@@ -1,5 +1,14 @@
 /* Global Styles */
 
+/* Prevent white flash on initial load */
+html {
+  background-color: var(--background-color);
+}
+
+html.dark {
+  background-color: #121212;
+}
+
 :root {
   /* Light mode variables */
   --background-color: #f7f7f7;
@@ -126,6 +135,7 @@ a:hover {
   transition: color 0.3s ease;
   display: flex;
   align-items: center;
+  color: var(--text-color);
 }
 
 @media (max-width: 600px) {
@@ -150,4 +160,32 @@ a:hover {
     text-align: left;
     font-size: 1.3rem;
   }
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-down {
+  animation: fadeDown 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 1s ease forwards;
 }

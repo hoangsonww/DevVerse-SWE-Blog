@@ -70,7 +70,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
       style={{
         padding: "2rem",
         backgroundColor: "var(--container-background)",
-        transition: "background-color 0.2s",
+        transition: "background-color 0.3s",
         borderRadius: "8px",
       }}
     >
@@ -128,7 +128,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             padding: "0.75rem 1rem",
             boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
             width: isFocused || searchTerm ? "500px" : "400px",
-            transition: "width 0.3s ease-in-out",
+            transition: "width 0.3s ease-in-out, background-color 0.3s ease",
           }}
         >
           <FaSearch
