@@ -1,11 +1,15 @@
 # DevVerse Computer Science & Software Engineering Blog
 
-A modern, high-performance blog built with [Next.js](https://nextjs.org/), leveraging MDX for content, PWA capabilities, and a rich ecosystem of libraries including Framer Motion, KaTeX, and more. This project is designed for scalability, maintainability, and an excellent developer experience.
+A modern, high-performance full-stack app built with [Next.js](https://nextjs.org/), leveraging MDX for content, PWA capabilities, and a rich ecosystem of libraries including Supabase, Framer Motion, KaTeX, and more. This project is designed for scalability, maintainability, and an excellent developer experience.
 
 ![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/-Supabase-6394F8?style=flat-square&logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 ![MDX](https://img.shields.io/badge/-MDX-000000?style=flat-square&logo=mdx&logoColor=white)
 ![Next.js](https://img.shields.io/badge/-Next.js-000000?style=flat-square&logo=next.js&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
+![JWT](https://img.shields.io/badge/-JWT-242?style=flat-square&logo=json-web-tokens&logoColor=white)
+![KaTeX](https://img.shields.io/badge/-KaTeX-3B5CC4?style=flat-square&logo=katex&logoColor=white)
 ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=white)
 ![Prettier](https://img.shields.io/badge/-Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=white)
@@ -17,9 +21,6 @@ A modern, high-performance blog built with [Next.js](https://nextjs.org/), lever
 
 - [Overview](#overview)
 - [Live Application](#live-application)
-  - [Home Page](#home-page)
-  - [Article Page](#article-page)
-  - [Dark Mode](#dark-mode)
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
@@ -124,6 +125,13 @@ Feel free to explore the content and features of the blog! 🚀
 - **Code Splitting & Performance:** Automatic code splitting and image optimization for improved performance.
 - **Containerized Development:** Docker and Docker Compose configurations for an isolated development environment.
 - **Dev Containers:** VS Code Dev Container configuration for a seamless setup.
+- **User Authentication:** User authentication with JWT tokens.
+- **User Registration/Sign-In:** User registration and sign-in functionality.
+- **Favorites:** Add articles to favorites for easy access (authenticated users only).
+- **Responsive Design:** Mobile-friendly layout with responsive design.
+- **Dark Mode:** Toggle between light and dark themes.
+- **SEO-Friendly:** Optimized for search engines with meta tags and structured data, with SSR and SSG.
+- **Linting & Formatting:** ESLint and Prettier configurations for consistent code quality.
 
 ## Project Structure
 
@@ -133,17 +141,43 @@ devverse-cs-swe-blog/
 │   ├── globals.css         # Global CSS styles
 │   ├── page.tsx            # Main page component
 │   ├── layout.tsx          # Layout component
-│   └── topics/[slug]
+│   ├── not-found.tsx       # 404 page component
+│   ├── favorites/
+│   │   ├── page.tsx        # Favorites page component
+│   ├── api/
+│   │   ├── reset-password/ 
+│   │   │   ├── route.ts    # Reset password API route
+│   │   ├── favorites/
+│   │   │   ├── route.ts    # Favorites API route
+│   ├── auth/
+│   │   ├── login/
+│   │   │   ├── page.tsx    # Login page component
+│   │   ├── register/
+│   │   │   ├── page.tsx    # Register page component
+│   │   ├── reset/
+│   │   │   ├── page.tsx    # Reset password page component
+│   └── articles/[slug]
 │       └── page.tsx        # Dynamic topic pages
 ├── components/             # Reusable React components
 │   ├── ArticleList.tsx     # Component for displaying a list of articles
+│   ├── ArticleContent.tsx  # Article content component
 │   ├── Footer.tsx          # Footer component
 │   ├── HomePageContent.tsx # Home page content component
 │   ├── Navbar.tsx          # Navbar component
 │   ├── InteractiveCard.tsx # Interactive card component
 │   ├── Loading.tsx         # Loading spinner component
 │   ├── MdxLayout.tsx       # Layout component for MDX content
+│   ├── (...)               # Other components
 │   └── RouteProgress.tsx   # Route progress bar component
+├── utils/                  # Utility functions and constants
+├── ui/                     # UI components and styles
+├── supabase/               # Supabase client configuration and queries
+│   ├── supabaseClient.ts   # Supabase client configuration
+│   ├── auth.ts             # Authentication functions
+│   ├── avatar.ts           # Avatar functions
+│   ├── favorites.ts        # Favorites functions
+│   ├── profile.ts          # Profile functions
+│   └── (other sql files for database setup)
 ├── public/                 # Static files (images, fonts, etc.)
 ├── content/                # MDX content for blog posts
 ├── .devcontainer/          # VS Code Dev Container configuration
@@ -156,7 +190,8 @@ devverse-cs-swe-blog/
 ├── next.config.js          # Next.js configuration
 ├── mdx-components.tsx      # Custom MDX components
 ├── tailwind.config.js      # Tailwind CSS configuration
-└── README.md               # This documentation file
+├── README.md               # This documentation file
+└── (... and more)
 ```
 
 ## Prerequisites
@@ -227,6 +262,8 @@ If you use Visual Studio Code, you can open the project in a Dev Container:
 ## Dependencies
 
 - **Next.js:** The core framework powering the application.
+- **Tailwind CSS:** Utility-first CSS framework for styling.
+- **@supabase/supabase-js:** Supabase client for user authentication.
 - **React & React-Dom:** Essential libraries for building user interfaces.
 - **@mdx-js/loader & @mdx-js/react:** Tools for integrating MDX content with React.
 - **next-pwa:** Adds progressive web app capabilities.
@@ -234,11 +271,77 @@ If you use Visual Studio Code, you can open the project in a Dev Container:
 - **KaTeX, rehype-katex, remark-math:** Enable mathematical rendering within MDX content.
 - **nprogress:** A progress bar for route transitions.
 - **remark-gfm:** Adds support for GitHub Flavored Markdown.
+- **and more...**
 
 ## Dev Dependencies
 
 - **TypeScript & @types/node:** Enable static typing for robust development.
 - **@types/nprogress:** Provides type definitions for nprogress.
+- **@types/react & @types/react-dom:** Type definitions for React.
+- **@types/tailwindcss:** Type definitions for Tailwind CSS.
+- **and more...**
+
+## Backend (Supabase)
+
+The blog uses [Supabase](https://supabase.io/) for user authentication, file storage, and database services. To set up the backend services, follow these steps:
+
+1. **Create a Supabase Account:**
+
+   Sign up for a free account on [Supabase](https://supabase.io/).
+
+2. **Create a New Project:**
+
+    Create a new project in the Supabase dashboard.
+
+3. **Set Up Authentication:**
+
+    Enable authentication in the project settings.
+
+4. **Create a `.env.local` File:**
+
+    Create a `.env.local` file in the root directory of the project with the following environment variables:
+
+    ```bash
+    NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+    SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
+    ```
+
+    Replace `YOUR_SUPABASE_URL` and `YOUR_SUPABASE_ANON_KEY` with your Supabase project URL and anonymous key, respectively. Also, replace `YOUR_SUPABASE_SERVICE_ROLE_KEY` with your Supabase service role key, obtained from the project settings.
+
+5. **Set Up Database:**
+
+    Create a new table in the Supabase dashboard with the following schema:
+
+    ```sql
+    CREATE TABLE articles (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      content TEXT NOT NULL,
+      author TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    );
+    ```
+
+    This table will store the articles for the blog.
+
+6. **Set Up Storage:**
+
+    Enable storage in the project settings to store images and other files.
+
+7. **Set Up User Roles:**
+
+    Create a new service role in the project settings with the following permissions:
+
+    - `articles: select, insert, update, delete`
+    - `storage: create, read, update, delete`
+
+    This role will be used to access the articles and storage services from the blog.
+
+8. **Run the Application:**
+
+    Start the development server using `npm run dev` and test the user authentication and article services.
 
 ## Docker & Dev Container Configuration
 
