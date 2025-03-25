@@ -65,8 +65,9 @@ a:hover {
 
 .container {
   max-width: 960px;
+  width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   background-color: var(--container-background);
   transition: background-color 0.3s ease;
 }

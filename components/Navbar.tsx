@@ -8,6 +8,7 @@ import { FaRegStar } from "react-icons/fa";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
 import UserMenu from "./UserMenu";
 import { supabase } from "@/supabase/supabaseClient";
+import { motion } from "framer-motion";
 
 function formatSegment(segment: string): string {
   return segment
@@ -178,10 +179,12 @@ export default function Navbar() {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 700);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const mq = window.matchMedia("(max-width: 700px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+
+    setIsMobile(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   useEffect(() => {
@@ -242,57 +245,66 @@ export default function Navbar() {
                 gap: "1rem",
                 alignItems: "center",
                 marginLeft: "auto",
+                justifyContent: "flex-start",
               }}
             >
               <UserMenu />
               {user && (
-                <button
+                <motion.div
                   onClick={() => router.push("/favorites")}
-                  aria-label="View Favorites"
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "var(--link-color)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = darkMode
+                  onHoverStart={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.color =
+                      "var(--link-color)";
+                  }}
+                  onHoverEnd={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.color = darkMode
                       ? "#f9f9f9"
-                      : "#333")
-                  }
+                      : "#333";
+                  }}
                   style={{
-                    border: "none",
-                    background: "transparent",
+                    padding: "0.5rem",
                     cursor: "pointer",
-                    fontSize: "1.5rem",
-                    color: darkMode ? "#f9f9f9" : "#333",
-                    transition: "color 0.2s ease",
+                    background: "transparent",
                     display: "flex",
                     alignItems: "center",
+                    borderRadius: "50%",
+                    transition: "background-color 0.3s ease",
+                    color: darkMode ? "#f9f9f9" : "#333",
                   }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="View Favorites"
                 >
-                  <FaRegStar />
-                </button>
+                  <FaRegStar size={24} />
+                </motion.div>
               )}
-              <button
+              <motion.div
                 onClick={() => setDarkMode(!darkMode)}
-                aria-label="Toggle dark mode"
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--link-color)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
-                }
+                onHoverStart={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.color =
+                    "var(--link-color)";
+                }}
+                onHoverEnd={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.color = darkMode
+                    ? "#f9f9f9"
+                    : "#333";
+                }}
                 style={{
-                  border: "none",
-                  background: "transparent",
+                  padding: "0.5rem",
                   cursor: "pointer",
-                  fontSize: "1.5rem",
-                  color: darkMode ? "#f9f9f9" : "#333",
-                  transition: "color 0.2s ease",
+                  background: "transparent",
                   display: "flex",
                   alignItems: "center",
+                  borderRadius: "50%",
+                  transition: "background-color 0.3s ease",
+                  color: darkMode ? "#f9f9f9" : "#333",
                 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Toggle dark mode"
               >
-                {darkMode ? <FiSun /> : <FiMoon />}
-              </button>
+                {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
+              </motion.div>
             </div>
           )}
         </div>
@@ -310,51 +322,61 @@ export default function Navbar() {
           >
             <UserMenu />
             {user && (
-              <button
+              <motion.div
                 onClick={() => router.push("/favorites")}
-                aria-label="View Favorites"
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--link-color)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
-                }
+                onHoverStart={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.color =
+                    "var(--link-color)";
+                }}
+                onHoverEnd={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.color = darkMode
+                    ? "#f9f9f9"
+                    : "#333";
+                }}
                 style={{
-                  border: "none",
-                  background: "transparent",
+                  padding: "0.5rem",
                   cursor: "pointer",
-                  fontSize: "1.5rem",
-                  color: darkMode ? "#f9f9f9" : "#333",
-                  transition: "color 0.2s ease",
+                  background: "transparent",
                   display: "flex",
                   alignItems: "center",
+                  borderRadius: "50%",
+                  transition: "background-color 0.3s ease",
+                  color: darkMode ? "#f9f9f9" : "#333",
                 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="View Favorites"
               >
-                <FaRegStar />
-              </button>
+                <FaRegStar size={24} />
+              </motion.div>
             )}
-            <button
+            <motion.div
               onClick={() => setDarkMode(!darkMode)}
-              aria-label="Toggle dark mode"
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--link-color)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
-              }
+              onHoverStart={(e) => {
+                (e.currentTarget as HTMLDivElement).style.color =
+                  "var(--link-color)";
+              }}
+              onHoverEnd={(e) => {
+                (e.currentTarget as HTMLDivElement).style.color = darkMode
+                  ? "#f9f9f9"
+                  : "#333";
+              }}
               style={{
-                border: "none",
-                background: "transparent",
+                padding: "0.5rem",
                 cursor: "pointer",
-                fontSize: "1.5rem",
-                color: darkMode ? "#f9f9f9" : "#333",
-                transition: "color 0.2s ease",
+                background: "transparent",
                 display: "flex",
                 alignItems: "center",
+                borderRadius: "50%",
+                transition: "background-color 0.3s ease",
+                color: darkMode ? "#f9f9f9" : "#333",
               }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Toggle dark mode"
             >
-              {darkMode ? <FiSun /> : <FiMoon />}
-            </button>
+              {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
+            </motion.div>
           </div>
         ) : null}
       </nav>

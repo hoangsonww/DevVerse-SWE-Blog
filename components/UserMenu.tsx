@@ -57,9 +57,6 @@ const UserMenu: React.FC = () => {
     else return "Good evening 🌙,";
   };
 
-  console.log(user);
-
-  // Add this helper inside your component (above return)
   const MenuItem = ({
     label,
     onClick,
@@ -92,7 +89,10 @@ const UserMenu: React.FC = () => {
 
   return (
     <div
-      style={{ position: "relative", display: "inline-block" }}
+      style={{
+        position: "relative",
+        display: "inline-block",
+      }}
       ref={menuRef}
     >
       {/* Toggler Icon */}
@@ -130,7 +130,7 @@ const UserMenu: React.FC = () => {
             style={{
               position: "absolute",
               top: "calc(100% + 0.5rem)",
-              right: 0,
+              right: "-180%",
               backgroundColor: "var(--container-background)",
               border: "1px solid var(--border-color)",
               borderRadius: "6px",

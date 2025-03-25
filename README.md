@@ -9,7 +9,7 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
 ![Next.js](https://img.shields.io/badge/-Next.js-000000?style=flat-square&logo=next.js&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
 ![JWT](https://img.shields.io/badge/-JWT-242?style=flat-square&logo=json-web-tokens&logoColor=white)
-![KaTeX](https://img.shields.io/badge/-KaTeX-3B5CC4?style=flat-square&logo=katex&logoColor=white)
+![KaTeX](https://img.shields.io/badge/-KaTeX-3B5CC4?style=flat-square&logo=latex&logoColor=white)
 ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=white)
 ![Prettier](https://img.shields.io/badge/-Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=white)
