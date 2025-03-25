@@ -111,17 +111,28 @@ export default function Navbar() {
     const valid = ["login", "register", "reset"];
     const second = segments[1]?.toLowerCase() || "";
     const authPage = valid.includes(second)
-      ? (second === "reset" ? "Reset Password" : formatSegment(second))
+      ? second === "reset"
+        ? "Reset Password"
+        : formatSegment(second)
       : "404 Not Found";
 
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-      <Link href="/" style={{ color: "var(--link-color)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
-        <FiHome /><span>Home</span>
-      </Link>
-      <FiChevronRight />
-      <span>{authPage}</span>
-    </span>
+        <Link
+          href="/"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiHome />
+          <span>Home</span>
+        </Link>
+        <FiChevronRight />
+        <span>{authPage}</span>
+      </span>
     );
   } else if (segments[0] === "favorites") {
     breadcrumb = (
@@ -146,25 +157,23 @@ export default function Navbar() {
     // ANY unmatched URL => show 404 crumb
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-      <Link
-        href="/"
-        style={{
-          color: "var(--link-color)",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.25rem",
-        }}
-      >
-        <FiHome />
-        <span>Home</span>
-      </Link>
-      <FiChevronRight />
-      <span>404 Not Found</span>
-    </span>
+        <Link
+          href="/"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiHome />
+          <span>Home</span>
+        </Link>
+        <FiChevronRight />
+        <span>404 Not Found</span>
+      </span>
     );
   }
-
-
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
 

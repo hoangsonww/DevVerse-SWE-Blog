@@ -38,6 +38,8 @@ const LoginPage: React.FC = () => {
         backgroundColor: "var(--background-color)",
         padding: "1rem",
         fontFamily: "Inter, sans-serif",
+        borderRadius: "8px",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
       <motion.div
@@ -99,27 +101,34 @@ const LoginPage: React.FC = () => {
               backgroundColor: "var(--background-color)",
               color: "var(--text-color)",
               fontFamily: "Inter, sans-serif",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              transition:
+                "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
             }}
           />
-          <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "calc(100% - 4rem)",
+              margin: "0 1rem",
+            }}
+          >
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleLogin()}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               style={inputStyles}
             />
             <span
-              onClick={() => setShowPassword(prev => !prev)}
+              onClick={() => setShowPassword((prev) => !prev)}
               style={{
                 position: "absolute",
                 right: "0",
                 top: "50%",
                 transform: "translateY(-50%)",
                 cursor: "pointer",
-                color: "var(--link-color)"
+                color: "var(--link-color)",
               }}
             >
               {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
@@ -219,15 +228,16 @@ const buttonStyles: React.CSSProperties = {
   fontWeight: 600,
   border: "none",
   borderRadius: "6px",
-  backgroundImage: "linear-gradient(45deg, var(--link-color), var(--hover-link-color))",
+  backgroundImage:
+    "linear-gradient(45deg, var(--link-color), var(--hover-link-color))",
   color: "#fff",
   cursor: "pointer",
-  transition: "background-position 0.5s ease, transform 0.2s ease"
+  transition: "background-position 0.5s ease, transform 0.2s ease",
 };
 
 const linkStyles: React.CSSProperties = {
   color: "var(--link-color)",
-  textDecoration: "underline"
+  textDecoration: "underline",
 };
 
 export default LoginPage;

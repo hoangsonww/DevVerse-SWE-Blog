@@ -55,6 +55,8 @@ const RegisterPage: React.FC = () => {
         backgroundColor: "var(--background-color)",
         padding: "1rem",
         fontFamily: "Inter, sans-serif",
+        borderRadius: "8px",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
       <motion.div
@@ -117,7 +119,8 @@ const RegisterPage: React.FC = () => {
               backgroundColor: "var(--background-color)",
               color: "var(--text-color)",
               fontFamily: "Inter, sans-serif",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              transition:
+                "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
             }}
           />
           {/* Email */}
@@ -139,7 +142,8 @@ const RegisterPage: React.FC = () => {
               backgroundColor: "var(--background-color)",
               color: "var(--text-color)",
               fontFamily: "Inter, sans-serif",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              transition:
+                "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
             }}
           />
           {/* Password with toggler */}
@@ -167,7 +171,8 @@ const RegisterPage: React.FC = () => {
                 backgroundColor: "var(--background-color)",
                 color: "var(--text-color)",
                 fontFamily: "Inter, sans-serif",
-                transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                transition:
+                  "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
               }}
             />
             <span
@@ -209,7 +214,8 @@ const RegisterPage: React.FC = () => {
                 backgroundColor: "var(--background-color)",
                 color: "var(--text-color)",
                 fontFamily: "Inter, sans-serif",
-                transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                transition:
+                  "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
               }}
             />
             <span

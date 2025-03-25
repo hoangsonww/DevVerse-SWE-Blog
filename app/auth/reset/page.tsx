@@ -16,8 +16,8 @@ const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [emailExists, setEmailExists] = useState<boolean>(false);
   const [emailToReset, setEmailToReset] = useState<string>("");
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
 
@@ -72,6 +72,8 @@ const ResetPasswordPage: React.FC = () => {
         backgroundColor: "var(--background-color)",
         padding: "1rem",
         fontFamily: "Inter, sans-serif",
+        borderRadius: "8px",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
       <motion.div
@@ -131,12 +133,17 @@ const ResetPasswordPage: React.FC = () => {
               fontSize: "1rem",
               border: "1px solid var(--border-color)",
               borderRadius: "6px",
-              backgroundColor: emailExists ? "var(--border-color)" : "var(--background-color)",
-              color: emailExists ? "var(--text-muted-color)" : "var(--text-color)",
+              backgroundColor: emailExists
+                ? "var(--border-color)"
+                : "var(--background-color)",
+              color: emailExists
+                ? "var(--text-muted-color)"
+                : "var(--text-color)",
               fontFamily: "Inter, sans-serif",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              transition:
+                "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
               cursor: emailExists ? "not-allowed" : "text",
-              position: "relative"
+              position: "relative",
             }}
           />
           <motion.button
@@ -195,7 +202,13 @@ const ResetPasswordPage: React.FC = () => {
               Enter your new password below 🔐
             </p>
             {/* New Password */}
-            <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+            <div
+              style={{
+                position: "relative",
+                width: "calc(100% - 4rem)",
+                margin: "0 1rem",
+              }}
+            >
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="New Password"
@@ -212,18 +225,19 @@ const ResetPasswordPage: React.FC = () => {
                   backgroundColor: "var(--background-color)",
                   color: "var(--text-color)",
                   fontFamily: "Inter, sans-serif",
-                  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                  transition:
+                    "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
                 }}
               />
               <span
-                onClick={() => setShowPassword(prev => !prev)}
+                onClick={() => setShowPassword((prev) => !prev)}
                 style={{
                   position: "absolute",
                   right: "0",
                   top: "50%",
                   transform: "translateY(-50%)",
                   cursor: "pointer",
-                  color: "var(--link-color)"
+                  color: "var(--link-color)",
                 }}
               >
                 {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
@@ -231,7 +245,13 @@ const ResetPasswordPage: React.FC = () => {
             </div>
 
             {/* Confirm Password */}
-            <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+            <div
+              style={{
+                position: "relative",
+                width: "calc(100% - 4rem)",
+                margin: "0 1rem",
+              }}
+            >
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
@@ -248,21 +268,26 @@ const ResetPasswordPage: React.FC = () => {
                   backgroundColor: "var(--background-color)",
                   color: "var(--text-color)",
                   fontFamily: "Inter, sans-serif",
-                  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                  transition:
+                    "border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease",
                 }}
               />
               <span
-                onClick={() => setShowConfirmPassword(prev => !prev)}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
                 style={{
                   position: "absolute",
                   right: "0",
                   top: "50%",
                   transform: "translateY(-50%)",
                   cursor: "pointer",
-                  color: "var(--link-color)"
+                  color: "var(--link-color)",
                 }}
               >
-                {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                {showConfirmPassword ? (
+                  <FaEyeSlash size={18} />
+                ) : (
+                  <FaEye size={18} />
+                )}
               </span>
             </div>
             <motion.button

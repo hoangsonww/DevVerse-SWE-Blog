@@ -88,6 +88,8 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         textAlign: "center",
         fontFamily: "Inter, sans-serif",
         backgroundColor: "var(--background-color)",
+        borderRadius: "8px",
+        transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
       <motion.h1
@@ -145,7 +147,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
             borderRadius: "12px",
             padding: "0.75rem 1rem",
             width: isFocused || searchTerm ? "500px" : "400px",
-            transition: "width 0.3s",
+            transition: "width 0.3s, background-color 0.3s",
           }}
         >
           <FaSearch
@@ -172,6 +174,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
               color: "var(--text-color)",
               fontFamily: "Inter, sans-serif",
               fontSize: "1rem",
+              transition: "background-color 0.3s ease",
             }}
           />
         </motion.div>
