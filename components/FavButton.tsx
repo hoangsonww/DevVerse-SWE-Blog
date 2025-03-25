@@ -81,6 +81,7 @@ const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
       onClick={handleToggleFavorite}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
+      title={favorited ? "Remove from favorites" : "Add to favorites"}
       style={{
         position: "fixed",
         bottom: "2rem",
