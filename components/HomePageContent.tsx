@@ -363,12 +363,61 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               textAlign: "center",
             }}
           >
-            This website is built and designed with <strong>Next.js</strong>,{" "}
-            <strong>MDX</strong>, <strong>Vercel</strong>, and{" "}
-            <strong>TailwindCSS</strong>. It serves as a hub for sharing
-            software engineering insights, technical tutorials, and the latest
-            trends in technology. Enjoy a fast, modern, and responsive user
-            experience as you explore our articles and resources! 🌐
+            This website is built and designed with a <strong>modern</strong>{" "}
+            tech stack:{" "}
+            <strong>
+              <a
+                href="https://nextjs.org"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Next.js
+              </a>
+            </strong>
+            ,{" "}
+            <strong>
+              <a
+                href="https://mdxjs.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                MDX
+              </a>
+            </strong>
+            ,{" "}
+            <strong>
+              <a
+                href="https://supabase.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Supabase
+              </a>
+            </strong>
+            ,{" "}
+            <strong>
+              <a
+                href="https://vercel.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Vercel
+              </a>
+            </strong>
+            , and{" "}
+            <strong>
+              <a
+                href="https://tailwindcss.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                TailwindCSS
+              </a>
+            </strong>
+            . It serves as a hub for sharing software engineering insights,
+            technical tutorials, and the latest trends in technology. Enjoy a
+            fast, modern, and responsive user experience as you explore our
+            articles and resources! 🌐
           </p>
         </div>
       </motion.section>
