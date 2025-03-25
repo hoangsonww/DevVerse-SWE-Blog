@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { DarkModeProvider } from "@/provider/DarkModeProvider";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -164,7 +166,23 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <DarkModeProvider>
-          <Navbar />
+          <div style={{ position: "relative", zIndex: 99999 }}>
+            <Navbar />
+          </div>
+          <ToastContainer
+            position="bottom-center"
+            autoClose={2000}
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnHover={false}
+            pauseOnFocusLoss={false}
+            draggable={false}
+            theme="light"
+            toastStyle={{
+              fontFamily: "Inter, sans-serif",
+            }}
+            limit={3}
+          />
           <main
             className="container"
             style={{ backgroundColor: "var(--background-color)" }}

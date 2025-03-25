@@ -143,17 +143,20 @@ a:hover {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .breadcrumb {
     margin-bottom: 1rem;
     width: 100%;
     text-align: left;
   }
+
   .darkmode {
     width: 100%;
     display: flex;
     justify-content: flex-start;
     padding: 0;
   }
+
   .darkmode button {
     width: 100%;
     padding: 0;
@@ -167,6 +170,7 @@ a:hover {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -181,6 +185,7 @@ a:hover {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -188,4 +193,8 @@ a:hover {
 
 .fade-in {
   animation: fadeIn 1s ease forwards;
+}
+
+.Toastify__toast-theme--light {
+  --toastify-color-progress-light: black !important;
 }

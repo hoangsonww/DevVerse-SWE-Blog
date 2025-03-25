@@ -87,7 +87,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             color: "var(--text-color)",
           }}
         >
-          Welcome to DevVerse Software Engineering Blog
+          Welcome to DevVerse Tech Blog ✨
         </h1>
         <p
           style={{
@@ -97,7 +97,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             margin: "0 auto",
           }}
         >
-          DevVerse Blog is your go-to source for deep dives into computer
+          DevVerse Tech Blog is your go-to source for deep dives into computer
           science and technology. Explore <strong>{articles.length}</strong>{" "}
           articles covering frameworks, libraries, tools, and cutting-edge tech
           innovations. Stay informed, inspired, and ready to tackle the latest
@@ -155,7 +155,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               fontSize: "1rem",
               fontFamily: "inherit",
               backgroundColor: "transparent",
-              color: "var(--text-color)",
+              color: "var(--text-color)"
             }}
           />
         </motion.div>

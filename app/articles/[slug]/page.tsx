@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import BackToTopButton from "@/components/BackToTopButton";
+import FavButton from "@/components/FavButton";
 import React from "react";
 
 interface Params {
@@ -23,7 +24,6 @@ export async function generateStaticParams() {
 }
 
 export default async function TopicPage({ params }: PageProps) {
-  // Await params before destructuring to satisfy Next.js requirements.
   const { slug } = await params;
   let MDXComponent: React.ComponentType<any>;
   try {
@@ -41,10 +41,12 @@ export default async function TopicPage({ params }: PageProps) {
           backgroundColor: "var(--background-color)",
           color: "var(--text-color)",
           transition: "background-color 0.3s ease, color 0.3s ease",
+          zIndex: 1
         }}
       >
         <MDXComponent />
       </article>
+      <FavButton articleSlug={slug} />
       <BackToTopButton />
     </>
   );
