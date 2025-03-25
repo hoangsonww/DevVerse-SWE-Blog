@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { verifyEmailExists, resetPassword } from "@/supabase/auth";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { FaUnlockAlt, FaLock } from "react-icons/fa";
+import { FaUnlockAlt, FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,6 +16,8 @@ const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [emailExists, setEmailExists] = useState<boolean>(false);
   const [emailToReset, setEmailToReset] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const router = useRouter();
 
@@ -55,7 +57,7 @@ const ResetPasswordPage: React.FC = () => {
       toast.success("Password updated successfully! Please login.", {
         theme: "colored",
       });
-      router.push("/login");
+      router.push("/auth/login");
     }
     setLoading(false);
   };
@@ -192,48 +194,77 @@ const ResetPasswordPage: React.FC = () => {
             >
               Enter your new password below 🔐
             </p>
-            <input
-              type="password"
-              placeholder="New Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleResetPassword();
-              }}
-              style={{
-                width: "calc(100% - 4rem)",
-                margin: "0 1rem",
-                padding: "0.75rem 1rem",
-                fontSize: "1rem",
-                border: "1px solid var(--border-color)",
-                borderRadius: "6px",
-                backgroundColor: "var(--background-color)",
-                color: "var(--text-color)",
-                fontFamily: "Inter, sans-serif",
-                transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-              }}
-            />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleResetPassword();
-              }}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              style={{
-                width: "calc(100% - 4rem)",
-                margin: "0 1rem",
-                padding: "0.75rem 1rem",
-                fontSize: "1rem",
-                border: "1px solid var(--border-color)",
-                borderRadius: "6px",
-                backgroundColor: "var(--background-color)",
-                color: "var(--text-color)",
-                fontFamily: "Inter, sans-serif",
-                transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-              }}
-            />
+            {/* New Password */}
+            <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="New Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
+                style={{
+                  width: "100%",
+                  margin: 0,
+                  padding: "0.75rem 1rem",
+                  fontSize: "1rem",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "6px",
+                  backgroundColor: "var(--background-color)",
+                  color: "var(--text-color)",
+                  fontFamily: "Inter, sans-serif",
+                  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                }}
+              />
+              <span
+                onClick={() => setShowPassword(prev => !prev)}
+                style={{
+                  position: "absolute",
+                  right: "0",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  color: "var(--link-color)"
+                }}
+              >
+                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </span>
+            </div>
+
+            {/* Confirm Password */}
+            <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
+                style={{
+                  width: "100%",
+                  margin: 0,
+                  padding: "0.75rem 1rem",
+                  fontSize: "1rem",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "6px",
+                  backgroundColor: "var(--background-color)",
+                  color: "var(--text-color)",
+                  fontFamily: "Inter, sans-serif",
+                  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                }}
+              />
+              <span
+                onClick={() => setShowConfirmPassword(prev => !prev)}
+                style={{
+                  position: "absolute",
+                  right: "0",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  color: "var(--link-color)"
+                }}
+              >
+                {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </span>
+            </div>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

@@ -60,16 +60,58 @@ Feel free to explore the content and features of the blog! 🚀
   <img src="images/home-page.png" alt="Home Page" width="100%">
 </p>
 
+### Home Page - Dark Mode
+
+<p align="center">
+  <img src="images/home-page-dark.png" alt="Home Page - Dark Mode" width="100%">
+</p>
+
 ### Article Page
 
 <p align="center">
   <img src="images/article-page.png" alt="Article Page" width="100%">
 </p>
 
-### Dark Mode
+### Article Page - Dark Mode
 
 <p align="center">
-  <img src="images/dark-mode.png" alt="Dark Mode" width="100%">
+  <img src="images/article-page-dark.png" alt="Article Page - Dark Mode" width="100%">
+</p>
+
+### Favorites Page
+
+<p align="center">
+  <img src="images/favorite-article-page.png" alt="Favorites Page" width="100%">
+</p>
+
+### Favorites Page - Dark Mode
+
+<p align="center">
+  <img src="images/favorite-article-page-dark.png" alt="Favorites Page - Dark Mode" width="100%">
+</p>
+
+### Login Page
+
+<p align="center">
+  <img src="images/login.png" alt="Login Page" width="100%">
+</p>
+
+### Register Page
+
+<p align="center">
+  <img src="images/register.png" alt="Register Page" width="100%">
+</p>
+
+### Reset Password Page
+
+<p align="center">
+  <img src="images/reset-password.png" alt="Reset Password Page" width="100%">
+</p>
+
+### 404 Page
+
+<p align="center">
+  <img src="images/not-found.png" alt="404 Page" width="100%">
 </p>
 
 ## Features

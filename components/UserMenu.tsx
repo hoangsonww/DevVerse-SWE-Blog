@@ -181,13 +181,33 @@ const UserMenu: React.FC = () => {
                   }}
                 />
 
-                <MenuItem
-                  label="Logout"
+                <p
                   onClick={() => {
                     setMenuOpen(false);
                     handleLogout();
                   }}
-                />
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--link-color)";
+                    e.currentTarget.style.color = "var(--background-color)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "red";
+                  }}
+                  style={{
+                    margin: "0.5rem 0",
+                    fontSize: "1rem",
+                    color: "red",
+                    backgroundColor: "transparent",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    padding: "0.5rem",
+                    borderRadius: "4px",
+                    transition: "background-color 0.2s, color 0.2s",
+                  }}
+                >
+                  Logout
+                </p>
               </>
             )}
           </motion.div>
