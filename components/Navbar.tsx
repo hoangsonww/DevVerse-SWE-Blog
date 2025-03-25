@@ -26,7 +26,9 @@ export default function Navbar() {
 
   useEffect(() => {
     async function fetchSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
     }
     fetchSession();
@@ -106,11 +108,12 @@ export default function Navbar() {
       );
     }
   } else if (segments[0] === "auth") {
-    const authPage = segments[1] === "reset"
-      ? "Reset Password"
-      : segments[1]
-        ? formatSegment(segments[1])
-        : "Auth";
+    const authPage =
+      segments[1] === "reset"
+        ? "Reset Password"
+        : segments[1]
+          ? formatSegment(segments[1])
+          : "Auth";
 
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -182,7 +185,9 @@ export default function Navbar() {
       setUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -235,8 +240,12 @@ export default function Navbar() {
             <button
               onClick={() => router.push("/favorites")}
               aria-label="View Favorites"
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--link-color)")}
-              onMouseLeave={e => (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--link-color)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
+              }
               style={{
                 border: "none",
                 background: "transparent",
@@ -255,8 +264,12 @@ export default function Navbar() {
           <button
             onClick={() => setDarkMode(!darkMode)}
             aria-label="Toggle dark mode"
-            onMouseEnter={e => (e.currentTarget.style.color = "var(--link-color)")}
-            onMouseLeave={e => (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--link-color)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
+            }
             style={{
               border: "none",
               background: "transparent",

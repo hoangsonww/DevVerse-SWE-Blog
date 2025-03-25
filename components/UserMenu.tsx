@@ -18,14 +18,18 @@ const UserMenu: React.FC = () => {
   // Fetch session on mount and subscribe to auth changes
   useEffect(() => {
     async function fetchSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
     }
     fetchSession();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
     return () => subscription.subscription.unsubscribe();
   }, []);
 
@@ -53,10 +57,16 @@ const UserMenu: React.FC = () => {
     else return "Good evening 🌙,";
   };
 
-  console.log(user)
+  console.log(user);
 
   // Add this helper inside your component (above return)
-  const MenuItem = ({ label, onClick }: { label: string; onClick: () => void }) => {
+  const MenuItem = ({
+    label,
+    onClick,
+  }: {
+    label: string;
+    onClick: () => void;
+  }) => {
     const [hover, setHover] = useState(false);
     return (
       <p
@@ -81,7 +91,10 @@ const UserMenu: React.FC = () => {
   };
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }} ref={menuRef}>
+    <div
+      style={{ position: "relative", display: "inline-block" }}
+      ref={menuRef}
+    >
       {/* Toggler Icon */}
       <motion.div
         onHoverStart={() => setIsHovered(true)}
@@ -100,7 +113,10 @@ const UserMenu: React.FC = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
-        <FiUser size={24} color={isHovered ? "var(--link-color)" : "var(--text-color)"} />
+        <FiUser
+          size={24}
+          color={isHovered ? "var(--link-color)" : "var(--text-color)"}
+        />
       </motion.div>
 
       {/* Dropdown Menu */}
@@ -126,8 +142,20 @@ const UserMenu: React.FC = () => {
           >
             {!user ? (
               <>
-                <MenuItem label="Login" onClick={() => { setMenuOpen(false); router.push("/auth/login"); }} />
-                <MenuItem label="Register" onClick={() => { setMenuOpen(false); router.push("/auth/register"); }} />
+                <MenuItem
+                  label="Login"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/auth/login");
+                  }}
+                />
+                <MenuItem
+                  label="Register"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/auth/register");
+                  }}
+                />
               </>
             ) : (
               <>
@@ -139,13 +167,27 @@ const UserMenu: React.FC = () => {
                     textAlign: "center",
                   }}
                 >
-                  {getGreeting()} {user?.identities?.[0]?.identity_data?.display_name || "Guest"} ({user.email})
+                  {getGreeting()}{" "}
+                  {user?.identities?.[0]?.identity_data?.display_name ||
+                    "Guest"}{" "}
+                  ({user.email})
                 </p>
 
                 {/* Horizontal Line */}
-                <div style={{ marginTop: "1rem", borderBottom: "1px solid var(--border-color)" }} />
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    borderBottom: "1px solid var(--border-color)",
+                  }}
+                />
 
-                <MenuItem label="Logout" onClick={() => { setMenuOpen(false); handleLogout(); }} />
+                <MenuItem
+                  label="Logout"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleLogout();
+                  }}
+                />
               </>
             )}
           </motion.div>

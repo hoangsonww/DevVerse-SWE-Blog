@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 // Admin client using service role
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_ROLE_KEY as string
+  process.env.SUPABASE_SERVICE_ROLE_KEY as string,
 );
 
 export async function POST(request: Request) {
@@ -14,19 +14,21 @@ export async function POST(request: Request) {
     if (!email || !newPassword) {
       return NextResponse.json(
         { error: "Email and newPassword are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Find user by email using listUsers
-    const { data, error: listError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const { data, error: listError } = await supabaseAdmin.auth.admin.listUsers(
+      { perPage: 1000 },
+    );
 
     if (listError) {
       return NextResponse.json({ error: listError.message }, { status: 500 });
     }
 
     const user = data.users.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
+      (u) => u.email?.toLowerCase() === email.toLowerCase(),
     );
 
     if (!user) {
@@ -34,9 +36,10 @@ export async function POST(request: Request) {
     }
 
     // Update password
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-      password: newPassword,
-    });
+    const { error: updateError } =
+      await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        password: newPassword,
+      });
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });

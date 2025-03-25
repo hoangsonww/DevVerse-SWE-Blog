@@ -29,7 +29,9 @@ const ResetPasswordPage: React.FC = () => {
     if (exists) {
       setEmailExists(true);
       setEmailToReset(email);
-      toast.success("Email found! Please reset your password below.", { theme: "colored" });
+      toast.success("Email found! Please reset your password below.", {
+        theme: "colored",
+      });
     } else {
       toast.error("Email does not exist", { theme: "colored" });
     }
@@ -50,7 +52,9 @@ const ResetPasswordPage: React.FC = () => {
     if (response.error) {
       toast.error(response.error.message, { theme: "colored" });
     } else {
-      toast.success("Password updated successfully! Please login.", { theme: "colored" });
+      toast.success("Password updated successfully! Please login.", {
+        theme: "colored",
+      });
       router.push("/login");
     }
     setLoading(false);
@@ -164,7 +168,14 @@ const ResetPasswordPage: React.FC = () => {
 
         {/* Reset PW modal */}
         {emailExists && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+              marginTop: "1rem",
+            }}
+          >
             <p
               style={{
                 marginBottom: "1rem",
@@ -231,7 +242,8 @@ const ResetPasswordPage: React.FC = () => {
                 color: "#fff",
                 cursor: "pointer",
                 fontFamily: "Inter, sans-serif",
-                transition: "background-position 0.5s ease, transform 0.2s ease",
+                transition:
+                  "background-position 0.5s ease, transform 0.2s ease",
               }}
               onMouseEnter={(e) =>
                 ((e.currentTarget as HTMLElement).style.backgroundPosition =

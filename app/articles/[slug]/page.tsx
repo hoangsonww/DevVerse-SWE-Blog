@@ -41,7 +41,7 @@ export default async function TopicPage({ params }: PageProps) {
           backgroundColor: "var(--background-color)",
           color: "var(--text-color)",
           transition: "background-color 0.3s ease, color 0.3s ease",
-          zIndex: 1
+          zIndex: 1,
         }}
       >
         <MDXComponent />

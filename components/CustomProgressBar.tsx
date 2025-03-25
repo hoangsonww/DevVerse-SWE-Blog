@@ -8,7 +8,7 @@ export function CustomProgressBar({ isPaused, closeToast }: ToastContentProps) {
     if (!isPaused && ref.current) {
       const animation = ref.current.animate(
         [{ width: "100%" }, { width: "0%" }],
-        { duration: 3000, easing: "linear" }
+        { duration: 3000, easing: "linear" },
       );
       animation.onfinish = () => closeToast?.();
       return () => animation.cancel();
@@ -20,7 +20,8 @@ export function CustomProgressBar({ isPaused, closeToast }: ToastContentProps) {
       ref={ref}
       style={{
         height: "4px",
-        background: "linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)",
+        background:
+          "linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)",
       }}
     />
   );

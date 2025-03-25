@@ -26,7 +26,6 @@ export const isFavorited = async (userId: string, articleSlug: string) => {
   return { favorited: !!data, error };
 };
 
-
 export const getFavoriteSlugs = async (userId: string) => {
   const { data, error } = await supabase
     .from("favorite_articles")

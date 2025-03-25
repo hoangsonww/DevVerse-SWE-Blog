@@ -16,7 +16,8 @@ const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
 
   const router = useRouter();
 
@@ -142,7 +143,13 @@ const RegisterPage: React.FC = () => {
             }}
           />
           {/* Password with toggler */}
-          <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "calc(100% - 4rem)",
+              margin: "0 1rem",
+            }}
+          >
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
@@ -178,7 +185,13 @@ const RegisterPage: React.FC = () => {
             </span>
           </div>
           {/* Confirm Password with toggler */}
-          <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "calc(100% - 4rem)",
+              margin: "0 1rem",
+            }}
+          >
             <input
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
@@ -210,7 +223,11 @@ const RegisterPage: React.FC = () => {
                 color: "var(--link-color)",
               }}
             >
-              {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              {showConfirmPassword ? (
+                <FaEyeSlash size={18} />
+              ) : (
+                <FaEye size={18} />
+              )}
             </span>
           </div>
           {/* Submit Button */}

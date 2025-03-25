@@ -20,14 +20,18 @@ const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
   // Fetch user session
   useEffect(() => {
     async function fetchSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
     }
     fetchSession();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
     return () => subscription.subscription.unsubscribe();
   }, []);
 
@@ -52,7 +56,9 @@ const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
     if (favorited) {
       const { error } = await removeFavorite(user.id, articleSlug);
       if (error) {
-        toast.error("Failed to remove favorite: " + error.message, { theme: "colored" });
+        toast.error("Failed to remove favorite: " + error.message, {
+          theme: "colored",
+        });
       } else {
         toast.success("Removed from favorites!", { theme: "colored" });
         setFavorited(false);
@@ -60,7 +66,9 @@ const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
     } else {
       const { error } = await addFavorite(user.id, articleSlug);
       if (error) {
-        toast.error("Failed to add favorite: " + error.message, { theme: "colored" });
+        toast.error("Failed to add favorite: " + error.message, {
+          theme: "colored",
+        });
       } else {
         toast.success("Added to favorites!", { theme: "colored" });
         setFavorited(true);

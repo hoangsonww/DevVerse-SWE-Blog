@@ -155,7 +155,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               fontSize: "1rem",
               fontFamily: "inherit",
               backgroundColor: "transparent",
-              color: "var(--text-color)"
+              color: "var(--text-color)",
             }}
           />
         </motion.div>

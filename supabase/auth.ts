@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 export const signUp = async (
   email: string,
   password: string,
-  displayName: string
+  displayName: string,
 ) => {
   // Using a single object with options for user metadata
   const { data, error } = await supabase.auth.signUp({
@@ -15,7 +15,10 @@ export const signUp = async (
 };
 
 export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
   return { data, error };
 };
 
