@@ -210,7 +210,8 @@ export default function Navbar() {
           borderBottom: "1px solid var(--border-color)",
           display: "flex",
           flexWrap: "wrap",
-          flexDirection: isMobile ? "column" : "row",
+          flexDirection:
+            isMobile && isHomePage ? "row" : isMobile ? "column" : "row",
           alignItems: "center",
           justifyContent: "space-between",
           animation: "fadeDown 0.6s ease forwards",
@@ -222,28 +223,119 @@ export default function Navbar() {
             fontSize: "1.125rem",
             flex: "1 1 auto",
             display: "flex",
-            justifyContent: isMobile ? "center" : "flex-start",
+            justifyContent:
+              isMobile && isHomePage
+                ? "flex-start"
+                : isMobile
+                  ? "center"
+                  : "flex-start",
             width: isMobile ? "100%" : "auto",
-            marginBottom: isMobile ? "0.5rem" : 0,
+            marginBottom: isMobile && !isHomePage ? "0.5rem" : 0,
           }}
         >
           {breadcrumb}
+          {isMobile && isHomePage && (
+            <div
+              className="right-section"
+              style={{
+                display: "flex",
+                gap: "1rem",
+                alignItems: "center",
+                marginLeft: "auto",
+              }}
+            >
+              <UserMenu />
+              {user && (
+                <button
+                  onClick={() => router.push("/favorites")}
+                  aria-label="View Favorites"
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "var(--link-color)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = darkMode
+                      ? "#f9f9f9"
+                      : "#333")
+                  }
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    fontSize: "1.5rem",
+                    color: darkMode ? "#f9f9f9" : "#333",
+                    transition: "color 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <FaRegStar />
+                </button>
+              )}
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                aria-label="Toggle dark mode"
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--link-color)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
+                }
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontSize: "1.5rem",
+                  color: darkMode ? "#f9f9f9" : "#333",
+                  transition: "color 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                {darkMode ? <FiSun /> : <FiMoon />}
+              </button>
+            </div>
+          )}
         </div>
-        <div
-          className="right-section"
-          style={{
-            display: "flex",
-            gap: "1rem",
-            alignItems: "center",
-            justifyContent: isMobile ? "center" : "flex-end",
-            width: isMobile ? "100%" : "auto",
-          }}
-        >
-          <UserMenu />
-          {user && (
+
+        {!isMobile || !isHomePage ? (
+          <div
+            className="right-section"
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "center",
+              justifyContent: isMobile ? "center" : "flex-end",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
+            <UserMenu />
+            {user && (
+              <button
+                onClick={() => router.push("/favorites")}
+                aria-label="View Favorites"
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--link-color)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
+                }
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontSize: "1.5rem",
+                  color: darkMode ? "#f9f9f9" : "#333",
+                  transition: "color 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <FaRegStar />
+              </button>
+            )}
             <button
-              onClick={() => router.push("/favorites")}
-              aria-label="View Favorites"
+              onClick={() => setDarkMode(!darkMode)}
+              aria-label="Toggle dark mode"
               onMouseEnter={(e) =>
                 (e.currentTarget.style.color = "var(--link-color)")
               }
@@ -261,34 +353,12 @@ export default function Navbar() {
                 alignItems: "center",
               }}
             >
-              <FaRegStar />
+              {darkMode ? <FiSun /> : <FiMoon />}
             </button>
-          )}
-
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            aria-label="Toggle dark mode"
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--link-color)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = darkMode ? "#f9f9f9" : "#333")
-            }
-            style={{
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: "1.5rem",
-              color: darkMode ? "#f9f9f9" : "#333",
-              transition: "color 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            {darkMode ? <FiSun /> : <FiMoon />}
-          </button>
-        </div>
+          </div>
+        ) : null}
       </nav>
+
       <style jsx>{`
         @keyframes fadeDown {
           from {
