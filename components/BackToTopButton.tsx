@@ -23,7 +23,7 @@ export default function BackToTopButton() {
   // Toggle button visibility when scrolling.
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset || window.scrollY >= 100) {
+      if (window.pageYOffset || window.scrollY >= 10) {
         setVisible(true);
       } else {
         setVisible(false);

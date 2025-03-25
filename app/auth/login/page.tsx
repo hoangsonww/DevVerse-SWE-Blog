@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/supabase/auth";
 import { motion } from "framer-motion";
-import { FaSignInAlt } from "react-icons/fa";
+import { FaSignInAlt, FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
 
@@ -12,6 +12,7 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -101,27 +102,29 @@ const LoginPage: React.FC = () => {
               transition: "border-color 0.3s ease, box-shadow 0.3s ease",
             }}
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleLogin();
-            }}
-            style={{
-              width: "calc(100% - 4rem)",
-              margin: "0 1rem",
-              padding: "0.75rem 1rem",
-              fontSize: "1rem",
-              border: "1px solid var(--border-color)",
-              borderRadius: "6px",
-              backgroundColor: "var(--background-color)",
-              color: "var(--text-color)",
-              fontFamily: "Inter, sans-serif",
-              transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-            }}
-          />
+          <div style={{ position: "relative", width: "calc(100% - 4rem)", margin: "0 1rem" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleLogin()}
+              style={inputStyles}
+            />
+            <span
+              onClick={() => setShowPassword(prev => !prev)}
+              style={{
+                position: "absolute",
+                right: "0",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "var(--link-color)"
+              }}
+            >
+              {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+            </span>
+          </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -194,6 +197,37 @@ const LoginPage: React.FC = () => {
       </motion.div>
     </div>
   );
+};
+
+const inputStyles: React.CSSProperties = {
+  width: "100%",
+  padding: "0.75rem 1rem",
+  fontSize: "1rem",
+  border: "1px solid var(--border-color)",
+  borderRadius: "6px",
+  backgroundColor: "var(--background-color)",
+  color: "var(--text-color)",
+  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+  fontFamily: "Inter, sans-serif",
+};
+
+const buttonStyles: React.CSSProperties = {
+  width: "calc(100% - 2rem)",
+  margin: "0 1rem",
+  padding: "0.75rem",
+  fontSize: "1rem",
+  fontWeight: 600,
+  border: "none",
+  borderRadius: "6px",
+  backgroundImage: "linear-gradient(45deg, var(--link-color), var(--hover-link-color))",
+  color: "#fff",
+  cursor: "pointer",
+  transition: "background-position 0.5s ease, transform 0.2s ease"
+};
+
+const linkStyles: React.CSSProperties = {
+  color: "var(--link-color)",
+  textDecoration: "underline"
 };
 
 export default LoginPage;

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { verifyEmailExists, resetPassword } from "@/supabase/auth";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { FaUnlockAlt } from "react-icons/fa";
+import { FaUnlockAlt, FaLock } from "react-icons/fa";
 import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -117,7 +117,11 @@ const ResetPasswordPage: React.FC = () => {
             type="email"
             placeholder="Email"
             value={email}
+            disabled={emailExists}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !emailExists) handleVerifyEmail();
+            }}
             style={{
               width: "calc(100% - 4rem)",
               margin: "0 1rem",
@@ -125,10 +129,12 @@ const ResetPasswordPage: React.FC = () => {
               fontSize: "1rem",
               border: "1px solid var(--border-color)",
               borderRadius: "6px",
-              backgroundColor: "var(--background-color)",
-              color: "var(--text-color)",
+              backgroundColor: emailExists ? "var(--border-color)" : "var(--background-color)",
+              color: emailExists ? "var(--text-muted-color)" : "var(--text-color)",
               fontFamily: "Inter, sans-serif",
               transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+              cursor: emailExists ? "not-allowed" : "text",
+              position: "relative"
             }}
           />
           <motion.button
@@ -191,6 +197,9 @@ const ResetPasswordPage: React.FC = () => {
               placeholder="New Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleResetPassword();
+              }}
               style={{
                 width: "calc(100% - 4rem)",
                 margin: "0 1rem",
@@ -208,6 +217,9 @@ const ResetPasswordPage: React.FC = () => {
               type="password"
               placeholder="Confirm Password"
               value={confirmPassword}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleResetPassword();
+              }}
               onChange={(e) => setConfirmPassword(e.target.value)}
               style={{
                 width: "calc(100% - 4rem)",
@@ -295,16 +307,6 @@ const ResetPasswordPage: React.FC = () => {
           </p>
         </div>
       </motion.div>
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        toastStyle={{
-          background: "var(--container-background)",
-          color: "var(--text-color)",
-          border: "1px solid var(--border-color)",
-          fontFamily: "Inter, sans-serif",
-        }}
-      />
     </div>
   );
 };
