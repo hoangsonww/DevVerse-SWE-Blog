@@ -3,6 +3,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import FavButton from "@/components/FavButton";
 import React from "react";
 import TopicsList from "@/components/TopicsList";
+import "./article.css";
 
 interface Params {
   slug: string;
@@ -45,30 +46,6 @@ export default async function ArticlePage({ params }: PageProps) {
       </article>
       <FavButton articleSlug={slug} />
       <BackToTopButton />
-
-      <style jsx>{`
-        .fade-down-article {
-          padding: 2rem 0;
-          background-color: var(--background-color);
-          color: var(--text-color);
-          animation: fadeDown 0.6s ease-out;
-          transition:
-            background-color 0.3s ease,
-            color 0.3s ease;
-          z-index: 1;
-        }
-
-        @keyframes fadeDown {
-          0% {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </>
   );
 }
