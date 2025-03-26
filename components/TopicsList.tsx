@@ -41,7 +41,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
         .topics-heading {
           font-size: 1.5rem;
           font-weight: 600;
-          margin-bottom: 0rem;
+          margin-bottom: 0;
           color: var(--text-color);
           opacity: 0;
           transform: translateY(-10px);
