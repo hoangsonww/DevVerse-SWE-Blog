@@ -36,6 +36,7 @@ export default function InteractiveCard({
   const headerStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
+    textAlign: "left",
   };
 
   // Fixed-size container for the icon
@@ -54,6 +55,7 @@ export default function InteractiveCard({
     fontSize: "1rem",
     flexGrow: 1,
     marginTop: "1rem",
+    textAlign: "left",
   };
 
   return (

@@ -136,7 +136,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
             border: "2px solid var(--border-color, #ccc)",
             borderRadius: "12px",
             backgroundColor: "var(--container-background)",
-            gap: "0.75rem", // 👈 adds space between icon and input
+            gap: "0.75rem",
             width: isFocused || searchTerm ? "500px" : "400px",
             transition: "width 0.3s ease-in-out, background-color 0.3s ease",
           }}
@@ -172,11 +172,29 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
       {loading ? (
         <p className="loading-text">Loading...</p>
       ) : filteredFavorites.length ? (
-        <ArticlesList articles={filteredFavorites} />
+        <div className="articles-list-wrapper">
+          <ArticlesList articles={filteredFavorites} />
+        </div>
       ) : (
         <p className="no-favorites-message">You have no favorite articles.</p>
       )}
       <style jsx>{`
+        .articles-list-wrapper {
+          opacity: 0;
+          animation: fadeUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         @keyframes fadeSlideIn {
           from {
             opacity: 0;

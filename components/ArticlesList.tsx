@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import InteractiveCard from "./InteractiveCard";
 import { FaTags, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
@@ -50,6 +50,22 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   // Prepare values for the dynamic count display.
   const totalFiltered = filteredArticles.length;
   const totalDisplayed = displayedArticles.length;
+
+  const allCardElements = useMemo(
+    () =>
+      filteredArticles.map((article, i) => (
+        <div
+          key={article.slug}
+          className="fade-in-card"
+          style={{ animationDelay: `${i * 0.1}s` }}
+        >
+          <InteractiveCard {...article} />
+        </div>
+      )),
+    [filteredArticles],
+  );
+
+  const displayedCardElements = allCardElements.slice(0, visibleCount);
 
   // Toggle topic selection.
   const toggleTopic = (topic: string) => {
@@ -160,21 +176,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
       </div>
 
       {/* Articles Grid */}
-      <div className="article-grid">
-        {displayedArticles.map((article, index) => (
-          <div
-            key={article.slug}
-            className="fade-in-card"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <InteractiveCard
-              slug={article.slug}
-              title={article.title}
-              description={article.description}
-            />
-          </div>
-        ))}
-      </div>
+      <div className="article-grid">{displayedCardElements}</div>
 
       {/* Load More Articles Button */}
       {visibleCount < filteredArticles.length && (
