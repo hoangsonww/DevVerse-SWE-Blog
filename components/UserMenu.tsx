@@ -4,18 +4,15 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "@/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { FiUser } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const UserMenu: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch session on mount and subscribe to auth changes
   useEffect(() => {
     async function fetchSession() {
       const {
@@ -26,17 +23,14 @@ const UserMenu: React.FC = () => {
     fetchSession();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_, session) => {
-        setUser(session?.user ?? null);
-      },
+      (_, session) => setUser(session?.user ?? null)
     );
     return () => subscription.subscription.unsubscribe();
   }, []);
 
-  // Close menu if clicking outside the component
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
       }
     };
@@ -53,166 +47,207 @@ const UserMenu: React.FC = () => {
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning 🌤️,";
-    else if (hour < 18) return "Good afternoon 🌥️,";
-    else return "Good evening 🌙,";
+    if (hour < 18) return "Good afternoon 🌥️,";
+    return "Good evening 🌙,";
   };
 
   const MenuItem = ({
-    label,
-    onClick,
-  }: {
+                      label,
+                      onClick,
+                    }: {
     label: string;
     onClick: () => void;
-  }) => {
-    const [hover, setHover] = useState(false);
-    return (
-      <p
-        onClick={onClick}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        style={{
-          margin: "0.5rem 0",
-          fontSize: "1rem",
-          color: hover ? "var(--background-color)" : "var(--text-color)",
-          backgroundColor: hover ? "var(--link-color)" : "transparent",
-          cursor: "pointer",
-          textAlign: "center",
-          padding: "0.5rem",
-          borderRadius: "4px",
-          transition: "background-color 0.2s, color 0.2s",
-        }}
-      >
-        {label}
-      </p>
-    );
-  };
+  }) => (
+    <p
+      onClick={onClick}
+      style={{
+        margin: "0.5rem 0",
+        fontSize: "1rem",
+        color: "var(--text-color)",
+        backgroundColor: "transparent",
+        cursor: "pointer",
+        textAlign: "center",
+        padding: "0.5rem",
+        borderRadius: "4px",
+        transition: "background-color 0.2s, color 0.2s",
+        display: "block",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = "var(--link-color)";
+        e.currentTarget.style.color = "var(--background-color)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = "transparent";
+        e.currentTarget.style.color = "var(--text-color)";
+      }}
+    >
+      {label}
+    </p>
+  );
 
   return (
-    <div
-      style={{
-        position: "relative",
-        display: "inline-block",
-      }}
-      ref={menuRef}
-    >
-      {/* Toggler Icon */}
-      <motion.div
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        onClick={() => setMenuOpen((prev) => !prev)}
-        style={{
-          padding: "0.5rem",
-          cursor: "pointer",
-          background: "transparent",
-          display: "flex",
-          alignItems: "center",
-          borderRadius: "50%",
-          transition: "background-color 0.3s ease",
-          color: "var(--text-color)",
-        }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <FiUser
-          size={24}
-          color={isHovered ? "var(--link-color)" : "var(--text-color)"}
-        />
-      </motion.div>
+    <div className="user-menu-wrapper" ref={menuRef}>
+      <div className="icon-wrapper" onClick={() => setMenuOpen((prev) => !prev)}>
+        <FiUser size={24} />
+      </div>
 
-      {/* Dropdown Menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              position: "absolute",
-              top: "calc(100% + 0.5rem)",
-              right: "-180%",
-              backgroundColor: "var(--container-background)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "6px",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-              padding: "1rem",
-              zIndex: 99999,
-              minWidth: "150px",
-            }}
-          >
-            {!user ? (
-              <>
-                <MenuItem
-                  label="Login"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    router.push("/auth/login");
-                  }}
-                />
-                <MenuItem
-                  label="Register"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    router.push("/auth/register");
-                  }}
-                />
-              </>
-            ) : (
-              <>
-                <p
-                  style={{
-                    margin: "0.5rem 0",
-                    fontSize: "1rem",
-                    color: "var(--text-color)",
-                    textAlign: "center",
-                  }}
-                >
-                  {getGreeting()}{" "}
-                  {user?.identities?.[0]?.identity_data?.display_name ||
-                    "Guest"}{" "}
-                  ({user.email})
-                </p>
+      {menuOpen && (
+        <div className="dropdown">
+          {!user ? (
+            <>
+              <MenuItem label="Login" onClick={() => {
+                setMenuOpen(false);
+                router.push("/auth/login");
+              }} />
 
-                {/* Horizontal Line */}
-                <div
-                  style={{
-                    marginTop: "1rem",
-                    borderBottom: "1px solid var(--border-color)",
-                  }}
-                />
+              <MenuItem label="Register" onClick={() => {
+                setMenuOpen(false);
+                router.push("/auth/register");
+              }} />
+            </>
+          ) : (
+            <>
+              <p className="user-info">
+                {getGreeting()}{" "}
+                {user?.identities?.[0]?.identity_data?.display_name || "Guest"} (
+                {user.email})
+              </p>
+              <div className="divider" />
+              <p className="logout-btn" onClick={handleLogout}>
+                Logout
+              </p>
+            </>
+          )}
+        </div>
+      )}
 
-                <p
-                  onClick={() => {
-                    setMenuOpen(false);
-                    handleLogout();
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "var(--link-color)";
-                    e.currentTarget.style.color = "var(--background-color)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "red";
-                  }}
-                  style={{
-                    margin: "0.5rem 0",
-                    fontSize: "1rem",
-                    color: "red",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    padding: "0.5rem",
-                    borderRadius: "4px",
-                    transition: "background-color 0.2s, color 0.2s",
-                  }}
-                >
-                  Logout
-                </p>
-              </>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <style jsx>{`
+        .user-menu-wrapper {
+          position: relative;
+          display: inline-block;
+        }
+
+        .icon-wrapper {
+          padding: 0.5rem;
+          cursor: pointer;
+          background: transparent;
+          display: flex;
+          align-items: center;
+          border-radius: 50%;
+          transition: transform 0.2s, color 0.2s;
+          color: var(--text-color);
+        }
+
+        .icon-wrapper:hover {
+          transform: scale(1.1);
+          color: var(--link-color);
+        }
+
+        .dropdown {
+          position: absolute;
+          top: calc(100% + 0.5rem);
+          right: -180%;
+          background-color: var(--container-background);
+          border: 1px solid var(--border-color);
+          border-radius: 6px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          padding: 1rem;
+          z-index: 99999;
+          min-width: 150px;
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .menu-item {
+          margin: 0.5rem 0;
+          font-size: 1rem;
+          color: var(--text-color);
+          background-color: transparent;
+          cursor: pointer;
+          text-align: center;
+          padding: 0.5rem;
+          border-radius: 4px;
+          transition: background-color 0.2s, color 0.2s;
+        }
+
+        .menu-item:hover {
+          background-color: var(--link-color);
+          color: var(--background-color);
+        }
+
+        .menu-item.logout {
+          color: red;
+        }
+
+        .user-info {
+          margin: 0.5rem 0;
+          font-size: 1rem;
+          color: var(--text-color);
+          text-align: center;
+        }
+
+        .divider {
+          margin-top: 1rem;
+          border-bottom: 1px solid var(--border-color);
+        }
+
+        .logout-btn {
+          margin: 0.5rem 0;
+          font-size: 1rem;
+          color: red;
+          background-color: transparent;
+          cursor: pointer;
+          text-align: center;
+          padding: 0.5rem;
+          border-radius: 4px;
+          transition: background-color 0.2s, color 0.2s;
+        }
+
+        .logout-btn:hover {
+          background-color: var(--link-color);
+          color: var(--background-color);
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .menu-item,
+        .logout-btn {
+          margin: 0.5rem 0;
+          font-size: 1rem;
+          background-color: transparent;
+          cursor: pointer;
+          text-align: center;
+          padding: 0.5rem;
+          border-radius: 4px;
+          transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* For login/register - styled like logout but not red */
+        .menu-item {
+          color: var(--text-color);
+        }
+        .menu-item:hover {
+          background-color: var(--link-color);
+          color: var(--background-color);
+        }
+
+        /* Logout still red */
+        .logout-btn {
+          color: red;
+        }
+        .logout-btn:hover {
+          background-color: var(--link-color);
+          color: var(--background-color);
+        }
+      `}</style>
     </div>
   );
 };

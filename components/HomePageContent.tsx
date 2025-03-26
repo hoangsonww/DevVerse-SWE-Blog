@@ -65,6 +65,13 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
     handleSearch(searchTerm);
   }, [searchTerm, handleSearch]);
 
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setVisible(true), 100); // small delay for fade-in
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
     <div
       style={{
@@ -74,38 +81,19 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         borderRadius: "8px",
       }}
     >
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        style={{ textAlign: "center", marginBottom: "3rem" }}
-      >
-        <h1
-          style={{
-            fontSize: "2.75rem",
-            marginBottom: "1rem",
-            color: "var(--text-color)",
-          }}
-        >
+      <header className="page-header">
+        <h1 className="page-title">
           Welcome to DevVerse Tech Blog ✨
         </h1>
-        <p
-          style={{
-            fontSize: "1.125rem",
-            color: "var(--text-color)",
-            maxWidth: "600px",
-            margin: "0 auto",
-          }}
-        >
+        <p className="page-description">
           DevVerse Tech Blog is your go-to source for deep dives into computer
           science and technology. Explore <strong>{articles.length}</strong>{" "}
           articles covering frameworks, libraries, tools, and cutting-edge tech
           innovations. Stay informed, inspired, and ready to tackle the latest
           trends in computer science and software development. 🚀
         </p>
-      </motion.header>
+      </header>
 
-      {/* Motion Search Bar */}
       <div
         style={{
           display: "flex",
@@ -161,10 +149,12 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
+      <div
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(10px)",
+          transition: "opacity 0.6s ease, transform 0.6s ease",
+        }}
       >
         <ArticlesList articles={filteredArticles} />
         <p
@@ -176,19 +166,19 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         >
           More articles will be added soon. Stay tuned! 🚀
         </p>
-      </motion.div>
+      </div>
 
       {/* Creator Profile Card */}
-      <motion.section
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
+      <section
         style={{
           marginTop: "3rem",
           padding: "2rem",
           border: "1px solid var(--border-color, #eaeaea)",
           borderRadius: "8px",
           backgroundColor: "var(--container-background)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "scale(1)" : "scale(0.95)",
+          transition: "opacity 0.6s ease, transform 0.6s ease",
         }}
       >
         <h2
@@ -200,6 +190,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         >
           About The Creator
         </h2>
+
         <div
           style={{
             display: "flex",
@@ -212,13 +203,9 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <motion.img
+            <img
               src="/profile.jpg"
               alt="Profile Picture"
-              variants={imageVariants}
-              initial="initial"
-              animate="animate"
-              whileHover="hover"
               style={{
                 width: "120px",
                 height: "120px",
@@ -226,10 +213,19 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
                 objectFit: "cover",
                 marginBottom: "1rem",
                 cursor: "pointer",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
             />
           </a>
+
           <h3 style={{ color: "var(--text-color)" }}>Son (David) Nguyen</h3>
+
           <p
             style={{
               color: "var(--text-color)",
@@ -241,81 +237,71 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             expertise on computer science, software development, and emerging
             technologies. Let's connect and build the future together! 👨🏻‍💻
           </p>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}
+
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              marginTop: "1rem",
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(10px)",
+              transition: "opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s",
+            }}
           >
-            <motion.a
-              href="https://github.com/hoangsonww"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "var(--link-color)",
-                fontSize: "1.75rem",
-                display: "inline-block",
-              }}
-              whileHover={{ scale: 1.2, y: -3 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <FaGithub />
-            </motion.a>
-            <motion.a
-              href="https://www.linkedin.com/in/hoangsonw"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "var(--link-color)",
-                fontSize: "1.75rem",
-                display: "inline-block",
-              }}
-              whileHover={{ scale: 1.2, y: -3 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <FaLinkedin />
-            </motion.a>
-            <motion.a
-              href="https://sonnguyenhoang.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "var(--link-color)",
-                fontSize: "1.75rem",
-                display: "inline-block",
-              }}
-              whileHover={{ scale: 1.2, y: -3 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <FaGlobe />
-            </motion.a>
-            <motion.a
-              href="mailto:hoangson091104@gmail.com"
-              style={{
-                color: "var(--link-color)",
-                fontSize: "1.75rem",
-                display: "inline-block",
-              }}
-              whileHover={{ scale: 1.2, y: -3 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <FaEnvelope />
-            </motion.a>
-          </motion.div>
+            {[
+              {
+                href: "https://github.com/hoangsonww",
+                icon: <FaGithub />,
+              },
+              {
+                href: "https://www.linkedin.com/in/hoangsonw",
+                icon: <FaLinkedin />,
+              },
+              {
+                href: "https://sonnguyenhoang.com",
+                icon: <FaGlobe />,
+              },
+              {
+                href: "mailto:hoangson091104@gmail.com",
+                icon: <FaEnvelope />,
+              },
+            ].map(({ href, icon }, idx) => (
+              <a
+                key={idx}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "var(--link-color)",
+                  fontSize: "1.75rem",
+                  display: "inline-block",
+                  transition: "transform 0.3s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.2) translateY(-3px)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1) translateY(0)")
+                }
+              >
+                {icon}
+              </a>
+            ))}
+          </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Website Info Card */}
-      <motion.section
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.7, duration: 0.6 }}
+      <section
         style={{
           marginTop: "3rem",
           padding: "2rem",
           border: "1px solid var(--border-color, #eaeaea)",
           borderRadius: "8px",
           backgroundColor: "var(--container-background)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "scale(1)" : "scale(0.95)",
+          transition: "opacity 0.6s ease 0.7s, transform 0.6s ease 0.7s",
         }}
       >
         <h2
@@ -327,6 +313,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         >
           About This Website
         </h2>
+
         <div
           style={{
             display: "flex",
@@ -339,13 +326,9 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <motion.img
+            <img
               src="/nextjs.jpeg"
               alt="Profile Picture"
-              variants={imageVariants}
-              initial="initial"
-              animate="animate"
-              whileHover="hover"
               style={{
                 width: "120px",
                 height: "120px",
@@ -353,9 +336,17 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
                 objectFit: "cover",
                 marginBottom: "1rem",
                 cursor: "pointer",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
             />
           </a>
+
           <p
             style={{
               color: "var(--text-color)",
@@ -363,8 +354,8 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               textAlign: "center",
             }}
           >
-            This website is built and designed with a <strong>modern</strong>{" "}
-            tech stack:{" "}
+            This website is built and designed with a <strong>modern</strong> tech
+            stack:{" "}
             <strong>
               <a
                 href="https://nextjs.org"
@@ -420,7 +411,38 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             articles and resources! 🌐
           </p>
         </div>
-      </motion.section>
+      </section>
+      <style jsx>{`
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeSlideIn 0.6s ease-out;
+    }
+
+    .page-title {
+      font-size: 2.75rem;
+      margin-bottom: 1rem;
+      color: var(--text-color);
+    }
+
+    .page-description {
+      font-size: 1.125rem;
+      color: var(--text-color);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `}</style>
     </div>
   );
 }

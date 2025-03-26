@@ -8,7 +8,6 @@ import { FaRegStar } from "react-icons/fa";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
 import UserMenu from "./UserMenu";
 import { supabase } from "@/supabase/supabaseClient";
-import { motion } from "framer-motion";
 
 function formatSegment(segment: string): string {
   return segment
@@ -250,61 +249,13 @@ export default function Navbar() {
             >
               <UserMenu />
               {user && (
-                <motion.div
-                  onClick={() => router.push("/favorites")}
-                  onHoverStart={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.color =
-                      "var(--link-color)";
-                  }}
-                  onHoverEnd={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.color = darkMode
-                      ? "#f9f9f9"
-                      : "#333";
-                  }}
-                  style={{
-                    padding: "0.5rem",
-                    cursor: "pointer",
-                    background: "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    borderRadius: "50%",
-                    transition: "background-color 0.3s ease",
-                    color: darkMode ? "#f9f9f9" : "#333",
-                  }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label="View Favorites"
-                >
+                <div className="icon-btn favorites-btn" onClick={() => router.push("/favorites")} aria-label="View Favorites">
                   <FaRegStar size={24} />
-                </motion.div>
+                </div>
               )}
-              <motion.div
-                onClick={() => setDarkMode(!darkMode)}
-                onHoverStart={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.color =
-                    "var(--link-color)";
-                }}
-                onHoverEnd={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.color = darkMode
-                    ? "#f9f9f9"
-                    : "#333";
-                }}
-                style={{
-                  padding: "0.5rem",
-                  cursor: "pointer",
-                  background: "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  borderRadius: "50%",
-                  transition: "background-color 0.3s ease",
-                  color: darkMode ? "#f9f9f9" : "#333",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="Toggle dark mode"
-              >
+              <div className="icon-btn toggle-btn" onClick={() => setDarkMode(!darkMode)} aria-label="Toggle dark mode">
                 {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
-              </motion.div>
+              </div>
             </div>
           )}
         </div>
@@ -322,61 +273,17 @@ export default function Navbar() {
           >
             <UserMenu />
             {user && (
-              <motion.div
-                onClick={() => router.push("/favorites")}
-                onHoverStart={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.color =
-                    "var(--link-color)";
-                }}
-                onHoverEnd={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.color = darkMode
-                    ? "#f9f9f9"
-                    : "#333";
-                }}
-                style={{
-                  padding: "0.5rem",
-                  cursor: "pointer",
-                  background: "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  borderRadius: "50%",
-                  transition: "background-color 0.3s ease",
-                  color: darkMode ? "#f9f9f9" : "#333",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="View Favorites"
-              >
+              <div className="icon-btn" onClick={() => router.push("/favorites")} aria-label="View Favorites">
                 <FaRegStar size={24} />
-              </motion.div>
+              </div>
             )}
-            <motion.div
+            <div
+              className="icon-btn"
               onClick={() => setDarkMode(!darkMode)}
-              onHoverStart={(e) => {
-                (e.currentTarget as HTMLDivElement).style.color =
-                  "var(--link-color)";
-              }}
-              onHoverEnd={(e) => {
-                (e.currentTarget as HTMLDivElement).style.color = darkMode
-                  ? "#f9f9f9"
-                  : "#333";
-              }}
-              style={{
-                padding: "0.5rem",
-                cursor: "pointer",
-                background: "transparent",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "50%",
-                transition: "background-color 0.3s ease",
-                color: darkMode ? "#f9f9f9" : "#333",
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
               aria-label="Toggle dark mode"
             >
               {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
-            </motion.div>
+            </div>
           </div>
         ) : null}
       </nav>
@@ -391,6 +298,23 @@ export default function Navbar() {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+        .icon-btn {
+          padding: 0.5rem;
+          cursor: pointer;
+          background: transparent;
+          display: flex;
+          align-items: center;
+          border-radius: 50%;
+          transition: transform 0.2s ease, color 0.3s ease;
+          color: ${darkMode ? "#f9f9f9" : "#333"};
+        }
+        .icon-btn:hover {
+          transform: scale(1.1);
+          color: var(--link-color);
+        }
+        .icon-btn:active {
+          transform: scale(0.95);
         }
       `}</style>
     </>

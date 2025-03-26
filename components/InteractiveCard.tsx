@@ -50,7 +50,7 @@ export default function InteractiveCard({
   };
 
   const descriptionStyle: React.CSSProperties = {
-    color: "#555", // ✅ Neutral gray, does not depend on dark mode
+    color: "#555",
     fontSize: "1rem",
     flexGrow: 1,
     marginTop: "1rem",

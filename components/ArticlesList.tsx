@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import InteractiveCard from "./InteractiveCard";
 import { FaTags, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { motion } from "framer-motion";
 
 interface Article {
   slug: string;
@@ -87,12 +86,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   return (
     <div>
       {/* Topic Filter */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        style={{ marginBottom: "2rem", textAlign: "center" }}
-      >
+      <div className="fade-slide-up" style={{ marginBottom: "2rem", textAlign: "center" }}>
         <div
           style={{
             display: "flex",
@@ -102,17 +96,12 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           }}
         >
           <h2>Filter by Topic</h2>
-          <motion.div
-            onClick={() => setShowOnlyMessage((prev) => !prev)}
-            whileHover={{ scale: 1.1 }}
-            style={{ cursor: "pointer" }}
+          <div
+            className="toggle-icon"
+            onClick={() => setShowOnlyMessage(prev => !prev)}
           >
-            {showOnlyMessage ? (
-              <FaChevronUp size={20} />
-            ) : (
-              <FaChevronDown size={20} />
-            )}
-          </motion.div>
+            {showOnlyMessage ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
+          </div>
         </div>
 
         {showOnlyMessage && (
@@ -139,143 +128,63 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             alignItems: "center",
           }}
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={clearSelection}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "4px",
-              border: "1px solid #0070f3",
-              backgroundColor: selectedTopics.length === 0 ? "#0070f3" : "#fff",
-              color: selectedTopics.length === 0 ? "#fff" : "#0070f3",
-              cursor: "pointer",
-              transition: "background-color 0.2s",
-              font: "inherit",
-            }}
-          >
+          <button className="topic-btn all-topics" onClick={clearSelection}>
             <FaTags style={{ marginRight: "0.5rem" }} />
             All Topics
-          </motion.button>
+          </button>
 
-          {/* Buttons for Each Topic (limited by visibleTopicsCount) */}
           {topicsToShow.map((topic) => (
-            <motion.button
+            <button
               key={topic}
-              whileHover={{ scale: 1.05 }}
+              className={`topic-btn ${selectedTopics.includes(topic) ? "selected" : ""}`}
               onClick={() => toggleTopic(topic)}
-              style={{
-                padding: "0.5rem 1rem",
-                borderRadius: "4px",
-                border: "1px solid #0070f3",
-                backgroundColor: selectedTopics.includes(topic)
-                  ? "#0070f3"
-                  : "#fff",
-                color: selectedTopics.includes(topic) ? "#fff" : "#0070f3",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-                font: "inherit",
-              }}
             >
               <FaTags style={{ marginRight: "0.5rem" }} />
               {topic}
-            </motion.button>
+            </button>
           ))}
 
-          {/* Clear Selection Button */}
           {selectedTopics.length > 0 && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={clearSelection}
-              style={{
-                padding: "0.5rem 1rem",
-                borderRadius: "4px",
-                border: "1px solid #0070f3",
-                backgroundColor: "#fff",
-                color: "#0070f3",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-                font: "inherit",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <button className="topic-btn clear-btn" onClick={clearSelection}>
               <FaTimes style={{ marginRight: "0.5rem" }} />
               Clear Selection
-            </motion.button>
+            </button>
           )}
 
-          {/* More Topics Button */}
           {visibleTopicsCount < allTopics.length && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={() => setVisibleTopicsCount((prev) => prev + 10)}
-              style={{
-                padding: "0.5rem 1rem",
-                borderRadius: "4px",
-                border: "2px dashed #0070f3",
-                backgroundColor: "#fff",
-                color: "#0070f3",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-                font: "inherit",
-              }}
-            >
+            <button className="topic-btn more-btn" onClick={() => setVisibleTopicsCount(prev => prev + 10)}>
               More Topics ...
-            </motion.button>
+            </button>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* Articles Grid */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ staggerChildren: 0.1, duration: 0.5 }}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "2rem",
-        }}
+      <div
+        className="article-grid"
       >
-        {displayedArticles.map((article) => (
-          <InteractiveCard
+        {displayedArticles.map((article, index) => (
+          <div
             key={article.slug}
-            slug={article.slug}
-            title={article.title}
-            description={article.description}
-          />
+            className="fade-in-card"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <InteractiveCard
+              slug={article.slug}
+              title={article.title}
+              description={article.description}
+            />
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Load More Articles Button */}
       {visibleCount < filteredArticles.length && (
         <div style={{ textAlign: "center", marginTop: "2rem" }}>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setVisibleCount((prev) => prev + 10)}
-            style={{
-              padding: "0.75rem 1.5rem",
-              borderRadius: "8px",
-              border: "2px solid #0070f3",
-              backgroundColor: "#0070f3",
-              color: "#fff",
-              cursor: "pointer",
-              transition: "background-color 0.2s",
-              font: "inherit",
-              fontSize: "1rem",
-            }}
-          >
+          <button className="load-more-btn" onClick={() => setVisibleCount((prev) => prev + 10)}>
             Load More Articles
-            <motion.span
-              style={{ marginLeft: "0.5rem" }}
-              initial={{ y: 0 }}
-              animate={{ y: 3 }}
-              transition={{ yoyo: Infinity, duration: 0.5 }}
-            >
-              ↓
-            </motion.span>
-          </motion.button>
+            <span className="arrow">↓</span>
+          </button>
         </div>
       )}
 
@@ -291,6 +200,114 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           <p>No articles found.</p>
         )}
       </div>
+
+      <style jsx>{`
+          .topic-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid #0070f3;
+            background-color: #fff;
+            color: #0070f3;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s;
+            font: inherit;
+            display: flex;
+            align-items: center;
+          }
+        
+          .topic-btn.selected {
+            background-color: #0070f3;
+            color: #fff;
+          }
+        
+          .topic-btn.clear-btn {
+            color: red;
+          }
+        
+          .topic-btn.more-btn {
+            border: 2px dashed #0070f3;
+          }
+        
+          .topic-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            background-color: #0070f3;
+            color: #fff;
+          }
+
+          .toggle-icon {
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.2s ease;
+          }
+          .toggle-icon:hover {
+            transform: scale(1.1);
+          }
+
+          .load-more-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #0070f3;
+            background-color: #0070f3;
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+
+          .load-more-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+          }
+
+          .arrow {
+            display: inline-block;
+            animation: bounce 0.5s infinite alternate;
+          }
+
+          @keyframes bounce {
+            from {
+              transform: translateY(0);
+            }
+            to {
+              transform: translateY(3px);
+            }
+          }
+
+          .fade-slide-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeSlideUp 0.5s ease-out forwards;
+          }
+
+          @keyframes fadeSlideUp {
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+          }
+
+          .fade-in-card {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+          }
+
+          @keyframes fadeIn {
+            to {
+              opacity: 1;
+            }
+          }
+      `}</style>
     </div>
   );
 }

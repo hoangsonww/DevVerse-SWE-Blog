@@ -4,7 +4,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
 import ArticlesList from "./ArticlesList";
 import { Article } from "@/lib/articles";
 import { getFavoriteSlugs } from "@/supabase/favorites";
@@ -92,33 +91,33 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+      <h1
         style={{
           fontSize: "2.5rem",
           marginBottom: "1rem",
           color: "var(--text-color)",
+          opacity: 1,
+          transform: "translateY(0)",
+          animation: "fadeSlideIn 0.6s ease forwards",
         }}
       >
         Favorite Articles 📚
-      </motion.h1>
+      </h1>
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
+      <p
         style={{
           fontSize: "1.125rem",
           marginBottom: "2rem",
           color: "var(--text-color)",
+          opacity: 0,
+          animation: "fadeInText 0.6s ease forwards",
+          animationDelay: "0.3s",
         }}
       >
         {user
           ? `Welcome, ${user.user_metadata.display_name ?? user.email}! Here are your favorites:`
           : "Please log in to view your favorite articles."}
-      </motion.p>
+      </p>
 
       {/* Search Bar */}
       <div
@@ -128,79 +127,148 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           marginBottom: "2rem",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-          whileFocus={{ scale: 1.05 }}
-          whileTap={{ scale: 1 }}
-          transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+        <div
+          className={`search-bar ${isFocused || searchTerm ? "expanded" : ""}`}
           style={{
             display: "flex",
             alignItems: "center",
-            backgroundColor: "var(--container-background)",
-            border: "2px solid var(--border-color)",
-            borderRadius: "12px",
             padding: "0.75rem 1rem",
+            border: "2px solid var(--border-color, #ccc)",
+            borderRadius: "12px",
+            backgroundColor: "var(--container-background)",
+            gap: "0.75rem", // 👈 adds space between icon and input
             width: isFocused || searchTerm ? "500px" : "400px",
-            transition: "width 0.3s, background-color 0.3s",
+            transition: "width 0.3s ease-in-out, background-color 0.3s ease",
           }}
         >
           <FaSearch
+            className={`search-icon ${isFocused ? "focused" : ""}`}
             style={{
-              marginRight: "0.75rem",
               color: isFocused ? "#0070f3" : "var(--text-color)",
+              transition: "color 0.3s ease",
             }}
           />
-          <motion.input
+          <input
             type="text"
             placeholder="Search favorites..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            className="search-input"
             style={{
               border: "none",
               outline: "none",
               width: "100%",
-              background: "transparent",
-              color: "var(--text-color)",
-              fontFamily: "Inter, sans-serif",
               fontSize: "1rem",
-              transition: "background-color 0.3s ease",
+              fontFamily: "inherit",
+              backgroundColor: "transparent",
+              color: "var(--text-color)",
             }}
           />
-        </motion.div>
+        </div>
       </div>
 
       {loading ? (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          style={{ color: "var(--text-color)" }}
-        >
-          Loading...
-        </motion.p>
+        <p className="loading-text">Loading...</p>
       ) : filteredFavorites.length ? (
         <ArticlesList articles={filteredFavorites} />
       ) : (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          style={{ color: "var(--text-color)" }}
-        >
+        <p className="no-favorites-message">
           You have no favorite articles.
-        </motion.p>
+        </p>
       )}
+      <style jsx>{`
+        @keyframes fadeSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInText {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        .search-bar {
+          display: flex;
+          align-items: center;
+          background-color: var(--container-background);
+          border: 2px solid var(--border-color);
+          border-radius: 12px;
+          padding: 0.75rem 1rem;
+          width: 400px;
+          opacity: 0;
+          transform: translateY(20px) scale(0.9);
+          animation: fadeInSearch 0.3s ease forwards;
+          transition: width 0.3s, box-shadow 0.3s, background-color 0.3s;
+        }
+
+        .search-bar.expanded {
+          width: 500px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input {
+          border: none;
+          outline: none;
+          width: 100%;
+          background: transparent;
+          color: var(--text-color);
+          font-family: "Inter", sans-serif;
+          font-size: 1rem;
+        }
+
+        .search-icon {
+          margin-right: 0.75rem;
+          color: var(--text-color);
+          transition: color 0.2s ease;
+        }
+
+        .search-icon.focused {
+          color: #0070f3;
+        }
+
+        @keyframes fadeInSearch {
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .loading-text {
+          color: var(--text-color);
+          opacity: 0;
+          animation: fadeInLoading 0.5s ease forwards;
+        }
+
+        @keyframes fadeInLoading {
+          to {
+            opacity: 1;
+          }
+        }
+
+        .no-favorites-message {
+          color: var(--text-color);
+          opacity: 0;
+          animation: fadeInNoFav 0.5s ease forwards;
+        }
+
+        @keyframes fadeInNoFav {
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
