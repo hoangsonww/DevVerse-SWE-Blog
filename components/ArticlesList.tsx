@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import InteractiveCard from "./InteractiveCard";
 import { FaTags, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
@@ -24,6 +24,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   });
   const allTopics = Array.from(allTopicsSet).sort();
 
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   // State for the currently selected topics and how many articles to show.
@@ -68,19 +69,27 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   const displayedCardElements = allCardElements.slice(0, visibleCount);
 
   // Toggle topic selection.
+  const updateURL = (topics: string[]) => {
+    const query = topics.length ? `?topics=${topics.join(",")}` : "";
+    router.replace(`${window.location.pathname}${query}`, { scroll: false });
+  };
+
   const toggleTopic = (topic: string) => {
-    setVisibleCount(10); // Reset visible articles when changing selection
-    setSelectedTopics((prevSelected) =>
-      prevSelected.includes(topic)
-        ? prevSelected.filter((t) => t !== topic)
-        : [...prevSelected, topic],
-    );
+    setVisibleCount(10);
+    setSelectedTopics(prev => {
+      const next = prev.includes(topic)
+        ? prev.filter(t => t !== topic)
+        : [...prev, topic];
+      updateURL(next);
+      return next;
+    });
   };
 
   // Clear all selections.
   const clearSelection = () => {
     setVisibleCount(10); // Reset visible articles when clearing selection
     setSelectedTopics([]);
+    updateURL([]);
   };
 
   const [initialized, setInitialized] = useState(false);
@@ -200,7 +209,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             {totalFiltered === 1 ? "" : "s"}
           </p>
         ) : (
-          <p>No articles found.</p>
+          <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>No articles found.</p>
         )}
       </div>
 
