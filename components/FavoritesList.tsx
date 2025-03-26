@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import ArticlesList from "./ArticlesList";
 import { Article } from "@/lib/articles";
 import { getFavoriteSlugs } from "@/supabase/favorites";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { FaSearch, FaTimes, FaSpinner } from "react-icons/fa";
 import { useSearchParams } from "next/navigation";
 
 interface FavoritesListProps {
@@ -233,9 +233,9 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "200px"
+          height: "200px",
         }}>
-          <FaTimes className="spinner" size={32} />
+          <FaSpinner className="spinner" size={32} />
         </div>
       ) : favoriteSlugs.length === 0 ? (
         <p className="no-favorites-message">You have no favorite articles.</p>
