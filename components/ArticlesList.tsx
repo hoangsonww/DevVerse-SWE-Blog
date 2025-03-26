@@ -36,8 +36,8 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   const filteredArticles =
     selectedTopics.length > 0
       ? articles.filter((article) =>
-        selectedTopics.every((topic) => article.topics.includes(topic))
-      )
+          selectedTopics.every((topic) => article.topics.includes(topic)),
+        )
       : articles;
 
   // Slice the filtered list to show only the visible portion.
@@ -55,7 +55,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
     setSelectedTopics((prevSelected) =>
       prevSelected.includes(topic)
         ? prevSelected.filter((t) => t !== topic)
-        : [...prevSelected, topic]
+        : [...prevSelected, topic],
     );
   };
 
@@ -74,14 +74,25 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
         transition={{ duration: 0.5 }}
         style={{ marginBottom: "2rem", textAlign: "center" }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1rem",
+          }}
+        >
           <h2>Filter by Topic</h2>
           <motion.div
-            onClick={() => setShowOnlyMessage(prev => !prev)}
+            onClick={() => setShowOnlyMessage((prev) => !prev)}
             whileHover={{ scale: 1.1 }}
             style={{ cursor: "pointer" }}
           >
-            {showOnlyMessage ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
+            {showOnlyMessage ? (
+              <FaChevronUp size={20} />
+            ) : (
+              <FaChevronDown size={20} />
+            )}
           </motion.div>
         </div>
 
@@ -94,8 +105,8 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             }}
           >
             You can select multiple topics to filter the articles. If you select
-            more than one topic, only articles that match all selected topics will
-            be shown. 🧠
+            more than one topic, only articles that match all selected topics
+            will be shown. 🧠
           </p>
         )}
 

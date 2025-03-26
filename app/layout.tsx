@@ -159,11 +159,11 @@ export default function RootLayout({
           Engineering Knowledge
         </title>
         <meta name="google-adsense-account" content="ca-pub-6608388491200814" />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6608388491200814"
-          crossOrigin="anonymous"
-        ></Script>
+        {/*<Script*/}
+        {/*  async*/}
+        {/*  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6608388491200814"*/}
+        {/*  crossOrigin="anonymous"*/}
+        {/*></Script>*/}
       </head>
       <body className={inter.className}>
         <DarkModeProvider>

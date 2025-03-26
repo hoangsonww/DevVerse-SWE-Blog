@@ -311,20 +311,36 @@ The blog uses [Supabase](https://supabase.io/) for user authentication, file sto
 
 5. **Set Up Database:**
 
-    Create a new table in the Supabase dashboard with the following schema:
+    Create 3 new tables in the Supabase dashboard with the following schema:
 
     ```sql
-    CREATE TABLE articles (
+    CREATE TABLE IF NOT EXISTS articles (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       title TEXT NOT NULL,
       slug TEXT NOT NULL,
       content TEXT NOT NULL,
       author TEXT NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS profiles (
+      id UUID PRIMARY KEY
+      REFERENCES auth.users(id) ON DELETE CASCADE,
+      avatar_url TEXT,
+      updated_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS favorite_articles (
+      id SERIAL PRIMARY KEY,
+      user_id UUID
+      REFERENCES auth.users(id) ON DELETE CASCADE,
+      article_slug TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE (user_id, article_slug)
     );
     ```
 
-    This table will store the articles for the blog.
+    You may copy the above SQL queries and run them in the SQL editor in the Supabase dashboard. This will create the necessary tables for the bare-bones blog. For a more complex and full-fledged blog, visit the `supabase/` directory for more SQL files & queries.
 
 6. **Set Up Storage:**
 
@@ -338,6 +354,8 @@ The blog uses [Supabase](https://supabase.io/) for user authentication, file sto
     - `storage: create, read, update, delete`
 
     This role will be used to access the articles and storage services from the blog.
+
+    Or, for development purposes, you can use the `public` role with the same permissions, or just allow all permissions for simplicity (not recommended for production).
 
 8. **Run the Application:**
 
@@ -426,6 +444,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 - **Next.js Documentation:** [https://nextjs.org/docs](https://nextjs.org/docs)
 - **MDX Documentation:** [https://mdxjs.com/](https://mdxjs.com/)
+- **Supabase Documentation:** [https://supabase.io/docs](https://supabase.io/docs)
 - **Next.js Blog:** Explore real-world examples and case studies on the official Next.js blog.
 - **Docker Documentation:** [https://docs.docker.com/](https://docs.docker.com/)
 - **VS Code Dev Containers:** [https://code.visualstudio.com/docs/remote/containers](https://code.visualstudio.com/docs/remote/containers)
