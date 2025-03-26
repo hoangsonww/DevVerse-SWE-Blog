@@ -366,6 +366,19 @@ The blog uses [Supabase](https://supabase.io/) for user authentication, file sto
 
     Start the development server using `npm run dev` and test the user authentication and article services.
 
+### Available Next.js API Routes
+
+Because, in order to reset password with Supabase, it requires sending a confirmation email to the user, which is not implemented in this project since it requires setting up a custom SMTP server.
+
+However, for an application this size, I overrode the default Supabase reset password API route to allow users to reset their password without the need for a confirmation email. This is not recommended for production applications, but it is a quick and easy way to test the reset password functionality.
+
+The API routes are as follows:
+
+- **`/api/reset-password`**  
+  - **Method:** POST
+  - **Body:** `{ email: string, password: string }`
+  - **Description:** Resets the user's password without sending a confirmation email.
+
 ## Docker & Dev Container Configuration
 
 ### Dockerfile
