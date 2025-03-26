@@ -13,7 +13,11 @@ export default function TopicsList({ topics }: TopicsListProps) {
       <h2 className="topics-heading">Article Topics</h2>
       <div className="topics-container">
         {topics.map((topic) => (
-          <Link key={topic} href={`/?topics=${encodeURIComponent(topic)}`} passHref>
+          <Link
+            key={topic}
+            href={`/?topics=${encodeURIComponent(topic)}`}
+            passHref
+          >
             <span className="topic-pill">{topic}</span>
           </Link>
         ))}
@@ -58,7 +62,11 @@ export default function TopicsList({ topics }: TopicsListProps) {
           color: var(--text-color);
           font-size: 0.875rem;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-          transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s ease,
+            color 0.2s ease;
           cursor: pointer;
           text-decoration: none;
         }

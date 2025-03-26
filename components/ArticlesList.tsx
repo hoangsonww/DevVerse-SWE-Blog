@@ -69,7 +69,9 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   };
 
   const [initialized, setInitialized] = useState(false);
-  const extraTopics = selectedTopics.filter((t) => !displayedTopics.includes(t));
+  const extraTopics = selectedTopics.filter(
+    (t) => !displayedTopics.includes(t),
+  );
   const topicsToShow = [...displayedTopics, ...extraTopics];
 
   useEffect(() => {
@@ -165,7 +167,9 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
                 padding: "0.5rem 1rem",
                 borderRadius: "4px",
                 border: "1px solid #0070f3",
-                backgroundColor: selectedTopics.includes(topic) ? "#0070f3" : "#fff",
+                backgroundColor: selectedTopics.includes(topic)
+                  ? "#0070f3"
+                  : "#fff",
                 color: selectedTopics.includes(topic) ? "#fff" : "#0070f3",
                 cursor: "pointer",
                 transition: "background-color 0.2s",
