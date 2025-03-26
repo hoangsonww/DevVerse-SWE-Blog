@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ArticlesList from "./ArticlesList";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   FaGithub,
   FaLinkedin,
@@ -35,6 +36,14 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
   const [filteredArticles, setFilteredArticles] = useState(articles);
   const [isFocused, setIsFocused] = useState(false);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialSearch = params.get("search") ?? "";
+    setSearchTerm(initialSearch);
+  }, []);
+
   const debounce = (func: Function, delay: number) => {
     let timer: NodeJS.Timeout;
     return (...args: any) => {
@@ -64,6 +73,22 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
   useEffect(() => {
     handleSearch(searchTerm);
   }, [searchTerm, handleSearch]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+
+    // leave topics untouched
+    const query = params.toString();
+    router.replace(`${window.location.pathname}${query ? `?${query}` : ""}`, {
+      scroll: false,
+    });
+  }, [searchTerm, router]);
 
   const [visible, setVisible] = useState(false);
 

@@ -68,17 +68,30 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
 
   const displayedCardElements = allCardElements.slice(0, visibleCount);
 
-  // Toggle topic selection.
+  // Toggle topic selection
   const updateURL = (topics: string[]) => {
-    const query = topics.length ? `?topics=${topics.join(",")}` : "";
-    router.replace(`${window.location.pathname}${query}`, { scroll: false });
+    const params = new URLSearchParams(window.location.search);
+
+    // Update topics
+    if (topics.length) {
+      params.set("topics", topics.join(","));
+    } else {
+      params.delete("topics");
+    }
+
+    // Leave any existing ?search intact
+    const queryString = params.toString();
+    router.replace(
+      `${window.location.pathname}${queryString ? `?${queryString}` : ""}`,
+      { scroll: false },
+    );
   };
 
   const toggleTopic = (topic: string) => {
     setVisibleCount(10);
-    setSelectedTopics(prev => {
+    setSelectedTopics((prev) => {
       const next = prev.includes(topic)
-        ? prev.filter(t => t !== topic)
+        ? prev.filter((t) => t !== topic)
         : [...prev, topic];
       updateURL(next);
       return next;
@@ -221,14 +234,20 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             <p>
               We’re sorry — no articles matched
               {searchTerm ? (
-                <> your search for “<strong>{searchTerm}</strong>”</>
+                <>
+                  {" "}
+                  your search for “<strong>{searchTerm}</strong>”
+                </>
               ) : null}
               {searchTerm && selectedTopics.length > 0 && " and"}
               {selectedTopics.length > 0 ? (
-                <> the topic{selectedTopics.length > 1 ? "s" : ""} “<strong>{selectedTopics.join(", ")}</strong>”</>
+                <>
+                  {" "}
+                  the topic{selectedTopics.length > 1 ? "s" : ""} “
+                  <strong>{selectedTopics.join(", ")}</strong>”
+                </>
               ) : null}
-              {!searchTerm && selectedTopics.length === 0 && " any criteria"}
-              .
+              {!searchTerm && selectedTopics.length === 0 && " any criteria"}.
             </p>
           </div>
         )}
