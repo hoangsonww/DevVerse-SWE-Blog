@@ -249,11 +249,19 @@ export default function Navbar() {
             >
               <UserMenu />
               {user && (
-                <div className="icon-btn favorites-btn" onClick={() => router.push("/favorites")} aria-label="View Favorites">
+                <div
+                  className="icon-btn favorites-btn"
+                  onClick={() => router.push("/favorites")}
+                  aria-label="View Favorites"
+                >
                   <FaRegStar size={24} />
                 </div>
               )}
-              <div className="icon-btn toggle-btn" onClick={() => setDarkMode(!darkMode)} aria-label="Toggle dark mode">
+              <div
+                className="icon-btn toggle-btn"
+                onClick={() => setDarkMode(!darkMode)}
+                aria-label="Toggle dark mode"
+              >
                 {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
               </div>
             </div>
@@ -273,7 +281,11 @@ export default function Navbar() {
           >
             <UserMenu />
             {user && (
-              <div className="icon-btn" onClick={() => router.push("/favorites")} aria-label="View Favorites">
+              <div
+                className="icon-btn"
+                onClick={() => router.push("/favorites")}
+                aria-label="View Favorites"
+              >
                 <FaRegStar size={24} />
               </div>
             )}
@@ -306,7 +318,9 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           border-radius: 50%;
-          transition: transform 0.2s ease, color 0.3s ease;
+          transition:
+            transform 0.2s ease,
+            color 0.3s ease;
           color: ${darkMode ? "#f9f9f9" : "#333"};
         }
         .icon-btn:hover {

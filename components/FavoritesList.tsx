@@ -174,9 +174,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
       ) : filteredFavorites.length ? (
         <ArticlesList articles={filteredFavorites} />
       ) : (
-        <p className="no-favorites-message">
-          You have no favorite articles.
-        </p>
+        <p className="no-favorites-message">You have no favorite articles.</p>
       )}
       <style jsx>{`
         @keyframes fadeSlideIn {
@@ -210,7 +208,10 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           opacity: 0;
           transform: translateY(20px) scale(0.9);
           animation: fadeInSearch 0.3s ease forwards;
-          transition: width 0.3s, box-shadow 0.3s, background-color 0.3s;
+          transition:
+            width 0.3s,
+            box-shadow 0.3s,
+            background-color 0.3s;
         }
 
         .search-bar.expanded {

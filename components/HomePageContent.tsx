@@ -82,9 +82,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
       }}
     >
       <header className="page-header">
-        <h1 className="page-title">
-          Welcome to DevVerse Tech Blog ✨
-        </h1>
+        <h1 className="page-title">Welcome to DevVerse Tech Blog ✨</h1>
         <p className="page-description">
           DevVerse Tech Blog is your go-to source for deep dives into computer
           science and technology. Explore <strong>{articles.length}</strong>{" "}
@@ -278,7 +276,8 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
                   transition: "transform 0.3s ease",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.transform = "scale(1.2) translateY(-3px)")
+                  (e.currentTarget.style.transform =
+                    "scale(1.2) translateY(-3px)")
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.transform = "scale(1) translateY(0)")
@@ -354,8 +353,8 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               textAlign: "center",
             }}
           >
-            This website is built and designed with a <strong>modern</strong> tech
-            stack:{" "}
+            This website is built and designed with a <strong>modern</strong>{" "}
+            tech stack:{" "}
             <strong>
               <a
                 href="https://nextjs.org"
@@ -413,36 +412,36 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         </div>
       </section>
       <style jsx>{`
-    .page-header {
-      text-align: center;
-      margin-bottom: 3rem;
-      animation: fadeSlideIn 0.6s ease-out;
-    }
+        .page-header {
+          text-align: center;
+          margin-bottom: 3rem;
+          animation: fadeSlideIn 0.6s ease-out;
+        }
 
-    .page-title {
-      font-size: 2.75rem;
-      margin-bottom: 1rem;
-      color: var(--text-color);
-    }
+        .page-title {
+          font-size: 2.75rem;
+          margin-bottom: 1rem;
+          color: var(--text-color);
+        }
 
-    .page-description {
-      font-size: 1.125rem;
-      color: var(--text-color);
-      max-width: 600px;
-      margin: 0 auto;
-    }
+        .page-description {
+          font-size: 1.125rem;
+          color: var(--text-color);
+          max-width: 600px;
+          margin: 0 auto;
+        }
 
-    @keyframes fadeSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  `}</style>
+        @keyframes fadeSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

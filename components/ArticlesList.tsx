@@ -86,18 +86,32 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   return (
     <div>
       {/* Topic Filter */}
-      <div className="fade-slide-up" style={{ marginBottom: "2rem", textAlign: "center" }}>
+      <div
+        className="fade-slide-up"
+        style={{ marginBottom: "2rem", textAlign: "center" }}
+      >
         <div className="filter-header">
           <h2>Filter by Topic</h2>
-          <div className="toggle-icon" onClick={() => setShowOnlyMessage((prev) => !prev)}>
-            {showOnlyMessage ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
+          <div
+            className="toggle-icon"
+            onClick={() => setShowOnlyMessage((prev) => !prev)}
+          >
+            {showOnlyMessage ? (
+              <FaChevronUp size={20} />
+            ) : (
+              <FaChevronDown size={20} />
+            )}
           </div>
         </div>
 
-        <div className={`filter-description ${showOnlyMessage ? "open" : ""}`} style={{ marginTop: 0 }}>
+        <div
+          className={`filter-description ${showOnlyMessage ? "open" : ""}`}
+          style={{ marginTop: 0 }}
+        >
           <p>
-            You can select multiple topics to filter the articles. If you select more than one topic,
-            only articles that match all selected topics will be shown. 🧠
+            You can select multiple topics to filter the articles. If you select
+            more than one topic, only articles that match all selected topics
+            will be shown. 🧠
           </p>
         </div>
 
@@ -135,7 +149,10 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           )}
 
           {visibleTopicsCount < allTopics.length && (
-            <button className="topic-btn more-btn" onClick={() => setVisibleTopicsCount(prev => prev + 10)}>
+            <button
+              className="topic-btn more-btn"
+              onClick={() => setVisibleTopicsCount((prev) => prev + 10)}
+            >
               More Topics ...
             </button>
           )}
@@ -143,9 +160,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
       </div>
 
       {/* Articles Grid */}
-      <div
-        className="article-grid"
-      >
+      <div className="article-grid">
         {displayedArticles.map((article, index) => (
           <div
             key={article.slug}
@@ -164,7 +179,10 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
       {/* Load More Articles Button */}
       {visibleCount < filteredArticles.length && (
         <div style={{ textAlign: "center", marginTop: "2rem" }}>
-          <button className="load-more-btn" onClick={() => setVisibleCount((prev) => prev + 10)}>
+          <button
+            className="load-more-btn"
+            onClick={() => setVisibleCount((prev) => prev + 10)}
+          >
             Load More Articles
             <span className="arrow">↓</span>
           </button>
@@ -185,175 +203,184 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
       </div>
 
       <style jsx>{`
-          .topic-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            border: 1px solid #0070f3;
-            background-color: #fff;
-            color: #0070f3;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s;
-            font: inherit;
-            display: flex;
-            align-items: center;
-          }
-        
-          .topic-btn.selected {
-            background-color: #0070f3;
-            color: #fff;
-          }
-        
-          .topic-btn.clear-btn {
-            color: red;
-          }
-        
-          .topic-btn.more-btn {
-            border: 2px dashed #0070f3;
-          }
-        
-          .topic-btn:hover {
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            background-color: #0070f3;
-            color: #fff;
-          }
+        .topic-btn {
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          border: 1px solid #0070f3;
+          background-color: #fff;
+          color: #0070f3;
+          cursor: pointer;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s;
+          font: inherit;
+          display: flex;
+          align-items: center;
+        }
 
-          .toggle-icon {
-            cursor: pointer;
-            display: inline-block;
-            transition: transform 0.2s ease;
-          }
-          .toggle-icon:hover {
-            transform: scale(1.1);
-          }
+        .topic-btn.selected {
+          background-color: #0070f3;
+          color: #fff;
+        }
 
-          .load-more-btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            border: 2px solid #0070f3;
-            background-color: #0070f3;
-            color: #fff;
-            font-size: 1rem;
-            font-family: inherit;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-          }
+        .topic-btn.clear-btn {
+          color: red;
+        }
 
-          .load-more-btn:hover {
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-          }
+        .topic-btn.more-btn {
+          border: 2px dashed #0070f3;
+        }
 
-          .arrow {
-            display: inline-block;
-            animation: bounce 0.5s infinite alternate;
-          }
+        .topic-btn:hover {
+          transform: translateY(-4px) scale(1.05);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+          background-color: #0070f3;
+          color: #fff;
+        }
 
-          @keyframes bounce {
-            from {
-              transform: translateY(0);
-            }
-            to {
-              transform: translateY(3px);
-            }
-          }
+        .toggle-icon {
+          cursor: pointer;
+          display: inline-block;
+          transition: transform 0.2s ease;
+        }
+        .toggle-icon:hover {
+          transform: scale(1.1);
+        }
 
-          .fade-slide-up {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeSlideUp 0.5s ease-out forwards;
-          }
+        .load-more-btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          border: 2px solid #0070f3;
+          background-color: #0070f3;
+          color: #fff;
+          font-size: 1rem;
+          font-family: inherit;
+          cursor: pointer;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
 
-          @keyframes fadeSlideUp {
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
+        .load-more-btn:hover {
+          transform: translateY(-4px) scale(1.05);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
 
-          .article-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-          }
+        .arrow {
+          display: inline-block;
+          animation: bounce 0.5s infinite alternate;
+        }
 
-          .fade-in-card {
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards;
+        @keyframes bounce {
+          from {
+            transform: translateY(0);
           }
-
-          @keyframes fadeIn {
-            to {
-              opacity: 1;
-            }
+          to {
+            transform: translateY(3px);
           }
+        }
 
-          .slide-container {
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
-            margin-top: 0;
-            margin-bottom: 1rem;
-          }
+        .fade-slide-up {
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeSlideUp 0.5s ease-out forwards;
+        }
 
-          .slide-container.open {
-            max-height: 150px;
-            opacity: 1;
-            margin-top: 1rem;
-          }
-
-          .slide-text {
-            max-width: 80%;
-            margin: 0 auto;
-            text-align: center;
-            line-height: 1.6;
-            color: var(--text-color);
-          }
-
-          .filter-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-          }
-
-          .toggle-icon {
-            cursor: pointer;
-            transition: transform 0.3s ease;
-          }
-
-          .toggle-icon:hover {
-            transform: scale(1.15);
-          }
-
-          .filter-description {
-            overflow: hidden;
-            max-height: 0;
-            opacity: 0;
-            transform: translateY(-5px);
-            transition: all 0.4s ease;
-            display: flex;
-            justify-content: center;
-          }
-
-          .filter-description.open {
-            max-height: 200px;
+        @keyframes fadeSlideUp {
+          to {
             opacity: 1;
             transform: translateY(0);
-            margin-top: 1rem;
           }
+        }
 
-          .filter-description p {
-            max-width: 80%;
-            text-align: center;
-            color: var(--text-color);
-            transition: color 0.3s ease;
-            line-height: 1.6;
+        .article-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 2rem;
+        }
+
+        .fade-in-card {
+          opacity: 0;
+          animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+          to {
+            opacity: 1;
           }
+        }
+
+        .slide-container {
+          max-height: 0;
+          opacity: 0;
+          overflow: hidden;
+          transition:
+            max-height 0.4s ease,
+            opacity 0.3s ease,
+            margin-top 0.3s ease;
+          margin-top: 0;
+          margin-bottom: 1rem;
+        }
+
+        .slide-container.open {
+          max-height: 150px;
+          opacity: 1;
+          margin-top: 1rem;
+        }
+
+        .slide-text {
+          max-width: 80%;
+          margin: 0 auto;
+          text-align: center;
+          line-height: 1.6;
+          color: var(--text-color);
+        }
+
+        .filter-header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1rem;
+        }
+
+        .toggle-icon {
+          cursor: pointer;
+          transition: transform 0.3s ease;
+        }
+
+        .toggle-icon:hover {
+          transform: scale(1.15);
+        }
+
+        .filter-description {
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transform: translateY(-5px);
+          transition: all 0.4s ease;
+          display: flex;
+          justify-content: center;
+        }
+
+        .filter-description.open {
+          max-height: 200px;
+          opacity: 1;
+          transform: translateY(0);
+          margin-top: 1rem;
+        }
+
+        .filter-description p {
+          max-width: 80%;
+          text-align: center;
+          color: var(--text-color);
+          transition: color 0.3s ease;
+          line-height: 1.6;
+        }
       `}</style>
     </div>
   );

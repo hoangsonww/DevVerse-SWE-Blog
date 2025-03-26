@@ -23,7 +23,7 @@ const UserMenu: React.FC = () => {
     fetchSession();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_, session) => setUser(session?.user ?? null)
+      (_, session) => setUser(session?.user ?? null),
     );
     return () => subscription.subscription.unsubscribe();
   }, []);
@@ -52,9 +52,9 @@ const UserMenu: React.FC = () => {
   };
 
   const MenuItem = ({
-                      label,
-                      onClick,
-                    }: {
+    label,
+    onClick,
+  }: {
     label: string;
     onClick: () => void;
   }) => (
@@ -87,7 +87,10 @@ const UserMenu: React.FC = () => {
 
   return (
     <div className="user-menu-wrapper" ref={menuRef}>
-      <div className="icon-wrapper" onClick={() => setMenuOpen((prev) => !prev)}>
+      <div
+        className="icon-wrapper"
+        onClick={() => setMenuOpen((prev) => !prev)}
+      >
         <FiUser size={24} />
       </div>
 
@@ -95,22 +98,28 @@ const UserMenu: React.FC = () => {
         <div className="dropdown">
           {!user ? (
             <>
-              <MenuItem label="Login" onClick={() => {
-                setMenuOpen(false);
-                router.push("/auth/login");
-              }} />
+              <MenuItem
+                label="Login"
+                onClick={() => {
+                  setMenuOpen(false);
+                  router.push("/auth/login");
+                }}
+              />
 
-              <MenuItem label="Register" onClick={() => {
-                setMenuOpen(false);
-                router.push("/auth/register");
-              }} />
+              <MenuItem
+                label="Register"
+                onClick={() => {
+                  setMenuOpen(false);
+                  router.push("/auth/register");
+                }}
+              />
             </>
           ) : (
             <>
               <p className="user-info">
                 {getGreeting()}{" "}
-                {user?.identities?.[0]?.identity_data?.display_name || "Guest"} (
-                {user.email})
+                {user?.identities?.[0]?.identity_data?.display_name || "Guest"}{" "}
+                ({user.email})
               </p>
               <div className="divider" />
               <p className="logout-btn" onClick={handleLogout}>
@@ -134,7 +143,9 @@ const UserMenu: React.FC = () => {
           display: flex;
           align-items: center;
           border-radius: 50%;
-          transition: transform 0.2s, color 0.2s;
+          transition:
+            transform 0.2s,
+            color 0.2s;
           color: var(--text-color);
         }
 
@@ -166,7 +177,9 @@ const UserMenu: React.FC = () => {
           text-align: center;
           padding: 0.5rem;
           border-radius: 4px;
-          transition: background-color 0.2s, color 0.2s;
+          transition:
+            background-color 0.2s,
+            color 0.2s;
         }
 
         .menu-item:hover {
@@ -199,7 +212,9 @@ const UserMenu: React.FC = () => {
           text-align: center;
           padding: 0.5rem;
           border-radius: 4px;
-          transition: background-color 0.2s, color 0.2s;
+          transition:
+            background-color 0.2s,
+            color 0.2s;
         }
 
         .logout-btn:hover {
@@ -227,7 +242,9 @@ const UserMenu: React.FC = () => {
           text-align: center;
           padding: 0.5rem;
           border-radius: 4px;
-          transition: background-color 0.2s, color 0.2s;
+          transition:
+            background-color 0.2s,
+            color 0.2s;
         }
 
         /* For login/register - styled like logout but not red */
