@@ -4,6 +4,12 @@ import CodeBlock from "@/ui/CodeBlock";
 import PreBlock from "@/ui/PreBlock";
 import InlineCode from "@/ui/InlineCode";
 
+/**
+ * Define how MDX components should be rendered. This is a custom hook
+ * that can be used to override the default components provided by MDX.
+ *
+ * @param components - Custom components to render
+ */
 export function useMDXComponents(
   components: MDXComponents = {},
 ): MDXComponents {
@@ -50,9 +56,13 @@ export function useMDXComponents(
     p: (props) => (
       <p style={{ marginBottom: "1rem", color: "#555" }} {...props} />
     ),
+
+    // Links
     a: (props) => (
       <a style={{ color: "#0070f3", textDecoration: "underline" }} {...props} />
     ),
+
+    // Bold and italic texts
     strong: (props) => <strong style={{ fontWeight: "bold" }} {...props} />,
     em: (props) => <em style={{ fontStyle: "italic" }} {...props} />,
 
@@ -65,7 +75,7 @@ export function useMDXComponents(
       return <CodeBlock {...props} />;
     },
 
-    // Preformatted code blocks:
+    // Preformatted code blocks
     pre: (props) => {
       const child = props.children;
       if (child && child.props && child.props.className) {
