@@ -6,6 +6,11 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY as string,
 );
 
+/**
+ * Verify if a user exists by email
+ * @param request - Request object
+ * @return Response object
+ */
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();
