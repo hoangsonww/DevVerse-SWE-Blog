@@ -52,7 +52,9 @@ export default async function ArticlePage({ params }: PageProps) {
           background-color: var(--background-color);
           color: var(--text-color);
           animation: fadeDown 0.6s ease-out;
-          transition: background-color 0.3s ease, color 0.3s ease;
+          transition:
+            background-color 0.3s ease,
+            color 0.3s ease;
           z-index: 1;
         }
 
@@ -66,6 +68,7 @@ export default async function ArticlePage({ params }: PageProps) {
             transform: translateY(0);
           }
         }
+        
       `}</style>
     </>
   );
