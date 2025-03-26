@@ -13,6 +13,10 @@ interface PageProps {
   params: Promise<Params>;
 }
 
+/**
+ * Generate static paths for all articles in the content directory.
+ * Enables static site generation (SSG) for this page. Helps with SEO.
+ */
 export async function generateStaticParams() {
   const fs = await import("fs/promises");
   const path = await import("path");
