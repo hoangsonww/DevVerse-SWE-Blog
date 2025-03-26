@@ -1,7 +1,8 @@
 "use client";
+
 import React, { useState } from "react";
 import InteractiveCard from "./InteractiveCard";
-import { FaTags } from "react-icons/fa";
+import { FaTags, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 interface Article {
@@ -23,16 +24,21 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   });
   const allTopics = Array.from(allTopicsSet).sort();
 
-  // State for the currently selected topic and how many articles to show.
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  // State for the currently selected topics and how many articles to show.
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(10); // Show 10 articles initially
   // State for how many topics are visible.
   const [visibleTopicsCount, setVisibleTopicsCount] = useState(10);
+  const [showOnlyMessage, setShowOnlyMessage] = useState(false);
 
-  // Filter the articles by the selected topic (if any).
-  const filteredArticles = selectedTopic
-    ? articles.filter((article) => article.topics.includes(selectedTopic))
-    : articles;
+  // Filter the articles by the selected topics (if any).
+  // Now an article is displayed only if it matches every selected topic.
+  const filteredArticles =
+    selectedTopics.length > 0
+      ? articles.filter((article) =>
+        selectedTopics.every((topic) => article.topics.includes(topic))
+      )
+      : articles;
 
   // Slice the filtered list to show only the visible portion.
   const displayedArticles = filteredArticles.slice(0, visibleCount);
@@ -43,6 +49,22 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   const totalFiltered = filteredArticles.length;
   const totalDisplayed = displayedArticles.length;
 
+  // Toggle topic selection.
+  const toggleTopic = (topic: string) => {
+    setVisibleCount(10); // Reset visible articles when changing selection
+    setSelectedTopics((prevSelected) =>
+      prevSelected.includes(topic)
+        ? prevSelected.filter((t) => t !== topic)
+        : [...prevSelected, topic]
+    );
+  };
+
+  // Clear all selections.
+  const clearSelection = () => {
+    setVisibleCount(10); // Reset visible articles when clearing selection
+    setSelectedTopics([]);
+  };
+
   return (
     <div>
       {/* Topic Filter */}
@@ -52,7 +74,31 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
         transition={{ duration: 0.5 }}
         style={{ marginBottom: "2rem", textAlign: "center" }}
       >
-        <h2>Filter by Topic</h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
+          <h2>Filter by Topic</h2>
+          <motion.div
+            onClick={() => setShowOnlyMessage(prev => !prev)}
+            whileHover={{ scale: 1.1 }}
+            style={{ cursor: "pointer" }}
+          >
+            {showOnlyMessage ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
+          </motion.div>
+        </div>
+
+        {showOnlyMessage && (
+          <p
+            style={{
+              maxWidth: "80%",
+              textAlign: "center",
+              margin: "0 auto",
+            }}
+          >
+            You can select multiple topics to filter the articles. If you select
+            more than one topic, only articles that match all selected topics will
+            be shown. 🧠
+          </p>
+        )}
+
         <div
           style={{
             display: "flex",
@@ -63,19 +109,15 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             alignItems: "center",
           }}
         >
-          {/* Button for All Topics */}
           <motion.button
             whileHover={{ scale: 1.05 }}
-            onClick={() => {
-              setSelectedTopic(null);
-              setVisibleCount(10); // Reset when changing topics
-            }}
+            onClick={clearSelection}
             style={{
               padding: "0.5rem 1rem",
               borderRadius: "4px",
               border: "1px solid #0070f3",
-              backgroundColor: selectedTopic === null ? "#0070f3" : "#fff",
-              color: selectedTopic === null ? "#fff" : "#0070f3",
+              backgroundColor: selectedTopics.length === 0 ? "#0070f3" : "#fff",
+              color: selectedTopics.length === 0 ? "#fff" : "#0070f3",
               cursor: "pointer",
               transition: "background-color 0.2s",
               font: "inherit",
@@ -90,16 +132,15 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             <motion.button
               key={topic}
               whileHover={{ scale: 1.05 }}
-              onClick={() => {
-                setSelectedTopic(topic);
-                setVisibleCount(10); // Reset when changing topics
-              }}
+              onClick={() => toggleTopic(topic)}
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "4px",
                 border: "1px solid #0070f3",
-                backgroundColor: selectedTopic === topic ? "#0070f3" : "#fff",
-                color: selectedTopic === topic ? "#fff" : "#0070f3",
+                backgroundColor: selectedTopics.includes(topic)
+                  ? "#0070f3"
+                  : "#fff",
+                color: selectedTopics.includes(topic) ? "#fff" : "#0070f3",
                 cursor: "pointer",
                 transition: "background-color 0.2s",
                 font: "inherit",
@@ -109,6 +150,29 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
               {topic}
             </motion.button>
           ))}
+
+          {/* Clear Selection Button */}
+          {selectedTopics.length > 0 && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              onClick={clearSelection}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                border: "1px solid #0070f3",
+                backgroundColor: "#fff",
+                color: "#0070f3",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+                font: "inherit",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <FaTimes style={{ marginRight: "0.5rem" }} />
+              Clear Selection
+            </motion.button>
+          )}
 
           {/* More Topics Button */}
           {visibleTopicsCount < allTopics.length && (
