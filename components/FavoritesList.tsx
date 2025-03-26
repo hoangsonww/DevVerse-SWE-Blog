@@ -229,7 +229,14 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
       </div>
 
       {loading ? (
-        <p className="loading-text">Loading...</p>
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "200px"
+        }}>
+          <FaTimes className="spinner" size={32} />
+        </div>
       ) : favoriteSlugs.length === 0 ? (
         <p className="no-favorites-message">You have no favorite articles.</p>
       ) : filteredFavorites.length > 0 ? (
@@ -365,6 +372,15 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           to {
             opacity: 1;
           }
+        }
+
+        .spinner {
+          animation: spin 1s linear infinite;
+          color: var(--text-color);
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

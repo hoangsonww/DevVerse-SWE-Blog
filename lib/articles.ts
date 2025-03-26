@@ -8,6 +8,9 @@ export interface Article {
   topics: string[];
 }
 
+/**
+ * Get all articles from the content directory
+ */
 export async function getArticles(): Promise<Article[]> {
   const contentDir = path.join(process.cwd(), "content");
   const files = await fs.readdir(contentDir);
