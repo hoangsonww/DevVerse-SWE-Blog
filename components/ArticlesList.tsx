@@ -108,6 +108,8 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
     }
   }, [searchParams, initialized]);
 
+  const searchTerm = searchParams.get("search") ?? "";
+
   return (
     <div>
       {/* Topic Filter */}
@@ -150,7 +152,10 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             alignItems: "center",
           }}
         >
-          <button className="topic-btn all-topics" onClick={clearSelection}>
+          <button
+            className={`topic-btn all-topics ${selectedTopics.length === 0 ? "selected" : ""}`}
+            onClick={clearSelection}
+          >
             <FaTags style={{ marginRight: "0.5rem" }} />
             All Topics
           </button>
@@ -209,7 +214,23 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             {totalFiltered === 1 ? "" : "s"}
           </p>
         ) : (
-          <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>No articles found.</p>
+          <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+            <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+              No articles found.
+            </p>
+            <p>
+              We’re sorry — no articles matched
+              {searchTerm ? (
+                <> your search for “<strong>{searchTerm}</strong>”</>
+              ) : null}
+              {searchTerm && selectedTopics.length > 0 && " and"}
+              {selectedTopics.length > 0 ? (
+                <> the topic{selectedTopics.length > 1 ? "s" : ""} “<strong>{selectedTopics.join(", ")}</strong>”</>
+              ) : null}
+              {!searchTerm && selectedTopics.length === 0 && " any criteria"}
+              .
+            </p>
+          </div>
         )}
       </div>
 
