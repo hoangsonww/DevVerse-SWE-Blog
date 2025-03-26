@@ -14,6 +14,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
       <p className="topics-body">
         Here are the topics covered in this article:
       </p>
+
       <div className="topics-container">
         {topics.map((topic) => (
           <Link
@@ -24,14 +25,16 @@ export default function TopicsList({ topics }: TopicsListProps) {
             <span className="topic-pill">{topic}</span>
           </Link>
         ))}
-        <p className="topics-body">
-          Click on a topic to find more articles on that subject.
-        </p>
       </div>
+
+      <p className="topics-body">
+        Click on a topic to find more articles on that subject.
+      </p>
 
       <style jsx>{`
         .topics-wrapper {
           max-width: 700px;
+          width: auto;
           margin: 1rem auto;
           padding: 1rem;
           display: flex;
