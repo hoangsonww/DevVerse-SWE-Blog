@@ -41,7 +41,7 @@ export default async function ArticlePage({ params }: PageProps) {
   return (
     <>
       <article className="fade-down-article">
-        <MDXComponent />
+        <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
       </article>
       <FavButton articleSlug={slug} />
