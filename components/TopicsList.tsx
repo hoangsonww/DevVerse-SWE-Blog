@@ -11,6 +11,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
   return (
     <div className="topics-wrapper">
       <h2 className="topics-heading">Article Topics</h2>
+      <p className="topics-body">Here are the topics covered in this article:</p>
       <div className="topics-container">
         {topics.map((topic) => (
           <Link
