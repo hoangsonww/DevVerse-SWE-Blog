@@ -9,6 +9,7 @@ import {
   FaGlobe,
   FaEnvelope,
   FaSearch,
+  FaTimes,
 } from "react-icons/fa";
 
 interface Article {
@@ -125,12 +126,8 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         }}
       >
         <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          whileFocus={{ scale: 1.1 }}
-          whileTap={{ scale: 1 }}
-          transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
           style={{
+            position: "relative",
             display: "flex",
             alignItems: "center",
             backgroundColor: "var(--container-background)",
@@ -169,6 +166,38 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
               color: "var(--text-color)",
             }}
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              style={{
+                position: "absolute",
+                right: "1rem",
+                top: "50%",
+                transform: "translateY(-48%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1.25rem",
+                color: "var(--text-color)",
+                lineHeight: 1,
+                transition: "transform 0.2s ease, color 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-48%) scale(1.2)";
+                e.currentTarget.style.color = "#0070f3";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(-48%) scale(1)";
+                e.currentTarget.style.color = "var(--text-color)";
+              }}
+              aria-label="Clear search"
+            >
+              <FaTimes />
+            </button>
+          )}
         </motion.div>
       </div>
 

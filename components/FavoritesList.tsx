@@ -7,7 +7,8 @@ import { toast } from "react-toastify";
 import ArticlesList from "./ArticlesList";
 import { Article } from "@/lib/articles";
 import { getFavoriteSlugs } from "@/supabase/favorites";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaTimes } from "react-icons/fa";
+import { useSearchParams } from "next/navigation";
 
 interface FavoritesListProps {
   articles: Article[];
@@ -47,6 +48,12 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
   );
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initial = params.get("search") ?? "";
+    setSearchTerm(initial);
+  }, []);
+
+  useEffect(() => {
     setMounted(true);
   }, []);
 
@@ -76,6 +83,19 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
     setFilteredFavorites(favs);
     handleSearch(searchTerm, favs);
   }, [articles, favoriteSlugs, searchTerm, handleSearch]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (searchTerm) params.set("search", searchTerm);
+    else params.delete("search");
+    const query = params.toString();
+    router.replace(`${window.location.pathname}${query ? `?${query}` : ""}`, {
+      scroll: false,
+    });
+  }, [searchTerm, router]);
+
+  const searchParams = useSearchParams();
+  const selectedTopics = searchParams.get("topics")?.split(",") ?? [];
 
   if (!mounted) return null;
 
@@ -132,6 +152,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           style={{
             display: "flex",
             alignItems: "center",
+            position: "relative",
             padding: "0.75rem 1rem",
             border: "2px solid var(--border-color, #ccc)",
             borderRadius: "12px",
@@ -166,18 +187,76 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
               color: "var(--text-color)",
             }}
           />
+
+          {searchTerm && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                const params = new URLSearchParams(window.location.search);
+                params.delete("search");
+                router.replace(
+                  `${window.location.pathname}${params.toString() ? `?${params}` : ""}`,
+                  { scroll: false },
+                );
+              }}
+              style={{
+                position: "absolute",
+                right: "1rem",
+                top: "50%",
+                transform: "translateY(-48%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1.25rem",
+                color: "var(--text-color)",
+                zIndex: 10,
+                transition: "transform 0.2s, color 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-48%) scale(1.2)";
+                e.currentTarget.style.color = "#0070f3";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(-48%) scale(1)";
+                e.currentTarget.style.color = "var(--text-color)";
+              }}
+              aria-label="Clear search"
+            >
+              <FaTimes />
+            </button>
+          )}
         </div>
       </div>
 
       {loading ? (
         <p className="loading-text">Loading...</p>
-      ) : filteredFavorites.length ? (
+      ) : favoriteSlugs.length === 0 ? (
+        <p className="no-favorites-message">You have no favorite articles.</p>
+      ) : filteredFavorites.length > 0 ? (
         <div className="articles-list-wrapper">
           <ArticlesList articles={filteredFavorites} />
         </div>
       ) : (
-        <p className="no-favorites-message">You have no favorite articles.</p>
+        <p className="no-favorites-message">
+          We’re sorry — no articles matched
+          {searchTerm && (
+            <>
+              {" "}
+              your search for “<strong>{searchTerm}</strong>”
+            </>
+          )}
+          {searchTerm && selectedTopics.length > 0 && " and"}
+          {selectedTopics.length > 0 && (
+            <>
+              {" "}
+              all the topic{selectedTopics.length > 1 ? "s" : ""} “
+              <strong>{selectedTopics.join(", ")}</strong>”
+            </>
+          )}
+          {!searchTerm && selectedTopics.length === 0 && " any criteria"}.
+        </p>
       )}
+
       <style jsx>{`
         .articles-list-wrapper {
           opacity: 0;

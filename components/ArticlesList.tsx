@@ -243,7 +243,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
               {selectedTopics.length > 0 ? (
                 <>
                   {" "}
-                  the topic{selectedTopics.length > 1 ? "s" : ""} “
+                  all the topic{selectedTopics.length > 1 ? "s" : ""} “
                   <strong>{selectedTopics.join(", ")}</strong>”
                 </>
               ) : null}
