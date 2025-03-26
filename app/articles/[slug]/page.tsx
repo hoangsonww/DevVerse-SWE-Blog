@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import BackToTopButton from "@/components/BackToTopButton";
 import FavButton from "@/components/FavButton";
 import React from "react";
+import TopicsList from "@/components/TopicsList";
+import { motion } from "framer-motion";
 
 interface Params {
   slug: string;
@@ -23,14 +25,20 @@ export async function generateStaticParams() {
     }));
 }
 
-export default async function TopicPage({ params }: PageProps) {
+export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   let MDXComponent: React.ComponentType<any>;
+  let topics: string[] = [];
+
   try {
-    MDXComponent = (await import(`@/content/${slug}.mdx`)).default;
-  } catch (err) {
+    const mod = await import(`@/content/${slug}.mdx`);
+    MDXComponent = mod.default;
+    topics = mod.metadata?.topics ?? [];
+  } catch {
     notFound();
   }
+
+  console.log(topics);
 
   return (
     <>
@@ -45,6 +53,7 @@ export default async function TopicPage({ params }: PageProps) {
         }}
       >
         <MDXComponent />
+        <TopicsList topics={topics} />
       </article>
       <FavButton articleSlug={slug} />
       <BackToTopButton />

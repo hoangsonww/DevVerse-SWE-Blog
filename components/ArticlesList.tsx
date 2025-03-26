@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import InteractiveCard from "./InteractiveCard";
 import { FaTags, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -23,6 +24,8 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
     article.topics.forEach((topic) => allTopicsSet.add(topic));
   });
   const allTopics = Array.from(allTopicsSet).sort();
+
+  const searchParams = useSearchParams();
 
   // State for the currently selected topics and how many articles to show.
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -64,6 +67,20 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
     setVisibleCount(10); // Reset visible articles when clearing selection
     setSelectedTopics([]);
   };
+
+  const [initialized, setInitialized] = useState(false);
+  const extraTopics = selectedTopics.filter((t) => !displayedTopics.includes(t));
+  const topicsToShow = [...displayedTopics, ...extraTopics];
+
+  useEffect(() => {
+    if (!initialized) {
+      const param = searchParams.get("topics");
+      if (param) {
+        setSelectedTopics(param.split(","));
+      }
+      setInitialized(true);
+    }
+  }, [searchParams, initialized]);
 
   return (
     <div>
@@ -139,7 +156,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           </motion.button>
 
           {/* Buttons for Each Topic (limited by visibleTopicsCount) */}
-          {displayedTopics.map((topic) => (
+          {topicsToShow.map((topic) => (
             <motion.button
               key={topic}
               whileHover={{ scale: 1.05 }}
@@ -148,9 +165,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
                 padding: "0.5rem 1rem",
                 borderRadius: "4px",
                 border: "1px solid #0070f3",
-                backgroundColor: selectedTopics.includes(topic)
-                  ? "#0070f3"
-                  : "#fff",
+                backgroundColor: selectedTopics.includes(topic) ? "#0070f3" : "#fff",
                 color: selectedTopics.includes(topic) ? "#fff" : "#0070f3",
                 cursor: "pointer",
                 transition: "background-color 0.2s",
