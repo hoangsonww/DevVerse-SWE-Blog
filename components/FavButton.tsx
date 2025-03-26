@@ -12,6 +12,10 @@ interface FavButtonProps {
   articleSlug: string;
 }
 
+/**
+ * Favorite button component (used in each article page)
+ * @param articleSlug - The slug of the current article
+ */
 const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
   const [user, setUser] = useState<any>(null);
   const [favorited, setFavorited] = useState<boolean>(false);

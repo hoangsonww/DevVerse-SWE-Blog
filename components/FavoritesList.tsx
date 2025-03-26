@@ -229,12 +229,14 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
       </div>
 
       {loading ? (
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "200px",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+          }}
+        >
           <FaSpinner className="spinner" size={32} />
         </div>
       ) : favoriteSlugs.length === 0 ? (
@@ -380,7 +382,9 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         }
 
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>

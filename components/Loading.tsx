@@ -1,3 +1,5 @@
+import { FaSpinner } from "react-icons/fa";
+
 export default function Loading() {
   return (
     <div
@@ -6,11 +8,9 @@ export default function Loading() {
         alignItems: "center",
         justifyContent: "center",
         height: "100vh",
-        fontSize: "1.5rem",
-        color: "var(--text-color)",
       }}
     >
-      Loading...
+      <FaSpinner className="spinner" size={48} />
     </div>
   );
 }

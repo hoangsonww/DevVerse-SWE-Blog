@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import ArticlesList from "./ArticlesList";
 import { motion } from "framer-motion";
