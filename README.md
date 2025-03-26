@@ -372,7 +372,7 @@ Because, in order to reset password with Supabase, it requires sending a confirm
 
 However, for an application this size, I overrode the default Supabase reset password API route to allow users to reset their password without the need for a confirmation email. This is not recommended for production applications, but it is a quick and easy way to test the reset password functionality.
 
-The API routes are as follows:
+The Next.js API routes are as follows:
 
 - **`/api/reset-password`**  
   - **Method:** POST
@@ -386,7 +386,7 @@ The API routes are as follows:
 
 The flow is: First, call the `/api/verify-email` route to verify the user's email address. Then, call the `/api/reset-password` route to reset the user's password associated with that email address.
 
-
+All other routes are standard Supabase routes for user authentication and profile/favorites management.
 
 ## Docker & Dev Container Configuration
 
