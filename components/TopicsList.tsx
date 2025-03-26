@@ -22,6 +22,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
             <span className="topic-pill">{topic}</span>
           </Link>
         ))}
+        <p className="topics-body">Click on a topic to find more articles on that subject.</p>
       </div>
 
       <style jsx>{`
