@@ -379,6 +379,15 @@ The API routes are as follows:
   - **Body:** `{ email: string, password: string }`
   - **Description:** Resets the user's password without sending a confirmation email.
 
+- **`/api/verify-email`**  
+  - **Method:** POST
+  - **Body:** `{ email: string }`
+  - **Description:** Verifies the user's email address.
+
+The flow is: First, call the `/api/verify-email` route to verify the user's email address. Then, call the `/api/reset-password` route to reset the user's password associated with that email address.
+
+
+
 ## Docker & Dev Container Configuration
 
 ### Dockerfile
