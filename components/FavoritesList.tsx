@@ -202,22 +202,29 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
               style={{
                 position: "absolute",
                 right: "1rem",
-                top: "50%",
-                transform: "translateY(-48%)",
+                top: 0,
+                bottom: 0,
+                margin: "auto 0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 background: "transparent",
                 border: "none",
                 cursor: "pointer",
                 fontSize: "1.25rem",
                 color: "var(--text-color)",
                 zIndex: 10,
-                transition: "transform 0.2s, color 0.2s",
+                opacity: 0,
+                transform: "scale(0.8)",
+                animation: "fadeInScale 0.2s ease-out forwards",
+                transition: "color 0.2s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-48%) scale(1.2)";
+                e.currentTarget.style.transform = "scale(1.2)";
                 e.currentTarget.style.color = "#0070f3";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(-48%) scale(1)";
+                e.currentTarget.style.transform = "scale(1)";
                 e.currentTarget.style.color = "var(--text-color)";
               }}
               aria-label="Clear search"
@@ -384,6 +391,13 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         @keyframes spin {
           to {
             transform: rotate(360deg);
+          }
+        }
+
+        @keyframes fadeInScale {
+          to {
+            opacity: 1;
+            transform: scale(1);
           }
         }
       `}</style>
