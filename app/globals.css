@@ -65,6 +65,7 @@ a:hover {
 
 .container {
   max-width: 960px;
+  min-width: 100%;
   width: 100%;
   margin: 0 auto;
   padding: 0;
@@ -73,7 +74,7 @@ a:hover {
 }
 
 .mdx-layout {
-  max-width: 800px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 2rem;
   line-height: 1.6;
