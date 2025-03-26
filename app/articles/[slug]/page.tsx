@@ -68,7 +68,6 @@ export default async function ArticlePage({ params }: PageProps) {
             transform: translateY(0);
           }
         }
-        
       `}</style>
     </>
   );
