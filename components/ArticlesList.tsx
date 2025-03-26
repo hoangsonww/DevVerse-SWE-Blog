@@ -87,36 +87,19 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
     <div>
       {/* Topic Filter */}
       <div className="fade-slide-up" style={{ marginBottom: "2rem", textAlign: "center" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "1rem",
-          }}
-        >
+        <div className="filter-header">
           <h2>Filter by Topic</h2>
-          <div
-            className="toggle-icon"
-            onClick={() => setShowOnlyMessage(prev => !prev)}
-          >
+          <div className="toggle-icon" onClick={() => setShowOnlyMessage((prev) => !prev)}>
             {showOnlyMessage ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
           </div>
         </div>
 
-        {showOnlyMessage && (
-          <p
-            style={{
-              maxWidth: "80%",
-              textAlign: "center",
-              margin: "0 auto",
-            }}
-          >
-            You can select multiple topics to filter the articles. If you select
-            more than one topic, only articles that match all selected topics
-            will be shown. 🧠
+        <div className={`filter-description ${showOnlyMessage ? "open" : ""}`} style={{ marginTop: 0 }}>
+          <p>
+            You can select multiple topics to filter the articles. If you select more than one topic,
+            only articles that match all selected topics will be shown. 🧠
           </p>
-        )}
+        </div>
 
         <div
           style={{
@@ -306,6 +289,70 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
             to {
               opacity: 1;
             }
+          }
+
+          .slide-container {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
+            margin-top: 0;
+            margin-bottom: 1rem;
+          }
+
+          .slide-container.open {
+            max-height: 150px;
+            opacity: 1;
+            margin-top: 1rem;
+          }
+
+          .slide-text {
+            max-width: 80%;
+            margin: 0 auto;
+            text-align: center;
+            line-height: 1.6;
+            color: var(--text-color);
+          }
+
+          .filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+          }
+
+          .toggle-icon {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+          }
+
+          .toggle-icon:hover {
+            transform: scale(1.15);
+          }
+
+          .filter-description {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: all 0.4s ease;
+            display: flex;
+            justify-content: center;
+          }
+
+          .filter-description.open {
+            max-height: 200px;
+            opacity: 1;
+            transform: translateY(0);
+            margin-top: 1rem;
+          }
+
+          .filter-description p {
+            max-width: 80%;
+            text-align: center;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+            line-height: 1.6;
           }
       `}</style>
     </div>
