@@ -2,6 +2,8 @@ import fs from "fs/promises";
 import path from "path";
 import HomePageContent from "@/components/HomePageContent";
 import BackToTopButton from "@/components/BackToTopButton";
+import TriggerReload from "@/components/TriggerReload";
+import React from "react";
 
 export const revalidate = 60; // Enable ISR: regenerate this page every 60 seconds
 
@@ -48,6 +50,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <TriggerReload />
       <HomePageContent articles={articles} />
       <BackToTopButton />
     </>
