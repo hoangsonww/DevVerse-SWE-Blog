@@ -170,7 +170,11 @@ devverse-cs-swe-blog/
 │   ├── (...)               # Other components
 │   └── RouteProgress.tsx   # Route progress bar component
 ├── utils/                  # Utility functions and constants
+│   └── getAllPosts.js      # Function to fetch all MDX posts
 ├── ui/                     # UI components and styles
+│   ├── CodeBlock.tsx       # Code block component
+│   ├── InlineCode.tsx      # Inline code component
+│   └── PreBlock.tsx        # Preformatted block component
 ├── supabase/               # Supabase client configuration and queries
 │   ├── supabaseClient.ts   # Supabase client configuration
 │   ├── auth.ts             # Authentication functions
@@ -188,6 +192,7 @@ devverse-cs-swe-blog/
 ├── package.json            # Project manifest with scripts and dependencies
 ├── tsconfig.json           # TypeScript configuration
 ├── next.config.js          # Next.js configuration
+├── next-sitemap.config.js  # Next.js sitemap configuration
 ├── mdx-components.tsx      # Custom MDX components
 ├── tailwind.config.js      # Tailwind CSS configuration
 ├── README.md               # This documentation file
