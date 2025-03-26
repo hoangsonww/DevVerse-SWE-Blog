@@ -1,5 +1,10 @@
 import { supabase } from "./supabaseClient";
 
+/**
+ * Get the user profile data
+ * @param userId - User ID
+ * @returns Object with profile data or error
+ */
 export const getProfile = async (userId: string) => {
   const { data, error } = await supabase
     .from("profiles")

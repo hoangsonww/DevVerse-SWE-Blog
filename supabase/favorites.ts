@@ -1,5 +1,10 @@
 import { supabase } from "./supabaseClient";
 
+/**
+ * Adds an article to the user's favorites
+ * @param userId The user ID
+ * @param articleSlug The article slug
+ */
 export const addFavorite = async (userId: string, articleSlug: string) => {
   const { data, error } = await supabase
     .from("favorite_articles")
@@ -7,6 +12,11 @@ export const addFavorite = async (userId: string, articleSlug: string) => {
   return { data, error };
 };
 
+/**
+ * Removes an article from the user's favorites
+ * @param userId The user ID
+ * @param articleSlug The article slug
+ */
 export const removeFavorite = async (userId: string, articleSlug: string) => {
   const { data, error } = await supabase
     .from("favorite_articles")
@@ -16,6 +26,11 @@ export const removeFavorite = async (userId: string, articleSlug: string) => {
   return { data, error };
 };
 
+/**
+ * Checks if an article is favorited by the user
+ * @param userId The user ID
+ * @param articleSlug The article slug
+ */
 export const isFavorited = async (userId: string, articleSlug: string) => {
   const { data, error } = await supabase
     .from("favorite_articles")
@@ -26,6 +41,10 @@ export const isFavorited = async (userId: string, articleSlug: string) => {
   return { favorited: !!data, error };
 };
 
+/**
+ * This function gets all the favorite article slugs for a user
+ * @param userId The user ID
+ */
 export const getFavoriteSlugs = async (userId: string) => {
   const { data, error } = await supabase
     .from("favorite_articles")

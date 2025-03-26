@@ -1,5 +1,11 @@
 import { supabase } from "./supabaseClient";
 
+/**
+ * Sign up a new user
+ * @param email The user's email
+ * @param password The user's password
+ * @param displayName The user's display name
+ */
 export const signUp = async (
   email: string,
   password: string,
@@ -14,6 +20,11 @@ export const signUp = async (
   return { data, error };
 };
 
+/**
+ * Sign in an existing user
+ * @param email The user's email
+ * @param password The user's password
+ */
 export const signIn = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -22,6 +33,10 @@ export const signIn = async (email: string, password: string) => {
   return { data, error };
 };
 
+/**
+ * Verify if a user exists by email
+ * @param email The user's email
+ */
 export const verifyEmailExists = async (email: string): Promise<boolean> => {
   const res = await fetch("/api/verify-email", {
     method: "POST",
@@ -32,6 +47,11 @@ export const verifyEmailExists = async (email: string): Promise<boolean> => {
   return result.exists;
 };
 
+/**
+ * Reset a user's password
+ * @param email The user's email
+ * @param newPassword The new password
+ */
 export const resetPassword = async (email: string, newPassword: string) => {
   const exists = await verifyEmailExists(email);
   if (!exists) {

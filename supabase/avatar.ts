@@ -1,5 +1,11 @@
 import { supabase } from "./supabaseClient";
 
+/**
+ * Uploads a file to the 'avatars' bucket in Supabase Storage.
+ * @param file - File object to upload
+ * @param userId - User ID to use as the file name
+ * @returns Object with publicUrl or error
+ */
 export const uploadAvatarFile = async (
   file: File,
   userId: string,
