@@ -7,6 +7,11 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY as string,
 );
 
+/**
+ * Reset password for a user by email
+ * @param request - Request object
+ * @return Response object
+ */
 export async function POST(request: Request) {
   try {
     const { email, newPassword } = await request.json();
