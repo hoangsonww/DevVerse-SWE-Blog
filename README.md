@@ -2,6 +2,15 @@
 
 A modern, high-performance full-stack app built with [Next.js](https://nextjs.org/), leveraging MDX for content, PWA capabilities, and a rich ecosystem of libraries including Supabase, Framer Motion, KaTeX, and more. This project is designed for scalability, maintainability, and an excellent developer experience.
 
+<p align="center">
+  <strong>Visit DevVerse:</strong><br/>
+  <a href="https://devverse-swe.vercel.app" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/badge/🌐%20DevVerse-devverse--swe.vercel.app-0070f3?style=flat-square&logo=vercel&logoColor=white" alt="Visit DevVerse" />
+  </a>
+</p>
+
+**Tech Stack:**
+
 ![TypeScript](https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)
 ![Supabase](https://img.shields.io/badge/-Supabase-6394F8?style=flat-square&logo=supabase&logoColor=white)
 ![Vercel](https://img.shields.io/badge/-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
@@ -32,6 +41,8 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
 - [Available Scripts](#available-scripts)
 - [Dependencies](#dependencies)
 - [Dev Dependencies](#dev-dependencies)
+- [Backend (Supabase)](#backend-supabase)
+  - [Available Next.js API Routes](#available-nextjs-api-routes)
 - [Docker & Dev Container Configuration](#docker--dev-container-configuration)
 - [Contributing](#contributing)
   - [Add more MDX content](#add-more-mdx-content)
@@ -162,6 +173,8 @@ devverse-cs-swe-blog/
 ├── components/             # Reusable React components
 │   ├── ArticleList.tsx     # Component for displaying a list of articles
 │   ├── ArticleContent.tsx  # Article content component
+│   ├── FavoritesList.tsx   # Component for displaying a list of favorite articles
+│   ├── FavButton.tsx       # Favorite button component
 │   ├── Footer.tsx          # Footer component
 │   ├── HomePageContent.tsx # Home page content component
 │   ├── Navbar.tsx          # Navbar component
@@ -303,9 +316,9 @@ The blog uses [Supabase](https://supabase.io/) for user authentication, file sto
 
     Enable authentication in the project settings.
 
-4. **Create a `.env.local` File:**
+4. **Create a `.env` (or `.env.local`) File:**
 
-    Create a `.env.local` file in the root directory of the project with the following environment variables:
+    Create a `.env` (or `.env.local`) file in the root directory of the project with the following environment variables:
 
     ```bash
     NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
@@ -482,3 +495,5 @@ Reach out to me at [@hoangsonww](https://github.com/hoangsonww) for any question
 ---
 
 *This project is powered by Next.js and serves as a testament to the framework's capabilities in building modern, scalable, and high-performance web applications. Happy coding!* 🚀
+
+[🔝 Back to top](#devverse-computer-science--software-engineering-blog)

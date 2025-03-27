@@ -245,6 +245,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           }}
         >
           <FaSpinner className="spinner" size={32} />
+          <span className="loading-text">Loading…</span>
         </div>
       ) : favoriteSlugs.length === 0 ? (
         <p className="no-favorites-message">You have no favorite articles.</p>
@@ -273,7 +274,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         </p>
       )}
 
-      <style jsx>{`
+      <style jsx global>{`
         .articles-list-wrapper {
           opacity: 0;
           animation: fadeUp 0.5s ease forwards;
@@ -343,7 +344,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         }
 
         .search-icon {
-          margin-right: 0.75rem;
+          margin-right: 0;
           color: var(--text-color);
           transition: color 0.2s ease;
         }
@@ -383,9 +384,25 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           }
         }
 
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+          height: 200px;
+          justify-content: center;
+        }
+
         .spinner {
+          display: inline-block;
           animation: spin 1s linear infinite;
+          transform-origin: center;
+          margin-right: 1rem;
+        }
+
+        .loading-text {
           color: var(--text-color);
+          font-size: 1rem;
         }
 
         @keyframes spin {

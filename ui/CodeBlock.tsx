@@ -167,6 +167,11 @@ const CodeBlock = ({ children, className, ...props }: CodeBlockProps) => {
         .dark-mode .token.comment {
           color: #7f848e !important;
         }
+        .react-syntax-highlighter-line-number {
+          padding-left: 0.1rem !important;
+          min-width: 2rem !important;
+          text-align: right;
+        }
       `}</style>
     </div>
   );
