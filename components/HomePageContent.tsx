@@ -95,7 +95,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setVisible(true), 100); // small delay for fade-in
+    const timeout = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(timeout);
   }, []);
 
@@ -109,7 +109,23 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
       }}
     >
       <header className="page-header">
-        <h1 className="page-title">Welcome to DevVerse Tech Blog ✨</h1>
+        <h1 className="page-title">
+          Welcome to{" "}
+          <span className="color-wave">
+            {"DevVerse Tech Blog".split("").map((char, index) =>
+              char === " " ? (
+                <span key={index} style={{ margin: "0 0.5rem" }}>
+                  {char}
+                </span>
+              ) : (
+                <span key={index} style={{ animationDelay: `${index * 0.1}s` }}>
+                  {char}
+                </span>
+              ),
+            )}
+          </span>{" "}
+          ✨
+        </h1>
         <p className="page-description">
           DevVerse Tech Blog is your go-to source for deep dives into computer
           science and technology. Explore <strong>{articles.length}</strong>{" "}
@@ -494,6 +510,61 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+
+        .page-header {
+          text-align: center;
+          margin-bottom: 3rem;
+          animation: fadeSlideIn 0.6s ease-out;
+        }
+
+        .page-title {
+          font-size: 2.75rem;
+          margin-bottom: 1rem;
+        }
+
+        /* Style for each letter in the color wave */
+        .color-wave span {
+          display: inline-block;
+          color: #ff0000;
+          animation: colorWave 3s linear infinite;
+          animation-fill-mode: both;
+        }
+
+        .page-description {
+          font-size: 1.125rem;
+          color: var(--text-color);
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        @keyframes fadeSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes colorWave {
+          0% {
+            color: #ff0000; /* red */
+          }
+          25% {
+            color: #0000ff; /* blue */
+          }
+          50% {
+            color: #00ff00; /* green */
+          }
+          75% {
+            color: #ff00ff; /* magenta */
+          }
+          100% {
+            color: #ff0000; /* back to red */
           }
         }
       `}</style>
