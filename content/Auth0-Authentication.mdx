@@ -33,6 +33,7 @@ Modern applications increasingly rely on robust authentication and authorization
 ### 1.1. The Importance of Robust Authentication
 
 Securing applications is no longer just about protecting data—it's about building trust with users. Strong authentication and authorization systems ensure that:
+
 - **Only Authorized Users Gain Access:** Prevent unauthorized access through secure login processes.
 - **User Data Remains Confidential:** Protect sensitive information with robust identity verification.
 - **Compliance Requirements Are Met:** Support privacy regulations (e.g., GDPR, HIPAA) with secure identity management.
@@ -41,6 +42,7 @@ Securing applications is no longer just about protecting data—it's about build
 ### 1.2. Why Auth0?
 
 Auth0 provides a complete suite of identity management solutions that empower developers to focus on application logic rather than building and maintaining authentication systems. Key benefits include:
+
 - **Out-of-the-Box Security Features:** MFA, anomaly detection, and passwordless authentication.
 - **Scalability:** Easily handle millions of users across distributed environments.
 - **Extensibility:** Integrate with various programming languages and frameworks.
@@ -76,6 +78,7 @@ Auth0 provides a complete suite of identity management solutions that empower de
 ### 3.1. Overview of Auth0 Integration Flow
 
 Integrating Auth0 typically involves:
+
 - **Configuring an Auth0 Application:** Set up application settings, including allowed callback URLs and logout URLs.
 - **Implementing the Login Flow:** Redirect users to Auth0's hosted login page or embed customizable login forms.
 - **Token Management:** Securely manage access tokens and ID tokens for authenticated sessions.
@@ -98,6 +101,7 @@ Below is a complete example application that demonstrates how to secure a Node.j
 ### 4.1. Application Structure
 
 The application consists of the following files:
+
 - `server.js` – The main API server.
 - `auth.js` – Authentication middleware to validate JWTs.
 - `package.json` – Contains project dependencies.
@@ -145,24 +149,32 @@ const checkJwt = jwt({
 // Public route
 app.get("/public", (req, res) => {
   res.json({
-    message: "Hello from a public endpoint! You don't need to be authenticated to see this.",
+    message:
+      "Hello from a public endpoint! You don't need to be authenticated to see this.",
   });
 });
 
 // Private route - accessible only with valid JWT
 app.get("/private", checkJwt, (req, res) => {
   res.json({
-    message: "Hello from a private endpoint! You need to be authenticated to see this.",
+    message:
+      "Hello from a private endpoint! You need to be authenticated to see this.",
   });
 });
 
 // Role-based route example
 app.get("/admin", checkJwt, (req, res) => {
   // In a real application, you'd check for roles in req.user (set by Auth0 rules)
-  if (req.user && req.user.permissions && req.user.permissions.includes("admin:access")) {
+  if (
+    req.user &&
+    req.user.permissions &&
+    req.user.permissions.includes("admin:access")
+  ) {
     res.json({ message: "Hello from an admin endpoint!" });
   } else {
-    res.status(403).json({ message: "Forbidden: You don't have access to this resource." });
+    res
+      .status(403)
+      .json({ message: "Forbidden: You don't have access to this resource." });
   }
 });
 
@@ -173,7 +185,7 @@ app.listen(PORT, () => {
 
 #### File: `auth.js`
 
-*Note: In this example, authentication logic is integrated directly in the server file using express-jwt middleware for simplicity. For larger applications, you may separate authentication helpers into a dedicated file.*
+_Note: In this example, authentication logic is integrated directly in the server file using express-jwt middleware for simplicity. For larger applications, you may separate authentication helpers into a dedicated file._
 
 #### File: `.env`
 
@@ -207,22 +219,26 @@ AUTH0_AUDIENCE=your-auth0-api-identifier
 ### 4.3. Running the Application
 
 1. **Configure Auth0:**
+
 - In your Auth0 dashboard, create a new API with an identifier (e.g., `https://myapi.example.com`).
 - Note your Auth0 domain and update the `.env` file accordingly.
 
 2. **Install Dependencies:**
-In your project directory, run:
+   In your project directory, run:
+
 ```bash
 npm install
-   ```
+```
 
 3. **Run the Server:**
-Start your API server:
+   Start your API server:
+
 ```bash
 npm start
-   ```
+```
 
 4. **Test the Endpoints:**
+
 - Access the public endpoint by navigating to `http://localhost:3000/public` in your browser.
 - For the private and admin endpoints, obtain a valid JWT (using Auth0’s login flow or tools like Postman) and include it in the Authorization header as a Bearer token.
 
@@ -237,6 +253,7 @@ Enhance security by enabling MFA in your Auth0 tenant. This can be configured to
 ### 5.2. Role-Based Access Control (RBAC)
 
 Leverage Auth0’s RBAC features:
+
 - **Define Roles:** Assign roles to users (e.g., admin, user).
 - **Set Permissions:** Define granular permissions within each role.
 - **Enforce Checks:** Validate permissions within your application (as shown in the `/admin` endpoint).

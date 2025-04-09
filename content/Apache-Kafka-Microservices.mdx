@@ -32,6 +32,7 @@ Event-driven architectures are now at the heart of modern backend development, e
 ### 1.1. The Evolution of Backend Architectures
 
 Traditional monolithic systems often struggle with scaling and agility. Event-driven architectures offer several advantages:
+
 - **Loose Coupling:** Services communicate asynchronously by exchanging events, reducing direct dependencies.
 - **Scalability:** Systems can absorb fluctuations in load by distributing processing across multiple components.
 - **Resilience:** Failure isolation ensures that issues in one service do not cascade system-wide.
@@ -40,6 +41,7 @@ Traditional monolithic systems often struggle with scaling and agility. Event-dr
 ### 1.2. Apache Kafka’s Role in Modern Systems
 
 Apache Kafka has become a key component in the event-driven ecosystem due to:
+
 - **High Throughput and Low Latency:** Kafka can process millions of messages per second.
 - **Durability and Fault Tolerance:** With data replication and distributed architecture, Kafka ensures data safety and reliable message delivery.
 - **Flexible Integration:** Kafka acts as a central message bus that integrates with various processing frameworks and storage systems.
@@ -51,6 +53,7 @@ Apache Kafka has become a key component in the event-driven ecosystem due to:
 ### 2.1. Core Concepts
 
 Event-driven systems revolve around several fundamental components:
+
 - **Event Producers:** Generate events based on system actions (e.g., an order placed).
 - **Event Consumers:** Process events and trigger downstream business logic.
 - **Event Streams and Topics:** A durable, ordered log where events are published and from which consumers subscribe. Topics act as channels for different types of events.
@@ -58,6 +61,7 @@ Event-driven systems revolve around several fundamental components:
 ### 2.2. Common Architectural Patterns
 
 Key architectural patterns for Kafka-based systems include:
+
 - **Message Broker Pattern:** Decouples producers and consumers by centralizing message passing.
 - **Event Sourcing:** Captures state changes as a sequence of events for auditability and state reconstruction.
 - **CQRS (Command Query Responsibility Segregation):** Separates the processing of commands (writes) and queries (reads) to optimize performance.
@@ -66,6 +70,7 @@ Key architectural patterns for Kafka-based systems include:
 ### 2.3. Data Modeling and Schema Management
 
 Successful event-driven systems require:
+
 - **Structured Data Serialization:** Formats like Avro, JSON, or Protobuf help serialize messages consistently.
 - **Schema Registry:** Tools like the Confluent Schema Registry allow versioning and evolution of message schemas with minimal disruption.
 - **Message Keys for Partitioning:** Defining proper keys ensures that related messages are routed to the same partition, preserving order.
@@ -77,6 +82,7 @@ Successful event-driven systems require:
 ### 3.1. Environment Setup
 
 Before diving into code, ensure that:
+
 - Apache Kafka is installed and running (locally or via a cloud service).
 - Relevant libraries are installed. For Python, you might use:
   ```bash
@@ -158,6 +164,7 @@ for message in consumer:
 ### 3.4. Containerization and Deployment Considerations
 
 For production deployments:
+
 - **Containerize** your microservices using Docker.
 - **Orchestrate** deployments with Kubernetes to manage scaling and fault tolerance.
 - **Implement CI/CD** pipelines to automate testing and deployment.
@@ -169,6 +176,7 @@ For production deployments:
 ### 4.1. Ensuring Durability and Exactly-Once Delivery
 
 Key configurations to enhance reliability include:
+
 - **Replication Factor:** Set higher replication for critical topics.
 - **Idempotent Producers:** Enable idempotence to avoid duplicate event processing.
 - **Transactional Messaging:** For workflows requiring exactly-once semantics, use Kafka’s transactional APIs.
@@ -191,6 +199,7 @@ Key configurations to enhance reliability include:
 ### 5.1. Integrating Microservices
 
 Integrate your Kafka-based services with other backend components:
+
 - **API Gateways:** Route requests to appropriate microservices.
 - **Service Meshes:** Employ Istio or Linkerd for secure and observable inter-service communication.
 - **Data Pipelines:** Integrate with stream processing frameworks like Apache Flink for real-time analytics.
@@ -198,6 +207,7 @@ Integrate your Kafka-based services with other backend components:
 ### 5.2. Observability and Monitoring
 
 Implement robust monitoring with:
+
 - **Dashboards:** Use Grafana and Prometheus to visualize throughput, latency, and consumer lag.
 - **Logging:** Aggregate logs with ELK Stack or Fluentd.
 - **Alerting:** Set up alerts for critical metrics to ensure quick incident response.
@@ -212,12 +222,14 @@ Implement robust monitoring with:
 ## 6. Full Example Application: Order Processing System
 
 To illustrate the complete workflow, let’s build a simplified order processing system with two microservices:
+
 - **Order Service:** A REST API that accepts orders and publishes them to Kafka.
 - **Notification Service:** A consumer that listens for order events and processes them (e.g., sending notifications).
 
 ### 6.1. Application Structure
 
 The application consists of the following files:
+
 - `order_service.py` – The Flask-based producer microservice.
 - `notification_service.py` – The Kafka consumer microservice.
 - `requirements.txt` – List of Python dependencies.
@@ -305,36 +317,43 @@ kafka-python==2.0.2
 ### 6.3. Running the Application
 
 1. **Start Kafka:**
-Ensure you have Kafka running on `localhost:9092`. You can use Docker for a quick setup:
+   Ensure you have Kafka running on `localhost:9092`. You can use Docker for a quick setup:
+
 ```bash
 docker run -d --name zookeeper -p 2181:2181 confluentinc/cp-zookeeper:latest
 docker run -d --name kafka -p 9092:9092 --link zookeeper:zookeeper \
     -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
     -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
     confluentinc/cp-kafka:latest
-   ```
+```
 
 2. **Run Order Service:**
-In one terminal, navigate to the project directory and run:
+   In one terminal, navigate to the project directory and run:
+
 ```bash
 python order_service.py
-   ```
+```
+
 This starts the API on port 5000.
 
 3. **Run Notification Service:**
-In another terminal, run:
+   In another terminal, run:
+
 ```bash
 python notification_service.py
-   ```
+```
+
 The consumer will start listening for order events.
 
 4. **Test Order Creation:**
-Use a tool like curl or Postman to send a POST request:
+   Use a tool like curl or Postman to send a POST request:
+
 ```bash
 curl -X POST -H "Content-Type: application/json" \
 -d '{"customer": "Alice", "items": ["widget", "gadget"], "total": 59.99}' \
 http://localhost:5000/order
-   ```
+```
+
 You should see confirmation from the order service and corresponding output in the notification service's terminal.
 
 ---

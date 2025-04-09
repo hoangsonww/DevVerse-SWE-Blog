@@ -3,7 +3,7 @@ import MdxLayout from "@/components/MdxLayout";
 export const metadata = {
   title: "Building High-Performance APIs in Rust with Actix Web",
   description:
-    "An extended comprehensive guide to designing, implementing, and deploying high-performance RESTful APIs using Rust and Actix Web. This guide dives deeper into Rust’s concurrency model, middleware, advanced asynchronous programming, error handling, database integration, automated testing, deployment strategies, and performance tuning through a complete CRUD example application.",
+    "A guide to designing, implementing, and deploying high-performance RESTful APIs using Rust and Actix Web. This guide dives deeper into Rust’s concurrency model, middleware, asynchronous programming, and more.",
   topics: [
     "Backend Development",
     "Rust Programming",
@@ -34,6 +34,7 @@ Rust has rapidly become one of the most popular programming languages for buildi
 ### 1.1. Motivation for Rust and Actix Web
 
 Rust’s promise of memory safety without a garbage collector, along with its concurrency model, makes it an ideal language for high-performance systems. Actix Web builds on this foundation by providing:
+
 - **Low Overhead and High Throughput:** Thanks to zero-cost abstractions and native asynchronous I/O.
 - **Type Safety:** Compile-time assurances that reduce runtime errors.
 - **Robust Concurrency:** Support for thousands of concurrent connections using async/await and the Tokio runtime.
@@ -41,6 +42,7 @@ Rust’s promise of memory safety without a garbage collector, along with its co
 ### 1.2. What This Extended Guide Covers
 
 In addition to the fundamentals, we now extend our exploration to include:
+
 - Advanced middleware usage for logging and authentication.
 - Comprehensive error handling strategies.
 - Integration with PostgreSQL for persistent data storage.
