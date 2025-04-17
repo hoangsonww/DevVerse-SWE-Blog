@@ -23,6 +23,7 @@
     "@mdx-js/react": "latest",
     "@next/mdx": "latest",
     "@supabase/supabase-js": "^2.49.2",
+    "@vercel/analytics": "^1.5.0",
     "core-js-pure": "^3.41.0",
     "framer-motion": "^12.4.3",
     "katex": "^0.16.21",

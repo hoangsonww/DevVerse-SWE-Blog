@@ -6,6 +6,7 @@ import Script from "next/script";
 import { DarkModeProvider } from "@/provider/DarkModeProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -166,6 +167,7 @@ export default function RootLayout({
         {/*></Script>*/}
       </head>
       <body className={inter.className}>
+        <Analytics />
         <DarkModeProvider>
           <div style={{ position: "relative", zIndex: 99999 }}>
             <Navbar />
