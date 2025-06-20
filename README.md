@@ -55,7 +55,7 @@ This repository hosts a Next.js-based blog that uses MDX to write rich, interact
 
 The blog covers a wide range of topics in computer science and software engineering, providing educational content, tutorials, and insights for developers of all levels. The content is written in MDX, allowing for a mix of Markdown and React components to create engaging posts. Additionally, this architecture also allows for easy addition or modification of content without compromising performance or modifying any code.
 
-To add more content, we can simply create new MDX files in the `content` directory, following the existing structure. The blog is designed to be scalable, maintainable, and extensible, making it a great platform for sharing knowledge and insights within the tech community.
+To add more content, simply create new MDX files in the `content` directory and follow the existing structure. The blog is designed to be scalable, maintainable, and extensible, making it a great platform for sharing knowledge and insights within the tech community.
 
 Feel free to contribute your own articles, improve the existing content, or customize the blog to suit your needs. Let's build a vibrant community around computer science and software engineering! Refer to the [Contributing](#contributing) section for guidelines on how to contribute to this project.
 
@@ -66,6 +66,9 @@ The blog is deployed on Vercel and can be accessed at [https://devverse-swe.verc
 The backup deployment is available on Netlify at [https://devverse-swe.netlify.app](https://devverse-swe.netlify.app).
 
 Feel free to explore the content and features of the blog! 🚀
+
+> [!NOTE]
+> The Supabase BaaS might be down sometimes due to inactivity. Please [let me know](mailto:hoangson091104@gmail.com) in that case so that I can get it back up ASAP!
 
 ### Home Page
 
