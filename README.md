@@ -3,6 +3,12 @@
 A modern, high-performance full-stack app built with [Next.js](https://nextjs.org/), leveraging MDX for content, PWA capabilities, and a rich ecosystem of libraries including Supabase, Framer Motion, KaTeX, and more. This project is designed for scalability, maintainability, and an excellent developer experience.
 
 <p align="center">
+  <a href="http://devverse-swe.vercel.app" target="_blank" rel="noopener">
+    <img src="images/logo.jpeg" alt="DevVerse Blog" width="45%" style="border-radius: 8px" />
+  </a>
+</p>
+
+<p align="center">
   <strong>Visit DevVerse:</strong><br/>
   <a href="https://devverse-swe.vercel.app" target="_blank" rel="noopener">
     <img src="https://img.shields.io/badge/🌐%20DevVerse-devverse--swe.vercel.app-0070f3?style=flat-square&logo=vercel&logoColor=white" alt="Visit DevVerse" />
