@@ -15,8 +15,12 @@
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
+    "lint": "npm run format",
     "start": "next start",
-    "format": "prettier --write \"**/*.{js,ts,tsx,json,css,html,mdx}\""
+    "format": "prettier --write \"**/*.{js,ts,tsx,json,css,html,mdx}\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "coverage": "jest --coverage"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -43,9 +47,15 @@
     "remark-math": "^6.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "22.13.4",
     "@types/nprogress": "^0.2.3",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "typescript": "latest"
+    "babel-jest": "^30.0.4",
+    "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
   }
 }
