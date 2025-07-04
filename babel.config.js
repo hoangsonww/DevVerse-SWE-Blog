@@ -10,7 +10,6 @@ module.exports = function (api) {
       isTest && ['@babel/preset-env', { targets: { node: 'current' } }],
     ].filter(Boolean),
 
-    // No need for plugins here unless you have extras…
     plugins: [],
   };
 };
