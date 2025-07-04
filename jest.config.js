@@ -1,15 +1,17 @@
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: 'ts-jest',
+  preset: 'ts-jest',         // handles .ts/.tsx
   testEnvironment: 'node',
   transform: {
-    '^.+\\.jsx?$': 'babel-jest',
-    '^.+\\.tsx?$': 'ts-jest'
+    // TS/TSX via ts-jest
+    '^.+\\.[tj]sx?$': 'ts-jest',
+    // JS/JSX via babel-jest + our babel.jest.js
+    '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.jest.js' }],
   },
   moduleNameMapper: {
-    // point any import("@/content/foo.mdx") to our simple mock
+    '^@/(.*)$': '<rootDir>/$1',
     '^@/content/(.*)\\.mdx$': '<rootDir>/__mocks__/mdxMock.js',
-    // if you use other @/… aliases, map them too:
-    '^@/(.*)$': '<rootDir>/$1'
   },
-  moduleFileExtensions: ['ts','tsx','js','jsx','json','node']
+  moduleFileExtensions: ['ts','tsx','js','jsx','json','node'],
+  // if you have path aliases in tsconfig, mirror here
 };
