@@ -31,6 +31,9 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
   <img src="https://img.shields.io/badge/-ESLint-4B32C3?style=flat-square&logo=eslint&logoColor=white" alt="ESLint" />
   <img src="https://img.shields.io/badge/-Framer%20Motion-0055FF?style=flat-square&logo=framer&logoColor=white" alt="Framer Motion" />
   <img src="https://img.shields.io/badge/-PWA-311C87?style=flat-square&logo=googlechrome&logoColor=white" alt="PWA" />
+  <img src="https://img.shields.io/badge/-Jest-red?style=flat-square&logo=jest&logoColor=white" alt="Jest" />
+  <img src="https://img.shields.io/badge/-GitHub%20Actions-181717?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub" />
+  <img src="https://img.shields.io/badge/-Git-676767?style=flat-square&logo=git&logoColor=white" alt="Git" />
 </div>
 
 ## Table of Contents
