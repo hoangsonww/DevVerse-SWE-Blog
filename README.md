@@ -70,9 +70,7 @@ Feel free to contribute your own articles, improve the existing content, or cust
 
 ## Live Application
 
-The blog is deployed on Vercel and can be accessed at [https://devverse-swe.vercel.app/](https://devverse-swe.vercel.app/).
-
-The backup deployment is available on Netlify at [https://devverse-swe.netlify.app](https://devverse-swe.netlify.app).
+The blog is deployed on Vercel and can be accessed at **[https://devverse-swe.vercel.app/](https://devverse-swe.vercel.app/).**
 
 Feel free to explore the content and features of the blog! 🚀
 
@@ -459,7 +457,7 @@ We welcome contributions that expand the content and cover a wide range of topic
 
 This project is licensed under the [MIT License](LICENSE).
 
-## Further Reading and Resources
+## Further Reading
 
 - **Next.js Documentation:** [https://nextjs.org/docs](https://nextjs.org/docs)
 - **MDX Documentation:** [https://mdxjs.com/](https://mdxjs.com/)
