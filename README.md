@@ -19,7 +19,7 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
   <img src="https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/-Supabase-6394F8?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
-  <img src="https://img.shields.io/badge/-MDX-000000?style=flat-square&logo=mdx&logoColor=white" alt="MDX" />
+  <img src="https://img.shields.io/badge/-MDX-123456?style=flat-square&logo=mdx&logoColor=white" alt="MDX" />
   <img src="https://img.shields.io/badge/-Next.js-000000?style=flat-square&logo=next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/-Tailwind%20CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/-PostCSS-DD3A0A?style=flat-square&logo=postcss&logoColor=white" alt="PostCSS" />
@@ -53,6 +53,7 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
 - [Backend (Supabase)](#backend-supabase)
   - [Available Next.js API Routes](#available-nextjs-api-routes)
 - [Docker & Dev Container Configuration](#docker--dev-container-configuration)
+- [Testing](#testing)
 - [Contributing](#contributing)
   - [Add more MDX content](#add-more-mdx-content)
 - [License](#license)
@@ -186,6 +187,8 @@ devverse-cs-swe-blog/
 ├── mdx-components.tsx      # Custom MDX components
 ├── tailwind.config.js      # Tailwind CSS configuration
 ├── README.md               # This documentation file
+├── jest.config.js          # Jest configuration for testing
+├── babel.jest.js           # Babel configuration for Jest
 └── (... and more)
 ```
 
@@ -435,6 +438,38 @@ services:
   "forwardPorts": [3000]
 }
 ```
+
+## Testing
+
+This project uses [Jest](https://jestjs.io/) for testing. To run the tests, use the following command:
+
+```bash
+npm run test
+
+# or run all tests and watch for changes
+npm run test:watch
+
+# or run tests with coverage
+npm run coverage
+```
+
+This will run all tests in the `__tests__` directory and output the results to the console. See the `jest.config.js` file for more configuration options!
+
+## GitHub Actions CI Pipeline
+
+This project includes a GitHub Actions CI pipeline to ensure code quality and consistency. The pipeline runs the following checks on every push and pull request:
+
+- **Linting:** Runs ESLint to check for code quality and style issues.
+- **Testing:** Runs Jest tests to ensure the application behaves as expected.
+- **Type Checking:** Runs TypeScript type checking to catch type errors.
+- **Build:** Builds the Next.js application to ensure it compiles correctly.
+- **Docker Build:** Builds the Docker image to ensure it can be built successfully.
+- **Docker Image Push:** Pushes the Docker image to the GitHub Container Registry.
+- **Deployment:** Deploys the application to Vercel if all checks pass.
+- **Sitemap Generation:** Generates a sitemap for the application.
+- and more...
+
+You can view the CI pipeline in the [Actions tab](
 
 ## Contributing
 
