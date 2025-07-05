@@ -469,7 +469,7 @@ This project includes a GitHub Actions CI pipeline to ensure code quality and co
 - **Sitemap Generation:** Generates a sitemap for the application.
 - and more...
 
-You can view the CI pipeline in the [Actions tab](
+You can view the CI pipeline in the [Actions tab](https://github.com/hoangsonww/DevVerse-SWE-Blog/actions).
 
 ## Contributing
 
