@@ -100,7 +100,7 @@ export default function RootLayout({
           }}
         />
         <meta charSet="UTF-8" />
-        <meta name="author" content="DevVerse Team" />
+        <meta name="author" content="Son Nguyen" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://devverse-swe.vercel.app" />
         <meta
