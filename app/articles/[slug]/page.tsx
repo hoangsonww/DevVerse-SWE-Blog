@@ -63,7 +63,9 @@ export default async function ArticlePage({ params }: PageProps) {
         className="fade-down-article"
         style={
           readingLabel
-            ? ({ ["--reading-time" as any]: `"${readingLabel}"` } as React.CSSProperties)
+            ? ({
+                ["--reading-time" as any]: `"${readingLabel}"`,
+              } as React.CSSProperties)
             : undefined
         }
       >
