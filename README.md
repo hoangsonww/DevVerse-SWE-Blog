@@ -491,6 +491,10 @@ This project includes a GitHub Actions CI pipeline to ensure code quality and co
 
 You can view the CI pipeline in the [Actions tab](https://github.com/hoangsonww/DevVerse-SWE-Blog/actions). Click on any workflow run to see the details of the checks performed (and the cool charts and graphs!).
 
+<p align="center">
+  <img src="images/github-actions.png" alt="GitHub Actions CI Pipeline" width="100%">
+</p>
+
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines when contributing:
