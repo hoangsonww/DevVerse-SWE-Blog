@@ -1,6 +1,7 @@
 "use client";
 
 import { FaRss } from "react-icons/fa";
+import { VscJson } from "react-icons/vsc";
 import { useState } from "react";
 
 export default function RSSButton() {
@@ -34,7 +35,7 @@ export default function RSSButton() {
           e.currentTarget.style.transform = "translateY(0)";
           e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
         }}
-        aria-label="Subscribe to RSS/Atom feeds"
+        aria-label="Subscribe to RSS/Atom/JSON feeds"
       >
         <FaRss size={16} />
         Subscribe
@@ -104,6 +105,31 @@ export default function RSSButton() {
           >
             <FaRss size={14} />
             Atom Feed
+          </a>
+          <a
+            href="/feed.json"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.75rem 1rem",
+              textDecoration: "none",
+              color: "var(--text-color, #333)",
+              transition: "background-color 0.2s ease",
+              borderTop: "1px solid var(--border-color, #e0e0e0)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                "var(--hover-background, #f5f5f5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <VscJson size={14} />
+            JSON Feed
           </a>
         </div>
       )}
