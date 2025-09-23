@@ -19,3 +19,17 @@
     transform: translateY(0);
   }
 }
+
+/* Place reading time right under the Date blockquote at top */
+.fade-down-article .mdx-container blockquote:first-of-type {
+  margin-bottom: 0.25rem;
+}
+
+.fade-down-article .mdx-container blockquote:first-of-type::after {
+  content: var(--reading-time, "");
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-color);
+  opacity: 0.85;
+  font-size: 0.95rem;
+}

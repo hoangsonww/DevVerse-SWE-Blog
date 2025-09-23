@@ -52,25 +52,21 @@ export default async function ArticlePage({ params }: PageProps) {
     notFound();
   }
 
+  const readingLabel =
+    typeof readingMinutes === "number" && readingMinutes > 0
+      ? formatReadingLabel(readingMinutes)
+      : undefined;
+
   return (
     <>
-      <article className="fade-down-article">
-        {typeof readingMinutes === "number" && readingMinutes > 0 ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              gap: "0.5rem",
-              margin: "0 0 1rem 0",
-              color: "var(--text-color)",
-              opacity: 0.85,
-              fontSize: "0.95rem",
-            }}
-          >
-            <span>{formatReadingLabel(readingMinutes)}</span>
-          </div>
-        ) : null}
+      <article
+        className="fade-down-article"
+        style={
+          readingLabel
+            ? ({ ["--reading-time" as any]: `"${readingLabel}"` } as React.CSSProperties)
+            : undefined
+        }
+      >
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
         {related.length > 0 ? (
