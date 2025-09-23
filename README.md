@@ -63,7 +63,6 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
 - [Testing](#testing)
 - [RSS and Atom and JSON Feeds](#rss-and-atom-and-json-feeds)
 - [GitHub Actions CI Pipeline](#github-actions-ci-pipeline)
-- 
 - [Contributing](#contributing)
   - [Add more MDX content](#add-more-mdx-content)
 - [License](#license)
