@@ -2,6 +2,7 @@ import RSS from "rss";
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { calculateReadingStats } from "@/utils/calculateReadingTime";
 
 export interface BlogPost {
   slug: string;
@@ -13,6 +14,8 @@ export interface BlogPost {
   content: string;
   image?: string;
   excerpt?: string;
+  wordCount?: number;
+  readingMinutes?: number;
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
@@ -37,18 +40,18 @@ export async function getAllPosts(): Promise<BlogPost[]> {
 
         // Parse the metadata object
         const metadataString = metadataMatch[1];
-        const titleMatch = metadataString.match(/title:\s*["']([^"']+)["']/);
+        const titleMatch = metadataString.match(/title:\s*(['"])([\s\S]*?)\1/);
         const descriptionMatch = metadataString.match(
-          /description:\s*["']([^"']+)["']/,
+          /description:\s*(['"])([\s\S]*?)\1/,
         );
         const topicsMatch = metadataString.match(/topics:\s*\[([\s\S]*?)\]/);
 
-        const title = titleMatch ? titleMatch[1] : filename.replace(".mdx", "");
-        const description = descriptionMatch ? descriptionMatch[1] : "";
+        const title = titleMatch ? titleMatch[2] : filename.replace(".mdx", "");
+        const description = descriptionMatch ? descriptionMatch[2] : "";
 
         // Try to extract an optional image/thumbnail/cover from metadata
         const imageMatch = metadataString.match(
-          /(image|thumbnail|cover)\s*:\s*["']([^"']+)["']/,
+          /(image|thumbnail|cover)\s*:\s*(['"])([\s\S]*?)\2/,
         );
 
         let topics: string[] = [];
@@ -80,8 +83,10 @@ export async function getAllPosts(): Promise<BlogPost[]> {
           .replace(/\(.*?\)/g, "") // remove link URLs
           .replace(/[#*>`_\-\[\]]/g, "") // strip common MDX/MD syntax
           .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 180);
+          .trim();
+
+        // Reading stats
+        const reading = calculateReadingStats(actualContent);
 
         return {
           slug: filename.replace(".mdx", ""),
@@ -91,8 +96,10 @@ export async function getAllPosts(): Promise<BlogPost[]> {
           author,
           topics,
           content: actualContent,
-          image: imageMatch ? imageMatch[2] : undefined,
+          image: imageMatch ? imageMatch[3] : undefined,
           excerpt,
+          wordCount: reading.words,
+          readingMinutes: reading.minutes,
         };
       }),
   );
