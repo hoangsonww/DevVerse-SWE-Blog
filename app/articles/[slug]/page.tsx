@@ -4,6 +4,8 @@ import FavButton from "@/components/FavButton";
 import React from "react";
 import TopicsList from "@/components/TopicsList";
 import TableOfContents from "@/components/TableOfContents";
+import RelatedPosts from "@/components/RelatedPosts";
+import { getRelatedPosts } from "@/lib/rss";
 import "./article.css";
 
 interface Params {
@@ -34,11 +36,13 @@ export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   let MDXComponent: React.ComponentType<any>;
   let topics: string[] = [];
+  let related: Awaited<ReturnType<typeof getRelatedPosts>> = [];
 
   try {
     const mod = await import(`@/content/${slug}.mdx`);
     MDXComponent = mod.default;
     topics = mod.metadata?.topics ?? [];
+    related = await getRelatedPosts(slug, 4, 2);
   } catch {
     notFound();
   }
@@ -48,6 +52,15 @@ export default async function ArticlePage({ params }: PageProps) {
       <article className="fade-down-article">
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
+        {related.length > 0 ? (
+          <RelatedPosts posts={related.map((p) => ({
+            slug: p.slug,
+            title: p.title,
+            description: p.description,
+            excerpt: p.excerpt,
+            image: p.image,
+          }))} />
+        ) : null}
       </article>
       <TableOfContents />
       <FavButton articleSlug={slug} />

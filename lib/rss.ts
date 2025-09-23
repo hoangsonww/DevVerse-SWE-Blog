@@ -11,6 +11,8 @@ export interface BlogPost {
   author: string;
   topics: string[];
   content: string;
+  image?: string;
+  excerpt?: string;
 }
 
 export async function getAllPosts(): Promise<BlogPost[]> {
@@ -44,6 +46,11 @@ export async function getAllPosts(): Promise<BlogPost[]> {
         const title = titleMatch ? titleMatch[1] : filename.replace(".mdx", "");
         const description = descriptionMatch ? descriptionMatch[1] : "";
 
+        // Try to extract an optional image/thumbnail/cover from metadata
+        const imageMatch = metadataString.match(
+          /(image|thumbnail|cover)\s*:\s*["']([^"']+)["']/,
+        );
+
         let topics: string[] = [];
         if (topicsMatch) {
           topics = topicsMatch[1]
@@ -66,6 +73,16 @@ export async function getAllPosts(): Promise<BlogPost[]> {
         const actualContent =
           contentStart !== -1 ? fileContent.substring(contentStart) : "";
 
+        // Derive a lightweight excerpt if no description is provided
+        const excerptSource = description || actualContent;
+        const excerpt = excerptSource
+          .replace(/```[\s\S]*?```/g, "") // remove code blocks
+          .replace(/\(.*?\)/g, "") // remove link URLs
+          .replace(/[#*>`_\-\[\]]/g, "") // strip common MDX/MD syntax
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 180);
+
         return {
           slug: filename.replace(".mdx", ""),
           title,
@@ -74,6 +91,8 @@ export async function getAllPosts(): Promise<BlogPost[]> {
           author,
           topics,
           content: actualContent,
+          image: imageMatch ? imageMatch[2] : undefined,
+          excerpt,
         };
       }),
   );
@@ -188,4 +207,59 @@ function escapeXml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
+}
+
+export async function getPostsByTopic(topic: string): Promise<BlogPost[]> {
+  const posts = await getAllPosts();
+  return posts.filter((p) => p.topics.map((t) => t.toLowerCase()).includes(topic.toLowerCase()));
+}
+
+export async function getPostsByAuthor(author: string): Promise<BlogPost[]> {
+  const posts = await getAllPosts();
+  return posts.filter((p) => p.author.toLowerCase() === author.toLowerCase());
+}
+
+export async function getRelatedPosts(
+  slug: string,
+  limit = 4,
+  minCount = 2,
+): Promise<BlogPost[]> {
+  const posts = await getAllPosts();
+  const current = posts.find((p) => p.slug === slug);
+  if (!current) return [];
+
+  const others = posts.filter((p) => p.slug !== slug);
+  if (others.length === 0) return [];
+
+  const currentTopics = new Set(current.topics.map((t) => t.toLowerCase()));
+
+  const withScores = others.map((p) => {
+    const candidateTopics = new Set(p.topics.map((t) => t.toLowerCase()));
+    let shared = 0;
+    currentTopics.forEach((t) => {
+      if (candidateTopics.has(t)) shared += 1;
+    });
+    const score = shared * 2 + (p.author.toLowerCase() === current.author.toLowerCase() ? 1 : 0);
+    return { post: p, score };
+  });
+
+  let ranked = withScores
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return new Date(b.post.date).getTime() - new Date(a.post.date).getTime();
+    })
+    .map((x) => x.post)
+    .filter((p) => p.slug !== slug);
+
+  // If not enough strong matches, top up with recents (fallback)
+  if (ranked.length < minCount) {
+    const recents = others
+      .sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      )
+      .filter((p) => !ranked.some((r) => r.slug === p.slug));
+    ranked = [...ranked, ...recents];
+  }
+
+  return ranked.slice(0, Math.max(minCount, Math.min(limit, ranked.length)));
 }
