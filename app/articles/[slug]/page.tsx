@@ -53,13 +53,15 @@ export default async function ArticlePage({ params }: PageProps) {
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
         {related.length > 0 ? (
-          <RelatedPosts posts={related.map((p) => ({
-            slug: p.slug,
-            title: p.title,
-            description: p.description,
-            excerpt: p.excerpt,
-            image: p.image,
-          }))} />
+          <RelatedPosts
+            posts={related.map((p) => ({
+              slug: p.slug,
+              title: p.title,
+              description: p.description,
+              excerpt: p.excerpt,
+              image: p.image,
+            }))}
+          />
         ) : null}
       </article>
       <TableOfContents />

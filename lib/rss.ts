@@ -211,7 +211,9 @@ function escapeXml(text: string): string {
 
 export async function getPostsByTopic(topic: string): Promise<BlogPost[]> {
   const posts = await getAllPosts();
-  return posts.filter((p) => p.topics.map((t) => t.toLowerCase()).includes(topic.toLowerCase()));
+  return posts.filter((p) =>
+    p.topics.map((t) => t.toLowerCase()).includes(topic.toLowerCase()),
+  );
 }
 
 export async function getPostsByAuthor(author: string): Promise<BlogPost[]> {
@@ -239,7 +241,9 @@ export async function getRelatedPosts(
     currentTopics.forEach((t) => {
       if (candidateTopics.has(t)) shared += 1;
     });
-    const score = shared * 2 + (p.author.toLowerCase() === current.author.toLowerCase() ? 1 : 0);
+    const score =
+      shared * 2 +
+      (p.author.toLowerCase() === current.author.toLowerCase() ? 1 : 0);
     return { post: p, score };
   });
 
@@ -254,9 +258,7 @@ export async function getRelatedPosts(
   // If not enough strong matches, top up with recents (fallback)
   if (ranked.length < minCount) {
     const recents = others
-      .sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      )
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .filter((p) => !ranked.some((r) => r.slug === p.slug));
     ranked = [...ranked, ...recents];
   }

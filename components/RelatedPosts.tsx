@@ -21,7 +21,10 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
         borderTop: "1px solid var(--border-color, #eaeaea)",
       }}
     >
-      <h2 id="related-posts-title" style={{ marginBottom: "1rem", fontSize: "2rem" }}>
+      <h2
+        id="related-posts-title"
+        style={{ marginBottom: "1rem", fontSize: "2rem" }}
+      >
         Related Articles
       </h2>
       <p style={{ marginBottom: "1.5rem" }}>
@@ -29,7 +32,11 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
       </p>
       <div className="article-grid">
         {posts.map((p, i) => (
-          <div key={p.slug} className="fade-in-card" style={{ animationDelay: `${i * 0.1}s` }}>
+          <div
+            key={p.slug}
+            className="fade-in-card"
+            style={{ animationDelay: `${i * 0.1}s` }}
+          >
             <InteractiveCard
               slug={p.slug}
               title={p.title}
