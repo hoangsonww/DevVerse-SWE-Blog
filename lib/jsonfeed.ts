@@ -39,4 +39,3 @@ export async function generateJSONFeed(): Promise<string> {
 
   return JSON.stringify(feed, null, 2);
 }
-

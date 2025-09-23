@@ -18,4 +18,3 @@ export async function GET() {
     return new NextResponse("Error generating JSON feed", { status: 500 });
   }
 }
-
