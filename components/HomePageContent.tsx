@@ -18,6 +18,8 @@ interface Article {
   title: string;
   description?: string;
   topics: string[];
+  readingMinutes?: number;
+  excerpt?: string;
 }
 
 interface HomePageContentProps {
@@ -392,7 +394,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           }}
         >
           <a
-            href="https://devverse-swe.vercel.app"
+            href="https://github.com/hoangsonww/DevVerse-SWE-Blog"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -479,6 +481,26 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             technical tutorials, and the latest trends in technology. Enjoy a
             fast, modern, and responsive user experience as you explore our
             articles and resources! 🌐
+          </p>
+
+          <p
+            style={{
+              color: "var(--text-color)",
+              maxWidth: "400px",
+              textAlign: "center",
+              marginTop: "1rem",
+            }}
+          >
+            Please feel free to visit our{" "}
+            <a
+              href="https://github.com/hoangsonww/DevVerse-SWE-Blog"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--link-color)" }}
+            >
+              GitHub repository
+            </a>{" "}
+            if you have any suggestions or want to contribute! 💡
           </p>
         </div>
       </section>

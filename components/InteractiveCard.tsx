@@ -3,17 +3,20 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FiFileText } from "react-icons/fi";
+import { formatReadingLabel } from "@/utils/calculateReadingTime";
 
 interface CardProps {
   slug: string;
   title: string;
   description?: string;
+  readingTimeMinutes?: number;
 }
 
 export default function InteractiveCard({
   slug,
   title,
   description,
+  readingTimeMinutes,
 }: CardProps) {
   const [hover, setHover] = useState(false);
 
@@ -56,6 +59,16 @@ export default function InteractiveCard({
     flexGrow: 1,
     marginTop: "1rem",
     textAlign: "left",
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
+  };
+
+  const metaStyle: React.CSSProperties = {
+    color: "#666",
+    fontSize: "0.9rem",
+    marginTop: "0.75rem",
+    textAlign: "left",
+    display: readingTimeMinutes ? "block" : "none",
   };
 
   return (
@@ -73,6 +86,9 @@ export default function InteractiveCard({
           <h2 className="interactive-card-title">{title}</h2>
         </div>
         <p style={descriptionStyle}>{description}</p>
+        {readingTimeMinutes ? (
+          <div style={metaStyle}>{formatReadingLabel(readingTimeMinutes)}</div>
+        ) : null}
       </div>
       <style jsx>{`
         /* Enforce the blue color using high specificity */
@@ -107,6 +123,12 @@ export default function InteractiveCard({
         /* Extra specificity just in case */
         body .interactive-card h2 {
           color: #0070f3 !important;
+        }
+
+        .interactive-card-title {
+          word-break: break-word;
+          overflow-wrap: anywhere;
+          hyphens: auto;
         }
       `}</style>
     </Link>

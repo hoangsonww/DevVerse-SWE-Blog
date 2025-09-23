@@ -5,7 +5,8 @@ import React from "react";
 import TopicsList from "@/components/TopicsList";
 import TableOfContents from "@/components/TableOfContents";
 import RelatedPosts from "@/components/RelatedPosts";
-import { getRelatedPosts } from "@/lib/rss";
+import { getRelatedPosts, getAllPosts } from "@/lib/rss";
+import { formatReadingLabel } from "@/utils/calculateReadingTime";
 import "./article.css";
 
 interface Params {
@@ -37,11 +38,15 @@ export default async function ArticlePage({ params }: PageProps) {
   let MDXComponent: React.ComponentType<any>;
   let topics: string[] = [];
   let related: Awaited<ReturnType<typeof getRelatedPosts>> = [];
+  let readingMinutes: number | undefined = undefined;
 
   try {
     const mod = await import(`@/content/${slug}.mdx`);
     MDXComponent = mod.default;
     topics = mod.metadata?.topics ?? [];
+    const all = await getAllPosts();
+    const me = all.find((p) => p.slug === slug);
+    readingMinutes = me?.readingMinutes;
     related = await getRelatedPosts(slug, 4, 2);
   } catch {
     notFound();
@@ -50,6 +55,22 @@ export default async function ArticlePage({ params }: PageProps) {
   return (
     <>
       <article className="fade-down-article">
+        {typeof readingMinutes === "number" && readingMinutes > 0 ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: "0.5rem",
+              margin: "0 0 1rem 0",
+              color: "var(--text-color)",
+              opacity: 0.85,
+              fontSize: "0.95rem",
+            }}
+          >
+            <span>{formatReadingLabel(readingMinutes)}</span>
+          </div>
+        ) : null}
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
         {related.length > 0 ? (
@@ -59,7 +80,7 @@ export default async function ArticlePage({ params }: PageProps) {
               title: p.title,
               description: p.description,
               excerpt: p.excerpt,
-              image: p.image,
+              readingMinutes: p.readingMinutes,
             }))}
           />
         ) : null}

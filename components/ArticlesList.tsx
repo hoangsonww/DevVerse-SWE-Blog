@@ -10,6 +10,8 @@ interface Article {
   title: string;
   description?: string;
   topics: string[];
+  readingMinutes?: number;
+  excerpt?: string;
 }
 
 interface ArticlesListProps {
@@ -60,7 +62,12 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           className="fade-in-card"
           style={{ animationDelay: `${i * 0.1}s` }}
         >
-          <InteractiveCard {...article} />
+          <InteractiveCard
+            slug={article.slug}
+            title={article.title}
+            description={article.description || article.excerpt}
+            readingTimeMinutes={article.readingMinutes}
+          />
         </div>
       )),
     [filteredArticles],

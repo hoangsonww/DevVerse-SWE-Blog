@@ -7,6 +7,7 @@ export interface RelatedPostItem {
   title: string;
   description?: string;
   excerpt?: string;
+  readingMinutes?: number;
 }
 
 export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
@@ -41,6 +42,7 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
               slug={p.slug}
               title={p.title}
               description={p.description || p.excerpt || ""}
+              readingTimeMinutes={p.readingMinutes}
             />
           </div>
         ))}
