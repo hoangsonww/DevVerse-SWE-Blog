@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import BackToTopButton from "@/components/BackToTopButton";
 import FavButton from "@/components/FavButton";
+import ReactionsBar from "@/components/ReactionsBar";
 import React from "react";
 import TopicsList from "@/components/TopicsList";
 import TableOfContents from "@/components/TableOfContents";
@@ -48,6 +49,7 @@ export default async function ArticlePage({ params }: PageProps) {
       <article className="fade-down-article">
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
+        <ReactionsBar articleSlug={slug} />
       </article>
       <TableOfContents />
       <FavButton articleSlug={slug} />
