@@ -127,10 +127,48 @@ Feel free to explore the content and features of the blog! 🚀
 - **User Authentication:** User authentication with JWT tokens.
 - **User Registration/Sign-In:** User registration and sign-in functionality.
 - **Favorites:** Add articles to favorites for easy access (authenticated users only).
+- **Text Highlighting & Annotations:** Select and highlight text in articles with personal notes, color coding, and shareable quote links (authenticated users only).
+- **Global Notes Management:** View, search, and organize all your highlights and notes across articles in a dedicated `/notes` page.
+- **Deep Linking:** Share specific quotes and highlights with others via direct links that automatically scroll to the highlighted text.
 - **Responsive Design:** Mobile-friendly layout with responsive design.
 - **Dark Mode:** Toggle between light and dark themes.
 - **SEO-Friendly:** Optimized for search engines with meta tags and structured data, with SSR and SSG.
 - **Linting & Formatting:** ESLint and Prettier configurations for consistent code quality.
+
+## Using Text Highlights & Annotations
+
+The blog includes a powerful text highlighting and annotation system that allows authenticated users to:
+
+### Creating Highlights
+1. **Select Text**: Select any text within an article
+2. **Choose Color**: Pick from yellow, green, blue, pink, or orange highlights
+3. **Add Notes**: Optionally add personal notes to your highlights
+4. **Save**: Click "Highlight" to save your annotation
+
+### Managing Highlights
+- **Sidebar Panel**: Click "Notes" panel on the right to view all highlights for the current article
+- **Filter & Search**: Filter highlights by color or notes, search across all content
+- **Edit**: Click the edit button to modify notes or change colors
+- **Delete**: Remove highlights you no longer need
+
+### Sharing Highlights
+- **Copy Links**: Generate shareable links to specific quotes
+- **Deep Linking**: Links automatically scroll to the highlighted text
+- **Public/Private**: Control whether your highlights are visible to others
+
+### Global Notes Management
+- **Visit `/notes`** to see all your highlights across all articles
+- **Search**: Find specific highlights using the search functionality
+- **Organize**: Group by article, filter by color or notes
+- **Navigate**: Click any highlight to jump directly to its location in the article
+
+### Database Setup
+To enable highlights functionality, run the SQL schema in `supabase/article_highlights.sql` in your Supabase project:
+
+```sql
+-- Creates the article_highlights table with RLS policies
+-- See supabase/article_highlights.sql for the complete schema
+```
 
 ## Project Structure
 
@@ -143,11 +181,17 @@ devverse-cs-swe-blog/
 │   ├── not-found.tsx       # 404 page component
 │   ├── favorites/
 │   │   ├── page.tsx        # Favorites page component
+│   ├── notes/
+│   │   ├── page.tsx        # Global notes/highlights page
 │   ├── api/
 │   │   ├── reset-password/ 
 │   │   │   ├── route.ts    # Reset password API route
 │   │   ├── favorites/
 │   │   │   ├── route.ts    # Favorites API route
+│   │   ├── highlights/
+│   │   │   ├── route.ts    # Highlights CRUD API
+│   │   │   └── [id]/
+│   │   │       └── route.ts # Individual highlight API
 │   ├── auth/
 │   │   ├── login/
 │   │   │   ├── page.tsx    # Login page component
@@ -160,6 +204,11 @@ devverse-cs-swe-blog/
 ├── components/             # Reusable React components
 │   ├── ArticleList.tsx     # Component for displaying a list of articles
 │   ├── ArticleContent.tsx  # Article content component
+│   ├── highlights/         # Text highlighting components
+│   │   ├── ArticleHighlights.tsx    # Main highlights wrapper
+│   │   ├── SelectionToolbar.tsx     # Text selection toolbar
+│   │   ├── HighlightRenderer.tsx    # DOM highlight rendering
+│   │   └── HighlightsPanel.tsx      # Sidebar highlights panel
 │   ├── FavoritesList.tsx   # Component for displaying a list of favorite articles
 │   ├── FavButton.tsx       # Favorite button component
 │   ├── Footer.tsx          # Footer component
@@ -176,12 +225,21 @@ devverse-cs-swe-blog/
 │   ├── CodeBlock.tsx       # Code block component
 │   ├── InlineCode.tsx      # Inline code component
 │   └── PreBlock.tsx        # Preformatted block component
+├── lib/                    # Core application libraries
+│   └── highlights/         # Text highlighting utilities
+│       └── selectors.ts    # W3C Web Annotation selectors
+├── hooks/                  # React hooks for data management
+│   └── useHighlights.ts    # React Query hooks for highlights
+├── provider/               # Context providers
+│   ├── DarkModeProvider.tsx # Dark mode context
+│   └── QueryProvider.tsx   # React Query provider
 ├── supabase/               # Supabase client configuration and queries
 │   ├── supabaseClient.ts   # Supabase client configuration
 │   ├── auth.ts             # Authentication functions
 │   ├── avatar.ts           # Avatar functions
 │   ├── favorites.ts        # Favorites functions
 │   ├── profile.ts          # Profile functions
+│   ├── article_highlights.sql # Highlights table schema
 │   └── (other sql files for database setup)
 ├── public/                 # Static files (images, fonts, etc.)
 ├── content/                # MDX content for blog posts

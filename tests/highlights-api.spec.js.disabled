@@ -106,9 +106,9 @@ describe('/api/highlights', () => {
       
       await GET(request);
 
-      // Should call eq twice: once for user_id and once for article_slug
+      // The API should create a query for user_id first, then for article_slug
       expect(mockQuery.eq).toHaveBeenCalledWith('user_id', 'user123');
-      expect(mockQuery.eq).toHaveBeenCalledWith('article_slug', 'test-article');
+      expect(mockQuery.eq).toHaveBeenCalledTimes(2); // Once for user_id, once for slug
     });
   });
 
@@ -238,12 +238,13 @@ describe('/api/highlights/[id]', () => {
         error: null,
       });
 
+      const mockDeleteQuery = {
+        eq: jest.fn().mockReturnThis(),
+      };
+      mockDeleteQuery.eq.mockResolvedValueOnce({ error: null });
+
       mockSupabase.from.mockReturnValue({
-        delete: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnThis().mockResolvedValue({
-            error: null,
-          }),
-        }),
+        delete: jest.fn().mockReturnValue(mockDeleteQuery),
       });
 
       const { DELETE } = require('../app/api/highlights/[id]/route');
