@@ -142,6 +142,18 @@ export default function RootLayout({
           integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
           crossOrigin="anonymous"
         />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="DevVerse CS Blog RSS Feed"
+          href="/api/rss"
+        />
+        <link
+          rel="alternate"
+          type="application/atom+xml"
+          title="DevVerse CS Blog Atom Feed"
+          href="/api/atom"
+        />
         {/* Google Tag (gtag.js) */}
         <Script
           strategy="beforeInteractive"

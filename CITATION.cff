@@ -1,0 +1,73 @@
+cff-version: 1.2.0
+message: "If you use this blog or reference articles from it, please cite it as below."
+title: "DevVerse CS Blog: Technical Articles on Software Engineering & Computer Science"
+version: "1.0.0"
+date-released: "2025-01-01"
+type: software
+authors:
+  - family-names: "Nguyen"
+    given-names: "Son"
+    orcid: "https://orcid.org/0009-0002-7806-068X"
+repository-code: "https://github.com/hoangsonww/DevVerse-SWE-Blog"
+url: "https://devverse-swe.vercel.app"
+license: "MIT"
+keywords:
+  - blog
+  - computer science
+  - software engineering
+  - web development
+  - artificial intelligence
+  - machine learning
+  - deep learning
+  - graph neural networks
+  - agentic AI
+  - Next.js
+  - React
+  - MDX
+  - technical writing
+  - educational content
+  - programming tutorials
+  - cloud computing
+  - DevOps
+  - microservices
+  - system design
+  - algorithms
+  - data structures
+abstract: >-
+  DevVerse CS Blog is a comprehensive technical blog platform featuring over 40 in-depth articles
+  covering Software Engineering, Web Development, Artificial Intelligence, Machine Learning, Cloud
+  Computing, and Computer Science fundamentals. Built with Next.js 15, React 18, and MDX, it offers
+  a modern reading experience with dark mode support, RSS/Atom feeds, user authentication via Supabase,
+  article favorites system, and responsive design. The platform features technical deep-dives on topics
+  including Graph Neural Networks, Agentic AI systems, microservices architecture, WebAssembly, quantum
+  computing, and modern web frameworks. Each article combines theoretical foundations with practical
+  code examples, making complex topics accessible to developers at all levels. The blog serves as both
+  an educational resource and a reference for modern software development practices.
+references:
+  - authors:
+      - family-names: "Nguyen"
+        given-names: "Son"
+    title: "Agentic AI: Building Autonomous AI Systems with Multi-Stage Reasoning and Tool Use"
+    type: article
+    year: 2025
+    month: 9
+    url: "https://devverse-swe.vercel.app/articles/Agentic-AI"
+    journal: "DevVerse CS Blog"
+  - authors:
+      - family-names: "Nguyen"
+        given-names: "Son"
+    title: "Graph Neural Networks for Social Network Analysis: A Comprehensive Guide"
+    type: article
+    year: 2025
+    month: 3
+    url: "https://devverse-swe.vercel.app/articles/Graph-Neural-Networks"
+    journal: "DevVerse CS Blog"
+  - authors:
+      - family-names: "Nguyen"
+        given-names: "Son"
+    title: "The Rise of AI Coding Assistants: How Claude Code, Copilot, and Others Are Reshaping Development"
+    type: article
+    year: 2025
+    month: 9
+    url: "https://devverse-swe.vercel.app/articles/AI-Coding-Assistants"
+    journal: "DevVerse CS Blog"

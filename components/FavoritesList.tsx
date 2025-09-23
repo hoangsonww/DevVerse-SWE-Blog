@@ -255,7 +255,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         </div>
       ) : (
         <p className="no-favorites-message">
-          We’re sorry — no articles matched
+          We’re sorry - no articles matched
           {searchTerm && (
             <>
               {" "}

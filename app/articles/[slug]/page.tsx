@@ -3,6 +3,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import FavButton from "@/components/FavButton";
 import React from "react";
 import TopicsList from "@/components/TopicsList";
+import TableOfContents from "@/components/TableOfContents";
 import "./article.css";
 
 interface Params {
@@ -48,6 +49,7 @@ export default async function ArticlePage({ params }: PageProps) {
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
       </article>
+      <TableOfContents />
       <FavButton articleSlug={slug} />
       <BackToTopButton />
     </>

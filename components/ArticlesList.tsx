@@ -232,7 +232,7 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
               No articles found.
             </p>
             <p>
-              We’re sorry — no articles matched
+              We’re sorry - no articles matched
               {searchTerm ? (
                 <>
                   {" "}

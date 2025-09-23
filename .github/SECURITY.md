@@ -24,7 +24,7 @@ This document summarizes the key security controls and best practices for the De
 
 ## 4. Secrets & Config
 - **Environment variables**  
-  All secrets (database URLs, JWT signing keys, third-party API keys) are injected via environment variables—never checked into source control.  
+  All secrets (database URLs, JWT signing keys, third-party API keys) are injected via environment variables - never checked into source control.  
 - **.env exclusions**  
   The repository’s `.gitignore` excludes any local `.env` or secret files.
 

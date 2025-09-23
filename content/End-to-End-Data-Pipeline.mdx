@@ -18,7 +18,7 @@ export default function DataPipelineArticle({ children }) {
 
 > Date: 2025-03-01
 
-Building a modern, **end-to-end data pipeline** requires far more than simply extracting data and training a model. Today’s applications demand a seamless flow from raw data ingestion, through **distributed processing**, **feature engineering**, and **model training**, to **deployment** and **frontend consumption**—all while ensuring reliability, scalability, and maintainability. In this extensive guide, we’ll dissect an architecture (inspired by the attached diagram) that illustrates how to design and implement a robust pipeline. We’ll explore **data ingestion**, **transformation**, **model training**, **backend integration**, **frontend consumption**, and the crucial **DevOps** practices that tie everything together.
+Building a modern, **end-to-end data pipeline** requires far more than simply extracting data and training a model. Today’s applications demand a seamless flow from raw data ingestion, through **distributed processing**, **feature engineering**, and **model training**, to **deployment** and **frontend consumption** - all while ensuring reliability, scalability, and maintainability. In this extensive guide, we’ll dissect an architecture (inspired by the attached diagram) that illustrates how to design and implement a robust pipeline. We’ll explore **data ingestion**, **transformation**, **model training**, **backend integration**, **frontend consumption**, and the crucial **DevOps** practices that tie everything together.
 
 ---
 
@@ -66,7 +66,7 @@ This architecture enforces separation of concerns, allowing each layer to scale 
 
 **Key Challenges**:
 
-- **Varying Data Formats**: CSV, JSON, Avro, Parquet—each has different compression and serialization nuances.
+- **Varying Data Formats**: CSV, JSON, Avro, Parquet - each has different compression and serialization nuances.
 - **Schema Evolution**: Over time, schemas may change (adding columns, changing data types).
 - **Throughput & Latency**: Large volumes of data may require parallel ingestion or streaming ingestion for near real-time updates.
 
@@ -431,18 +431,18 @@ jobs:
 
 ## 13. Conclusion
 
-Building a **truly end-to-end data pipeline** is a complex endeavor that touches on data engineering, software development, machine learning, and DevOps. By carefully **segmenting** your architecture into a data processing layer, model training pipeline, backend microservices, and a frontend layer—then wrapping it all in robust DevOps practices—you create a **modular**, **scalable**, and **maintainable** ecosystem.
+Building a **truly end-to-end data pipeline** is a complex endeavor that touches on data engineering, software development, machine learning, and DevOps. By carefully **segmenting** your architecture into a data processing layer, model training pipeline, backend microservices, and a frontend layer - then wrapping it all in robust DevOps practices - you create a **modular**, **scalable**, and **maintainable** ecosystem.
 
 **Key Takeaways**:
 
 1. **Plan for Scale and Complexity**: Use distributed tools (Spark, Kubernetes) and orchestrators (Airflow, Terraform) early.
-2. **Version Everything**: Code, data, models, infrastructure—versioning ensures reproducibility and easier rollback.
+2. **Version Everything**: Code, data, models, infrastructure - versioning ensures reproducibility and easier rollback.
 3. **Automate CI/CD**: Consistent, automated deployments reduce human error and accelerate development.
 4. **Monitor and Alert**: Visibility into performance metrics, logs, and distributed traces is crucial for diagnosing issues quickly.
 5. **Security and Compliance**: Encrypt data, control access, and regularly scan for vulnerabilities.
 6. **Iterate Continuously**: Data pipelines are never “finished.” Regularly refine ingestion, transformation, modeling, and deployment strategies.
 
-By following the best practices outlined here, you’ll be well on your way to designing a data pipeline that not only meets current needs but also adapts to future requirements—handling ever-growing data volumes, new data sources, evolving ML models, and more sophisticated user-facing applications.
+By following the best practices outlined here, you’ll be well on your way to designing a data pipeline that not only meets current needs but also adapts to future requirements - handling ever-growing data volumes, new data sources, evolving ML models, and more sophisticated user-facing applications.
 
 ---
 
