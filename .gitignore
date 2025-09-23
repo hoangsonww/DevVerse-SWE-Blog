@@ -2,3 +2,4 @@
 /.next/
 .vercel
 .env
+coverage/
