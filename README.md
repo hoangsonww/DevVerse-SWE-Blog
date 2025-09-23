@@ -63,7 +63,6 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
 - [Testing](#testing)
 - [RSS and Atom and JSON Feeds](#rss-and-atom-and-json-feeds)
 - [GitHub Actions CI Pipeline](#github-actions-ci-pipeline)
-- 
 - [Contributing](#contributing)
   - [Add more MDX content](#add-more-mdx-content)
 - [License](#license)
@@ -116,6 +115,8 @@ Feel free to explore the content and features of the blog! 🚀
 
 ## Features
 
+DevVerse is packed with modern dev & user-centric features to enhance both the developer and user experience:
+
 - **Next.js Framework:** Built with Next.js for robust SSR, SSG, and CSR.
 - **MDX Integration:** Write content in MDX, mixing Markdown with React components.
 - **Progressive Web App (PWA):** Enhanced offline capabilities with [next-pwa](https://github.com/shadowwalker/next-pwa).
@@ -123,6 +124,11 @@ Feel free to explore the content and features of the blog! 🚀
 - **Mathematics Rendering:** Render mathematical equations using [KaTeX](https://katex.org/), [rehype-katex](https://github.com/remarkjs/rehype-katex), and [remark-math](https://github.com/remarkjs/remark-math).
 - **Code Splitting & Performance:** Automatic code splitting and image optimization for improved performance.
 - **Containerized Development:** Docker and Docker Compose configurations for an isolated development environment.
+- **Recommended Articles:** Display related articles based on tags or categories.
+- **Estimated Reading Time:** Show estimated reading time for each article.
+- **Search Functionality:** Search articles by title or content.
+- **Pagination:** Paginate articles on the home page for better navigation.
+- **User Profiles:** User profile management with avatar upload (authenticated users only).
 - **Dev Containers:** VS Code Dev Container configuration for a seamless setup.
 - **User Authentication:** User authentication with JWT tokens.
 - **User Registration/Sign-In:** User registration and sign-in functionality.
@@ -131,6 +137,8 @@ Feel free to explore the content and features of the blog! 🚀
 - **Dark Mode:** Toggle between light and dark themes.
 - **SEO-Friendly:** Optimized for search engines with meta tags and structured data, with SSR and SSG.
 - **Linting & Formatting:** ESLint and Prettier configurations for consistent code quality.
+
+With these features, DevVerse provides a comprehensive platform for sharing and consuming knowledge in computer science and software engineering. Whether you're a developer looking to contribute content or a reader seeking valuable insights, DevVerse has something for everyone!
 
 ## Project Structure
 
