@@ -4,6 +4,7 @@ import FavButton from "@/components/FavButton";
 import React from "react";
 import TopicsList from "@/components/TopicsList";
 import TableOfContents from "@/components/TableOfContents";
+import { ArticleHighlights } from "@/components/highlights/ArticleHighlights";
 import "./article.css";
 
 interface Params {
@@ -45,10 +46,12 @@ export default async function ArticlePage({ params }: PageProps) {
 
   return (
     <>
-      <article className="fade-down-article">
-        <MDXComponent style={{ minWidth: "100%" }} />
-        <TopicsList topics={topics} />
-      </article>
+      <ArticleHighlights articleSlug={slug}>
+        <article className="fade-down-article">
+          <MDXComponent style={{ minWidth: "100%" }} />
+          <TopicsList topics={topics} />
+        </article>
+      </ArticleHighlights>
       <TableOfContents />
       <FavButton articleSlug={slug} />
       <BackToTopButton />

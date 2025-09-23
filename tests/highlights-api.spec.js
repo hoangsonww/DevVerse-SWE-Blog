@@ -1,0 +1,263 @@
+/**
+ * Tests for highlights API endpoints
+ */
+
+// Mock Supabase client
+const mockSupabase = {
+  auth: {
+    getUser: jest.fn(),
+  },
+  from: jest.fn(),
+};
+
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(() => mockSupabase),
+}));
+
+// Mock cookies
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => ({
+    getAll: jest.fn(() => []),
+    set: jest.fn(),
+  })),
+}));
+
+describe('/api/highlights', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('GET', () => {
+    test('returns highlights for authenticated user', async () => {
+      // Mock authenticated user
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user123' } },
+        error: null,
+      });
+
+      // Mock highlights query
+      const mockQuery = {
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({
+          data: [
+            {
+              id: 'h1',
+              user_id: 'user123',
+              article_slug: 'test-article',
+              text_quote_exact: 'test highlight',
+              color: 'yellow',
+              created_at: '2024-01-01',
+            },
+          ],
+          error: null,
+        }),
+      };
+      
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue(mockQuery),
+      });
+
+      // Import and test the handler
+      const { GET } = require('../app/api/highlights/route');
+      const request = new Request('http://localhost/api/highlights');
+      
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.highlights).toHaveLength(1);
+      expect(data.highlights[0].text_quote_exact).toBe('test highlight');
+    });
+
+    test('returns 401 for unauthenticated user', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: new Error('Not authenticated'),
+      });
+
+      const { GET } = require('../app/api/highlights/route');
+      const request = new Request('http://localhost/api/highlights');
+      
+      const response = await GET(request);
+
+      expect(response.status).toBe(401);
+    });
+
+    test('filters by article slug when provided', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user123' } },
+        error: null,
+      });
+
+      const mockQuery = {
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({
+          data: [],
+          error: null,
+        }),
+      };
+      
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue(mockQuery),
+      });
+
+      const { GET } = require('../app/api/highlights/route');
+      const request = new Request('http://localhost/api/highlights?slug=test-article');
+      
+      await GET(request);
+
+      // Should call eq twice: once for user_id and once for article_slug
+      expect(mockQuery.eq).toHaveBeenCalledWith('user_id', 'user123');
+      expect(mockQuery.eq).toHaveBeenCalledWith('article_slug', 'test-article');
+    });
+  });
+
+  describe('POST', () => {
+    test('creates highlight for authenticated user', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user123' } },
+        error: null,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: {
+                id: 'new-highlight',
+                user_id: 'user123',
+                article_slug: 'test-article',
+                text_quote_exact: 'new highlight',
+                color: 'yellow',
+              },
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      const { POST } = require('../app/api/highlights/route');
+      const request = new Request('http://localhost/api/highlights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          article_slug: 'test-article',
+          text_quote_exact: 'new highlight',
+          color: 'yellow',
+        }),
+      });
+      
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.highlight.text_quote_exact).toBe('new highlight');
+    });
+
+    test('validates request data', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user123' } },
+        error: null,
+      });
+
+      const { POST } = require('../app/api/highlights/route');
+      const request = new Request('http://localhost/api/highlights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // Missing required fields
+          color: 'yellow',
+        }),
+      });
+      
+      const response = await POST(request);
+
+      expect(response.status).toBe(400);
+    });
+  });
+});
+
+describe('/api/highlights/[id]', () => {
+  describe('PATCH', () => {
+    test('updates highlight for owner', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user123' } },
+        error: null,
+      });
+
+      // Mock existing highlight check
+      mockSupabase.from.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnThis(),
+          single: jest.fn().mockResolvedValue({
+            data: { id: 'highlight123' },
+            error: null,
+          }),
+        }),
+      });
+
+      // Mock update
+      mockSupabase.from.mockReturnValueOnce({
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnThis(),
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: {
+                id: 'highlight123',
+                note: 'updated note',
+              },
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      const { PATCH } = require('../app/api/highlights/[id]/route');
+      const request = new Request('http://localhost/api/highlights/highlight123', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          note: 'updated note',
+        }),
+      });
+      
+      const response = await PATCH(request, { 
+        params: Promise.resolve({ id: 'highlight123' }) 
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.highlight.note).toBe('updated note');
+    });
+  });
+
+  describe('DELETE', () => {
+    test('deletes highlight for owner', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'user123' } },
+        error: null,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnThis().mockResolvedValue({
+            error: null,
+          }),
+        }),
+      });
+
+      const { DELETE } = require('../app/api/highlights/[id]/route');
+      const request = new Request('http://localhost/api/highlights/highlight123', {
+        method: 'DELETE',
+      });
+      
+      const response = await DELETE(request, { 
+        params: Promise.resolve({ id: 'highlight123' }) 
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+    });
+  });
+});

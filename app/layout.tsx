@@ -7,6 +7,7 @@ import { DarkModeProvider } from "@/provider/DarkModeProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Analytics } from "@vercel/analytics/react";
+import QueryProvider from "@/provider/QueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -186,32 +187,34 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Analytics />
-        <DarkModeProvider>
-          <div style={{ position: "relative", zIndex: 99999 }}>
-            <Navbar />
-          </div>
-          <ToastContainer
-            position="bottom-center"
-            autoClose={2000}
-            hideProgressBar={false}
-            closeOnClick
-            pauseOnHover={false}
-            pauseOnFocusLoss={false}
-            draggable={false}
-            theme="light"
-            toastStyle={{
-              fontFamily: "Inter, sans-serif",
-            }}
-            limit={3}
-          />
-          <main
-            className="container"
-            style={{ backgroundColor: "var(--background-color)" }}
-          >
-            {children}
-          </main>
-          <Footer />
-        </DarkModeProvider>
+        <QueryProvider>
+          <DarkModeProvider>
+            <div style={{ position: "relative", zIndex: 99999 }}>
+              <Navbar />
+            </div>
+            <ToastContainer
+              position="bottom-center"
+              autoClose={2000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnHover={false}
+              pauseOnFocusLoss={false}
+              draggable={false}
+              theme="light"
+              toastStyle={{
+                fontFamily: "Inter, sans-serif",
+              }}
+              limit={3}
+            />
+            <main
+              className="container"
+              style={{ backgroundColor: "var(--background-color)" }}
+            >
+              {children}
+            </main>
+            <Footer />
+          </DarkModeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

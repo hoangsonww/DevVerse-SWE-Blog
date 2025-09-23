@@ -26,7 +26,11 @@
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "latest",
     "@next/mdx": "latest",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.49.2",
+    "@tanstack/react-query": "^5.90.2",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@vercel/analytics": "^1.5.0",
     "core-js-pure": "^3.41.0",
     "framer-motion": "^12.4.3",
@@ -46,7 +50,8 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "rss": "^1.2.2"
+    "rss": "^1.2.2",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
