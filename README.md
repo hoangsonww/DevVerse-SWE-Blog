@@ -17,7 +17,8 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
 
 <div align="center">
   <img src="https://img.shields.io/badge/-TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/-Supabase-6394F8?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/-JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="NodeJS" />
   <img src="https://img.shields.io/badge/-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
   <img src="https://img.shields.io/badge/-MDX-123456?style=flat-square&logo=mdx&logoColor=white" alt="MDX" />
   <img src="https://img.shields.io/badge/-Next.js-000000?style=flat-square&logo=next.js&logoColor=white" alt="Next.js" />
@@ -25,6 +26,9 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
   <img src="https://img.shields.io/badge/-PostCSS-DD3A0A?style=flat-square&logo=postcss&logoColor=white" alt="PostCSS" />
   <img src="https://img.shields.io/badge/-JWT-242?style=flat-square&logo=json-web-tokens&logoColor=white" alt="JWT" />
   <img src="https://img.shields.io/badge/-KaTeX-3B5CC4?style=flat-square&logo=latex&logoColor=white" alt="KaTeX" />
+  <img src="https://img.shields.io/badge/-Supabase-darkgreen?style=flat-square&logo=supabase&logoColor=white" alt="Supabase Auth" />
+  <img src="https://img.shields.io/badge/-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/-SQL-4479A1?style=flat-square&logo=postgresql&logoColor=white" alt="SQL" />
   <img src="https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/-Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=white" alt="Prettier" />
@@ -34,6 +38,9 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
   <img src="https://img.shields.io/badge/-Jest-red?style=flat-square&logo=jest&logoColor=white" alt="Jest" />
   <img src="https://img.shields.io/badge/-GitHub%20Actions-181717?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub" />
   <img src="https://img.shields.io/badge/-Git-676767?style=flat-square&logo=git&logoColor=white" alt="Git" />
+  <img src="https://img.shields.io/badge/-RSS-FFA500?style=flat-square&logo=rss&logoColor=white" alt="RSS" />
+  <img src="https://img.shields.io/badge/-Atom-66595C?style=flat-square&logo=gotomeeting&logoColor=white" alt="Atom" />
+  <img src="https://img.shields.io/badge/-Feed-orange?style=flat-square&logo=feedly&logoColor=white" alt="Feed" />
 </div>
 
 ## Table of Contents
@@ -54,6 +61,9 @@ A modern, high-performance full-stack app built with [Next.js](https://nextjs.or
   - [Available Next.js API Routes](#available-nextjs-api-routes)
 - [Docker & Dev Container Configuration](#docker--dev-container-configuration)
 - [Testing](#testing)
+- [RSS and Atom and JSON Feeds](#rss-and-atom-and-json-feeds)
+- [GitHub Actions CI Pipeline](#github-actions-ci-pipeline)
+- 
 - [Contributing](#contributing)
   - [Add more MDX content](#add-more-mdx-content)
 - [License](#license)
@@ -455,6 +465,16 @@ npm run coverage
 
 This will run all tests in the `__tests__` directory and output the results to the console. See the `jest.config.js` file for more configuration options!
 
+## RSS and Atom and JSON Feeds
+
+The blog supports RSS, Atom, and JSON feeds for syndication. You can access the feeds at the following URLs:
+
+- RSS: `/api/rss` (e.g., https://devverse-swe.vercel.app/api/rss)
+- Atom: `/api/atom` (e.g., https://devverse-swe.vercel.app/api/atom)
+- JSON: `/feed.json` (e.g., https://devverse-swe.vercel.app/feed.json)
+
+These feeds are automatically generated based on the MDX content in the `content` directory. You can subscribe to the feeds using your favorite feed reader to stay updated with the latest articles.
+
 ## GitHub Actions CI Pipeline
 
 This project includes a GitHub Actions CI pipeline to ensure code quality and consistency. The pipeline runs the following checks on every push and pull request:
@@ -470,6 +490,10 @@ This project includes a GitHub Actions CI pipeline to ensure code quality and co
 - and more...
 
 You can view the CI pipeline in the [Actions tab](https://github.com/hoangsonww/DevVerse-SWE-Blog/actions). Click on any workflow run to see the details of the checks performed (and the cool charts and graphs!).
+
+<p align="center">
+  <img src="images/github-actions.png" alt="GitHub Actions CI Pipeline" width="100%">
+</p>
 
 ## Contributing
 

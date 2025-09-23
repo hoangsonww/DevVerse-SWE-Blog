@@ -154,6 +154,12 @@ export default function RootLayout({
           title="DevVerse CS Blog Atom Feed"
           href="/api/atom"
         />
+        <link
+          rel="alternate"
+          type="application/feed+json"
+          title="DevVerse CS Blog JSON Feed"
+          href="/feed.json"
+        />
         {/* Google Tag (gtag.js) */}
         <Script
           strategy="beforeInteractive"

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { FaRss } from "react-icons/fa";
 import { BiAtom } from "react-icons/bi";
+import { VscJson } from "react-icons/vsc";
 
 export default function Footer() {
   const [year, setYear] = useState("");
@@ -44,6 +45,7 @@ export default function Footer() {
           marginTop: "1rem",
           display: "flex",
           justifyContent: "center",
+          flexWrap: "wrap",
           gap: "1rem",
           alignItems: "center",
         }}
@@ -53,6 +55,7 @@ export default function Footer() {
             fontSize: "0.9rem",
             opacity: 0.7,
             marginRight: "0.5rem",
+            whiteSpace: "nowrap",
           }}
         >
           Subscribe:
@@ -75,6 +78,7 @@ export default function Footer() {
             transition: "all 0.3s ease",
             position: "relative",
             overflow: "hidden",
+            whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-2px)";
@@ -118,6 +122,7 @@ export default function Footer() {
             transition: "all 0.3s ease",
             position: "relative",
             overflow: "hidden",
+            whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-2px)";
@@ -142,6 +147,50 @@ export default function Footer() {
             }}
           />
           <span>Atom Feed</span>
+        </a>
+        <a
+          href="/feed.json"
+          style={{
+            color: "var(--text-color, #333)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.4rem 0.8rem",
+            border: "1px solid var(--border-color, #e0e0e0)",
+            borderRadius: "6px",
+            fontSize: "0.9rem",
+            fontWeight: "500",
+            backgroundColor:
+              "var(--card-background, rgba(255, 255, 255, 0.05))",
+            transition: "all 0.3s ease",
+            position: "relative",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 12px rgba(34, 197, 94, 0.3)";
+            e.currentTarget.style.borderColor = "#22C55E";
+            e.currentTarget.style.backgroundColor = "rgba(34, 197, 94, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+            e.currentTarget.style.borderColor = "var(--border-color, #e0e0e0)";
+            e.currentTarget.style.backgroundColor =
+              "var(--card-background, rgba(255, 255, 255, 0.05))";
+          }}
+          title="Subscribe via JSON Feed"
+        >
+          <VscJson
+            size={18}
+            style={{
+              color: "#22C55E",
+            }}
+          />
+          <span>JSON Feed</span>
         </a>
       </div>
     </footer>
