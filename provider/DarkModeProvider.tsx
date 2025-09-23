@@ -45,7 +45,7 @@ export function DarkModeProvider({ children }: PropsWithChildren) {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
-  // Don’t render children until we know darkMode — prevents flash
+  // Don’t render children until we know darkMode  -  prevents flash
   if (darkMode === null) {
     return null;
   }

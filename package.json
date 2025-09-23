@@ -30,6 +30,7 @@
     "@vercel/analytics": "^1.5.0",
     "core-js-pure": "^3.41.0",
     "framer-motion": "^12.4.3",
+    "gray-matter": "^4.0.3",
     "katex": "^0.16.21",
     "lucide-react": "^0.475.0",
     "next": "latest",
@@ -44,7 +45,8 @@
     "react-toastify": "^11.0.5",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "rss": "^1.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
@@ -54,6 +56,7 @@
     "@types/node": "22.13.4",
     "@types/nprogress": "^0.2.3",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/rss": "^0.0.32",
     "babel-jest": "^30.0.4",
     "jest": "^30.0.4",
     "ts-jest": "^29.4.0",
