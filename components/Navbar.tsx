@@ -3,7 +3,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiHome, FiChevronRight, FiBook, FiSun, FiMoon } from "react-icons/fi";
+import {
+  FiHome,
+  FiChevronRight,
+  FiBook,
+  FiSun,
+  FiMoon,
+  FiMessageSquare,
+} from "react-icons/fi";
 import { FaRegStar } from "react-icons/fa";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
 import UserMenu from "./UserMenu";
@@ -151,6 +158,26 @@ export default function Navbar() {
         </Link>
         <FiChevronRight />
         <span>Favorites</span>
+      </span>
+    );
+  } else if (segments[0] === "chat") {
+    breadcrumb = (
+      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <Link
+          href="/"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiHome />
+          <span>Home</span>
+        </Link>
+        <FiChevronRight />
+        <FiMessageSquare />
+        <span>Chat</span>
       </span>
     );
   } else {
