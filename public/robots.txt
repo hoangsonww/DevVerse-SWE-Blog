@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://devverse-swe.vercel.app
+
+# Sitemaps
+Sitemap: https://devverse-swe.vercel.app/sitemap.xml
