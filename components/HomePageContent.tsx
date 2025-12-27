@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import ArticlesList from "./ArticlesList";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   FaGithub,
   FaLinkedin,
@@ -136,6 +137,32 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           trends in computer science and software development. 🚀
         </p>
       </header>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.75rem",
+          padding: "1rem 1.25rem",
+          borderRadius: "12px",
+          border: "1px solid var(--border-color)",
+          background:
+            "linear-gradient(135deg, rgba(0, 112, 243, 0.12), transparent 70%)",
+          marginBottom: "3.5rem",
+        }}
+      >
+        <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
+          Explore the DevVerse RAG Chatbot
+        </div>
+        <div style={{ opacity: 0.8 }}>
+          Ask questions about any article and get answers with citations.
+        </div>
+        <div>
+          <Link href="/chat" className="chat-cta">
+            Open chat
+          </Link>
+        </div>
+      </div>
 
       <div
         style={{
