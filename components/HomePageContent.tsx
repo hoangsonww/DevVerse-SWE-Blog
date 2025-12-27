@@ -152,7 +152,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
         }}
       >
         <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
-          Explore the DevVerse Chatbot
+          Explore the DevVerse RAG Chatbot
         </div>
         <div style={{ opacity: 0.8 }}>
           Ask questions about any article and get answers with citations.
