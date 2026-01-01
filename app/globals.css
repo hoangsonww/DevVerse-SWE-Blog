@@ -456,6 +456,7 @@ a:hover {
   box-shadow: 0 22px 35px rgba(15, 118, 110, 0.35);
   background: var(--landing-accent-strong);
   text-decoration: none;
+  color: #fff;
 }
 
 .secondary-cta {
