@@ -394,6 +394,8 @@ export default function ArticlesList({
           padding: 0.75rem 0.9rem;
           box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
           width: 260px;
+          max-width: min(260px, calc(100vw - 2rem));
+          box-sizing: border-box;
           font-size: 0.85rem;
           color: var(--text-color);
           opacity: 0;
@@ -410,6 +412,13 @@ export default function ArticlesList({
         .filter-tip:focus-visible .filter-tooltip {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        @media (max-width: 640px) {
+          .filter-tooltip {
+            right: auto;
+            left: 0;
+          }
         }
 
         .search-field {
