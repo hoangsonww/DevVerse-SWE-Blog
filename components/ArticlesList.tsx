@@ -360,6 +360,7 @@ export default function ArticlesList({
           justify-content: center;
           width: 38px;
           height: 38px;
+          margin-left: auto;
           border-radius: 50%;
           border: 1px solid var(--border-color);
           background: var(--container-background);
@@ -416,8 +417,8 @@ export default function ArticlesList({
 
         @media (max-width: 640px) {
           .filter-tooltip {
-            right: auto;
-            left: 0;
+            right: 0;
+            left: auto;
           }
         }
 
