@@ -1,6 +1,7 @@
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import ConditionalNavbar from "@/components/ConditionalNavbar";
 import Footer from "@/components/Footer";
+import ConditionalMain from "@/components/ConditionalMain";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { DarkModeProvider } from "@/provider/DarkModeProvider";
@@ -188,7 +189,7 @@ export default function RootLayout({
         <Analytics />
         <DarkModeProvider>
           <div style={{ position: "relative", zIndex: 99999 }}>
-            <Navbar />
+            <ConditionalNavbar />
           </div>
           <ToastContainer
             position="bottom-center"
@@ -204,12 +205,7 @@ export default function RootLayout({
             }}
             limit={3}
           />
-          <main
-            className="container"
-            style={{ backgroundColor: "var(--background-color)" }}
-          >
-            {children}
-          </main>
+          <ConditionalMain>{children}</ConditionalMain>
           <Footer />
         </DarkModeProvider>
       </body>

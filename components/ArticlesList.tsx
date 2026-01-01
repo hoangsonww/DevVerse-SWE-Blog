@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import InteractiveCard from "./InteractiveCard";
-import { FaTags, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaTags, FaTimes, FaSearch, FaInfoCircle } from "react-icons/fa";
 
 interface Article {
   slug: string;
@@ -16,9 +16,13 @@ interface Article {
 
 interface ArticlesListProps {
   articles: Article[];
+  showSearch?: boolean;
 }
 
-export default function ArticlesList({ articles }: ArticlesListProps) {
+export default function ArticlesList({
+  articles,
+  showSearch = true,
+}: ArticlesListProps) {
   // Collect all distinct topics across the articles.
   const allTopicsSet = new Set<string>();
   articles.forEach((article) => {
@@ -29,21 +33,66 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
   // State for the currently selected topics and how many articles to show.
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [visibleCount, setVisibleCount] = useState(10); // Show 10 articles initially
   // State for how many topics are visible.
   const [visibleTopicsCount, setVisibleTopicsCount] = useState(10);
-  const [showOnlyMessage, setShowOnlyMessage] = useState(false);
 
-  // Filter the articles by the selected topics (if any).
-  // Now an article is displayed only if it matches every selected topic.
-  const filteredArticles =
-    selectedTopics.length > 0
-      ? articles.filter((article) =>
-          selectedTopics.every((topic) => article.topics.includes(topic)),
-        )
-      : articles;
+  useEffect(() => {
+    if (!showSearch) return;
+    const params = new URLSearchParams(window.location.search);
+    const initialSearch = params.get("search") ?? "";
+    setSearchTerm(initialSearch);
+  }, [showSearch]);
+
+  useEffect(() => {
+    if (!showSearch) return;
+    const params = new URLSearchParams(window.location.search);
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+    // leave topics untouched
+    const query = params.toString();
+    router.replace(`${window.location.pathname}${query ? `?${query}` : ""}`, {
+      scroll: false,
+    });
+  }, [searchTerm, router, showSearch]);
+
+  useEffect(() => {
+    if (!showSearch) return;
+    setVisibleCount(10);
+  }, [searchTerm, showSearch]);
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const headerKicker = showSearch ? "Search & Filter" : "Topic Filters";
+  const headerTitle = showSearch
+    ? "Find the right article fast."
+    : "Refine the list by topic.";
+  const headerSubtitle = showSearch
+    ? "Search by keyword, then refine with topic filters."
+    : "Select one or more topics to narrow the results.";
+
+  const filteredArticles = useMemo(() => {
+    return articles.filter((article) => {
+      const matchesTopics =
+        selectedTopics.length === 0 ||
+        selectedTopics.every((topic) => article.topics.includes(topic));
+      if (!matchesTopics) return false;
+      if (!normalizedSearch) return true;
+      const haystack = [article.title, article.description, article.excerpt]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [articles, normalizedSearch, selectedTopics]);
 
   // Slice the filtered list to show only the visible portion.
   const displayedArticles = filteredArticles.slice(0, visibleCount);
@@ -128,55 +177,54 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
     }
   }, [searchParams, initialized]);
 
-  const searchTerm = searchParams.get("search") ?? "";
-
   return (
     <div>
-      {/* Topic Filter */}
-      <div
-        className="fade-slide-up"
-        style={{ marginBottom: "2rem", textAlign: "center" }}
-      >
-        <div className="filter-header">
-          <h2>Filter by Topic</h2>
-          <div
-            className="toggle-icon"
-            onClick={() => setShowOnlyMessage((prev) => !prev)}
-          >
-            {showOnlyMessage ? (
-              <FaChevronUp size={20} />
-            ) : (
-              <FaChevronDown size={20} />
+      <div className="search-filter-shell fade-slide-up">
+        <div className="search-filter-header">
+          <div>
+            <p className="search-filter-kicker">{headerKicker}</p>
+            <h2 className="search-filter-title">{headerTitle}</h2>
+            <p className="search-filter-subtitle">{headerSubtitle}</p>
+          </div>
+          <button className="filter-tip" type="button" aria-label="Filter tips">
+            <FaInfoCircle aria-hidden="true" />
+            <span className="filter-tooltip">
+              Select multiple topics to narrow results. Articles shown will
+              match every selected topic so you can stay focused.
+            </span>
+          </button>
+        </div>
+
+        {showSearch && (
+          <div className={`search-field ${isSearchFocused ? "focused" : ""}`}>
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search articles, frameworks, or tools..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              className="search-input"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="search-clear"
+                aria-label="Clear search"
+              >
+                <FaTimes />
+              </button>
             )}
           </div>
-        </div>
+        )}
 
-        <div
-          className={`filter-description ${showOnlyMessage ? "open" : ""}`}
-          style={{ marginTop: 0 }}
-        >
-          <p>
-            You can select multiple topics to filter the articles. If you select
-            more than one topic, only articles that match all selected topics
-            will be shown. 🧠
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: "1rem",
-            marginTop: "1rem",
-            alignItems: "center",
-          }}
-        >
+        <div className="filter-topics">
           <button
             className={`topic-btn all-topics ${selectedTopics.length === 0 ? "selected" : ""}`}
             onClick={clearSelection}
           >
-            <FaTags style={{ marginRight: "0.5rem" }} />
+            <FaTags />
             All Topics
           </button>
 
@@ -186,14 +234,14 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
               className={`topic-btn ${selectedTopics.includes(topic) ? "selected" : ""}`}
               onClick={() => toggleTopic(topic)}
             >
-              <FaTags style={{ marginRight: "0.5rem" }} />
+              <FaTags />
               {topic}
             </button>
           ))}
 
           {selectedTopics.length > 0 && (
             <button className="topic-btn clear-btn" onClick={clearSelection}>
-              <FaTimes style={{ marginRight: "0.5rem" }} />
+              <FaTimes />
               Clear Selection
             </button>
           )}
@@ -261,56 +309,229 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
       </div>
 
       <style jsx>{`
+        .search-filter-shell {
+          margin-bottom: 2.5rem;
+          padding: 1.75rem;
+          border-radius: 18px;
+          border: 1px solid var(--border-color);
+          background: linear-gradient(
+            135deg,
+            rgba(15, 118, 110, 0.08),
+            rgba(0, 0, 0, 0)
+          );
+          box-shadow: 0 24px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .search-filter-header {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .search-filter-kicker {
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: var(--link-color);
+          margin: 0;
+        }
+
+        .search-filter-title {
+          margin: 0.4rem 0 0.4rem;
+          font-size: 1.6rem;
+          color: var(--text-color);
+        }
+
+        .search-filter-subtitle {
+          margin: 0;
+          color: var(--text-color);
+          opacity: 0.75;
+          max-width: 520px;
+          line-height: 1.6;
+        }
+
+        .filter-tip {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: 1px solid var(--border-color);
+          background: var(--container-background);
+          color: var(--link-color);
+          cursor: pointer;
+          font: inherit;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
+        }
+
+        .filter-tip:hover,
+        .filter-tip:focus-within {
+          transform: translateY(-1px);
+          box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
+          border-color: var(--link-color);
+        }
+
+        .filter-tip:focus-visible {
+          outline: 2px solid var(--link-color);
+          outline-offset: 2px;
+        }
+
+        .filter-tooltip {
+          position: absolute;
+          right: 0;
+          top: calc(100% + 0.6rem);
+          background: var(--container-background);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          padding: 0.75rem 0.9rem;
+          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+          width: 260px;
+          font-size: 0.85rem;
+          color: var(--text-color);
+          opacity: 0;
+          transform: translateY(-6px);
+          pointer-events: none;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+          z-index: 2;
+        }
+
+        .filter-tip:hover .filter-tooltip,
+        .filter-tip:focus-within .filter-tooltip,
+        .filter-tip:focus-visible .filter-tooltip {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .search-field {
+          margin-top: 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.85rem 1rem;
+          border-radius: 14px;
+          border: 1px solid var(--border-color);
+          background: var(--container-background);
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .search-field.focused {
+          border-color: var(--link-color);
+          box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.15);
+        }
+
+        .search-icon {
+          color: var(--text-color);
+          opacity: 0.6;
+        }
+
+        .search-input {
+          border: none;
+          outline: none;
+          width: 100%;
+          font-size: 1rem;
+          font-family: inherit;
+          background: transparent;
+          color: var(--text-color);
+        }
+
+        .search-clear {
+          border: none;
+          background: transparent;
+          color: var(--text-color);
+          cursor: pointer;
+          font-size: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+        }
+
+        .search-clear:hover {
+          color: var(--link-color);
+        }
+
+        .filter-topics {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          margin-top: 1.5rem;
+          align-items: center;
+        }
+
         .topic-btn {
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
-          border: 1px solid #0070f3;
-          background-color: #fff;
-          color: #0070f3;
+          padding: 0.45rem 0.95rem;
+          border-radius: 999px;
+          border: 1px solid rgba(0, 112, 243, 0.25);
+          background-color: rgba(0, 112, 243, 0.08);
+          color: var(--text-color);
           cursor: pointer;
           transition:
             transform 0.2s ease,
             box-shadow 0.2s ease,
-            background-color 0.2s;
+            background-color 0.2s ease,
+            border-color 0.2s ease;
           font: inherit;
-          display: flex;
+          display: inline-flex;
           align-items: center;
+          gap: 0.45rem;
+          font-weight: 600;
+        }
+
+        .topic-btn svg {
+          font-size: 0.85rem;
         }
 
         .topic-btn.selected {
-          background-color: #0070f3;
+          background-color: var(--link-color);
           color: #fff;
+          border-color: var(--link-color);
         }
 
         .topic-btn.clear-btn {
-          color: red;
+          background-color: rgba(239, 68, 68, 0.12);
+          border-color: rgba(239, 68, 68, 0.4);
+          color: #b91c1c;
         }
 
         .topic-btn.more-btn {
-          border: 2px dashed #0070f3;
+          border-style: dashed;
+          background-color: transparent;
         }
 
         .topic-btn:hover {
-          transform: translateY(-4px) scale(1.05);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-          background-color: #0070f3;
-          color: #fff;
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+          border-color: var(--link-color);
+          background-color: rgba(0, 112, 243, 0.16);
         }
 
-        .toggle-icon {
-          cursor: pointer;
-          display: inline-block;
-          transition: transform 0.2s ease;
+        .topic-btn.selected:hover {
+          background-color: var(--hover-link-color);
         }
-        .toggle-icon:hover {
-          transform: scale(1.1);
+
+        .topic-btn.clear-btn:hover {
+          background-color: rgba(239, 68, 68, 0.18);
+          border-color: rgba(239, 68, 68, 0.6);
+          color: #991b1b;
         }
 
         .load-more-btn {
-          padding: 0.75rem 1.5rem;
-          border-radius: 8px;
-          border: 2px solid #0070f3;
-          background-color: #0070f3;
+          padding: 0.75rem 1.6rem;
+          border-radius: 999px;
+          border: 1px solid var(--link-color);
+          background-color: var(--link-color);
           color: #fff;
           font-size: 1rem;
           font-family: inherit;
@@ -325,8 +546,9 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
         }
 
         .load-more-btn:hover {
-          transform: translateY(-4px) scale(1.05);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+          background-color: var(--hover-link-color);
         }
 
         .arrow {
@@ -373,71 +595,14 @@ export default function ArticlesList({ articles }: ArticlesListProps) {
           }
         }
 
-        .slide-container {
-          max-height: 0;
-          opacity: 0;
-          overflow: hidden;
-          transition:
-            max-height 0.4s ease,
-            opacity 0.3s ease,
-            margin-top 0.3s ease;
-          margin-top: 0;
-          margin-bottom: 1rem;
-        }
+        @media (max-width: 720px) {
+          .search-filter-shell {
+            padding: 1.4rem;
+          }
 
-        .slide-container.open {
-          max-height: 150px;
-          opacity: 1;
-          margin-top: 1rem;
-        }
-
-        .slide-text {
-          max-width: 80%;
-          margin: 0 auto;
-          text-align: center;
-          line-height: 1.6;
-          color: var(--text-color);
-        }
-
-        .filter-header {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-        }
-
-        .toggle-icon {
-          cursor: pointer;
-          transition: transform 0.3s ease;
-        }
-
-        .toggle-icon:hover {
-          transform: scale(1.15);
-        }
-
-        .filter-description {
-          overflow: hidden;
-          max-height: 0;
-          opacity: 0;
-          transform: translateY(-5px);
-          transition: all 0.4s ease;
-          display: flex;
-          justify-content: center;
-        }
-
-        .filter-description.open {
-          max-height: 200px;
-          opacity: 1;
-          transform: translateY(0);
-          margin-top: 1rem;
-        }
-
-        .filter-description p {
-          max-width: 80%;
-          text-align: center;
-          color: var(--text-color);
-          transition: color 0.3s ease;
-          line-height: 1.6;
+          .search-filter-title {
+            font-size: 1.4rem;
+          }
         }
       `}</style>
     </div>

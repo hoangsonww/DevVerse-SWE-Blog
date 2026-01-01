@@ -1,18 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import ArticlesList from "./ArticlesList";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  FaGithub,
-  FaLinkedin,
-  FaGlobe,
-  FaEnvelope,
-  FaSearch,
-  FaTimes,
-} from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaGlobe, FaEnvelope } from "react-icons/fa";
 
 interface Article {
   slug: string;
@@ -27,74 +19,16 @@ interface HomePageContentProps {
   articles: Article[];
 }
 
-const imageVariants = {
-  initial: { opacity: 0, scale: 0.8 },
-  animate: { opacity: 1, scale: 1 },
-  hover: {
-    scale: 1.1,
-    transition: { duration: 0.3, type: "spring", stiffness: 300 },
+const chatCtaVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut", delay: 0.1 },
   },
 };
 
 export default function HomePageContent({ articles }: HomePageContentProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredArticles, setFilteredArticles] = useState(articles);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const initialSearch = params.get("search") ?? "";
-    setSearchTerm(initialSearch);
-  }, []);
-
-  const debounce = (func: Function, delay: number) => {
-    let timer: NodeJS.Timeout;
-    return (...args: any) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => func(...args), delay);
-    };
-  };
-
-  const handleSearch = useCallback(
-    debounce((term: string) => {
-      if (!term) {
-        setFilteredArticles(articles);
-        return;
-      }
-      setFilteredArticles(
-        articles.filter(
-          (article) =>
-            article.title.toLowerCase().includes(term.toLowerCase()) ||
-            (article.description &&
-              article.description.toLowerCase().includes(term.toLowerCase())),
-        ),
-      );
-    }, 300),
-    [articles],
-  );
-
-  useEffect(() => {
-    handleSearch(searchTerm);
-  }, [searchTerm, handleSearch]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-
-    if (searchTerm) {
-      params.set("search", searchTerm);
-    } else {
-      params.delete("search");
-    }
-
-    // leave topics untouched
-    const query = params.toString();
-    router.replace(`${window.location.pathname}${query ? `?${query}` : ""}`, {
-      scroll: false,
-    });
-  }, [searchTerm, router]);
-
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -112,33 +46,39 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
       }}
     >
       <header className="page-header">
-        <h1 className="page-title">
-          Welcome to{" "}
-          <span className="color-wave">
-            {"DevVerse Tech Blog".split("").map((char, index) =>
-              char === " " ? (
-                <span key={index} style={{ margin: "0 0.5rem" }}>
-                  {char}
-                </span>
-              ) : (
-                <span key={index} style={{ animationDelay: `${index * 0.1}s` }}>
-                  {char}
-                </span>
-              ),
-            )}
-          </span>{" "}
-          ✨
-        </h1>
-        <p className="page-description">
-          DevVerse Tech Blog is your go-to source for deep dives into computer
-          science and technology. Explore <strong>{articles.length}</strong>{" "}
-          articles covering frameworks, libraries, tools, and cutting-edge tech
-          innovations. Stay informed, inspired, and ready to tackle the latest
-          trends in computer science and software development. 🚀
-        </p>
+        <div className="page-hero">
+          <div className="page-hero-copy">
+            <p className="page-kicker">Welcome to DevVerse Tech Blog ✨</p>
+            <h1 className="page-title">
+              Deep dives into computer science and modern engineering.
+            </h1>
+            <p className="page-description">
+              DevVerse Tech Blog is your go-to source for deep dives into
+              computer science and technology. Explore{" "}
+              <strong>{articles.length}</strong> articles covering frameworks,
+              libraries, tools, and cutting-edge tech innovations. Stay
+              informed, inspired, and ready to tackle the latest trends in
+              computer science and software development.
+            </p>
+          </div>
+          <div className="page-stats">
+            <div className="stat-card">
+              <span className="stat-value">{articles.length}</span>
+              <span className="stat-label">Articles curated</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-value">CS + SWE</span>
+              <span className="stat-label">Core focus</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-value">Weekly</span>
+              <span className="stat-label">Fresh insights</span>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div
+      <motion.div
         style={{
           display: "flex",
           flexDirection: "column",
@@ -150,6 +90,9 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             "linear-gradient(135deg, rgba(0, 112, 243, 0.12), transparent 70%)",
           marginBottom: "3.5rem",
         }}
+        variants={chatCtaVariants}
+        initial="hidden"
+        animate={visible ? "show" : "hidden"}
       >
         <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
           Explore the DevVerse RAG Chatbot
@@ -162,90 +105,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
             Open chat
           </Link>
         </div>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "2rem",
-        }}
-      >
-        <motion.div
-          style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "var(--container-background)",
-            border: "2px solid var(--border-color, #ccc)",
-            borderRadius: "12px",
-            padding: "0.75rem 1rem",
-            boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
-            width: isFocused || searchTerm ? "500px" : "400px",
-            transition: "width 0.3s ease-in-out, background-color 0.3s ease",
-          }}
-        >
-          <FaSearch
-            style={{
-              marginRight: "0.75rem",
-              color: isFocused ? "#0070f3" : "var(--text-color)",
-              transition: "color 0.3s ease",
-            }}
-          />
-          <motion.input
-            type="text"
-            placeholder="Search articles..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            style={{
-              border: "none",
-              outline: "none",
-              width: "100%",
-              fontSize: "1rem",
-              fontFamily: "inherit",
-              backgroundColor: "transparent",
-              color: "var(--text-color)",
-            }}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              style={{
-                position: "absolute",
-                right: "1rem",
-                top: "50%",
-                transform: "translateY(-48%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "1.25rem",
-                color: "var(--text-color)",
-                lineHeight: 1,
-                transition: "transform 0.2s ease, color 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-48%) scale(1.2)";
-                e.currentTarget.style.color = "#0070f3";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(-48%) scale(1)";
-                e.currentTarget.style.color = "var(--text-color)";
-              }}
-              aria-label="Clear search"
-            >
-              <FaTimes />
-            </button>
-          )}
-        </motion.div>
-      </div>
+      </motion.div>
 
       <div
         style={{
@@ -254,7 +114,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           transition: "opacity 0.6s ease, transform 0.6s ease",
         }}
       >
-        <ArticlesList articles={filteredArticles} />
+        <ArticlesList articles={articles} />
         <p
           style={{
             textAlign: "center",
@@ -533,22 +393,83 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
       </section>
       <style jsx>{`
         .page-header {
-          text-align: center;
           margin-bottom: 3rem;
           animation: fadeSlideIn 0.6s ease-out;
         }
 
+        .page-hero {
+          display: grid;
+          gap: 2rem;
+          padding: 2.5rem;
+          border-radius: 18px;
+          border: 1px solid var(--border-color);
+          background: linear-gradient(
+            135deg,
+            rgba(15, 118, 110, 0.08),
+            rgba(0, 0, 0, 0)
+          );
+          box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+        }
+
+        .page-hero-copy {
+          display: grid;
+          gap: 1rem;
+        }
+
+        .page-kicker {
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--link-color);
+          margin: 0;
+        }
+
         .page-title {
-          font-size: 2.75rem;
-          margin-bottom: 1rem;
+          font-size: clamp(2.2rem, 3.5vw, 3rem);
+          margin: 0;
           color: var(--text-color);
+          line-height: 1.1;
         }
 
         .page-description {
-          font-size: 1.125rem;
+          font-size: 1.1rem;
           color: var(--text-color);
-          max-width: 600px;
-          margin: 0 auto;
+          max-width: 680px;
+          margin: 0;
+          line-height: 1.7;
+        }
+
+        .page-stats {
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .stat-card {
+          border-radius: 14px;
+          border: 1px solid var(--border-color);
+          padding: 1rem 1.2rem;
+          background: rgba(255, 255, 255, 0.7);
+          display: grid;
+          gap: 0.35rem;
+          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        :global(.dark) .stat-card {
+          background: rgba(15, 23, 42, 0.6);
+        }
+
+        .stat-value {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: var(--text-color);
+        }
+
+        .stat-label {
+          color: var(--text-color);
+          opacity: 0.7;
+          font-size: 0.95rem;
         }
 
         @keyframes fadeSlideIn {
@@ -562,58 +483,13 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           }
         }
 
-        .page-header {
-          text-align: center;
-          margin-bottom: 3rem;
-          animation: fadeSlideIn 0.6s ease-out;
-        }
+        @media (max-width: 900px) {
+          .page-hero {
+            padding: 2rem;
+          }
 
-        .page-title {
-          font-size: 2.75rem;
-          margin-bottom: 1rem;
-        }
-
-        /* Style for each letter in the color wave */
-        .color-wave span {
-          display: inline-block;
-          color: #ff0000;
-          animation: colorWave 3s linear infinite;
-          animation-fill-mode: both;
-        }
-
-        .page-description {
-          font-size: 1.125rem;
-          color: var(--text-color);
-          max-width: 600px;
-          margin: 0 auto;
-        }
-
-        @keyframes fadeSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes colorWave {
-          0% {
-            color: #ff0000; /* red */
-          }
-          25% {
-            color: #0000ff; /* blue */
-          }
-          50% {
-            color: #00ff00; /* green */
-          }
-          75% {
-            color: #ff00ff; /* magenta */
-          }
-          100% {
-            color: #ff0000; /* back to red */
+          .page-stats {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
