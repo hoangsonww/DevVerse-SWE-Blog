@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
       toast.error(error.message, { theme: "colored" });
     } else {
       toast.success("Signed in successfully!", { theme: "colored" });
-      router.push("/");
+      router.push("/home");
     }
     setLoading(false);
   };

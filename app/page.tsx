@@ -1,49 +1,26 @@
-import HomePageContent from "@/components/HomePageContent";
-import BackToTopButton from "@/components/BackToTopButton";
+import LandingPage from "@/components/LandingPage";
 import { getAllPosts } from "@/lib/rss";
+import { Space_Grotesk, Sora } from "next/font/google";
 
-export const revalidate = 60; // Enable ISR: regenerate this page every 60 seconds
+export const revalidate = 60;
 
-interface Article {
-  slug: string;
-  title: string;
-  description?: string;
-  topics: string[];
-  readingMinutes?: number;
-  excerpt?: string;
-}
+const headingFont = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
 
-/**
- * Homepage, enhanced with SSG to fetch articles at build time. Helps with SEO.
- */
-async function getArticles(): Promise<Article[]> {
+const bodyFont = Sora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+export default async function Landing() {
   const posts = await getAllPosts();
-  const articles = posts.map((p) => ({
-    slug: p.slug,
-    title: p.title,
-    description: p.description,
-    topics: p.topics,
-    readingMinutes: p.readingMinutes,
-    excerpt: p.excerpt,
-  }));
-  // Sort alphabetically by title (case-insensitive)
-  articles.sort((a, b) =>
-    a.title.localeCompare(b.title, undefined, {
-      sensitivity: "base",
-      numeric: true,
-    }),
-  );
-  return articles;
-}
-
-export default async function HomePage() {
-  // Fetch articles at build time (or during revalidation)
-  const articles = await getArticles();
-
   return (
-    <>
-      <HomePageContent articles={articles} />
-      <BackToTopButton />
-    </>
+    <LandingPage
+      articleCount={posts.length}
+      bodyFontClassName={bodyFont.className}
+      headingFontClassName={headingFont.className}
+    />
   );
 }

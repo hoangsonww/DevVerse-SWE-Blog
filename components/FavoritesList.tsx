@@ -251,7 +251,7 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
         <p className="no-favorites-message">You have no favorite articles.</p>
       ) : filteredFavorites.length > 0 ? (
         <div className="articles-list-wrapper">
-          <ArticlesList articles={filteredFavorites} />
+          <ArticlesList articles={filteredFavorites} showSearch={false} />
         </div>
       ) : (
         <p className="no-favorites-message">

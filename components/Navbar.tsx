@@ -26,7 +26,8 @@ function formatSegment(segment: string): string {
 export default function Navbar() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
-  const isHomePage = segments.length === 0;
+  const isLandingPage = segments.length === 0;
+  const isHomePage = isLandingPage || segments[0] === "home";
   const { darkMode, setDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -43,11 +44,33 @@ export default function Navbar() {
 
   let breadcrumb: React.ReactNode;
 
-  if (isHomePage) {
+  if (isLandingPage) {
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
         <FiHome />
         <span>Home</span>
+      </span>
+    );
+  } else if (segments[0] === "home") {
+    breadcrumb = (
+      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <Link
+          href="/"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiHome />
+          <span>Home</span>
+        </Link>
+        <FiChevronRight />
+        <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          <FiBook />
+          <span>Articles</span>
+        </span>
       </span>
     );
   } else if (segments[0] === "articles") {
@@ -68,7 +91,7 @@ export default function Navbar() {
           </Link>
           <FiChevronRight />
           <Link
-            href="/"
+            href="/home"
             style={{
               color: "var(--link-color)",
               display: "flex",
@@ -98,7 +121,7 @@ export default function Navbar() {
           </Link>
           <FiChevronRight />
           <Link
-            href="/"
+            href="/home"
             style={{
               color: "var(--link-color)",
               display: "flex",
