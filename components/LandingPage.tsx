@@ -204,6 +204,8 @@ export default function LandingPage({
   bodyFontClassName,
   headingFontClassName,
 }: LandingPageProps) {
+  const year = new Date().getFullYear();
+
   return (
     <div className={`${bodyFontClassName} landing-shell`}>
       <div className="landing-atmosphere" aria-hidden="true">
@@ -682,6 +684,63 @@ export default function LandingPage({
             </div>
           </div>
         </motion.section>
+
+        <footer className="landing-footer">
+          <div className="landing-footer-top">
+            <div className="landing-footer-brand">
+              <div className={`${headingFontClassName} landing-footer-title`}>
+                DevVerse
+              </div>
+              <p className="landing-footer-tagline">
+                Editorial-grade computer science briefings for engineers who
+                ship production systems.
+              </p>
+              <div className="landing-footer-badges">
+                <span>Updated weekly</span>
+                <span>RAG powered</span>
+                <span>Open source</span>
+              </div>
+            </div>
+
+            <div className="landing-footer-links">
+              <span className="landing-footer-label">Explore</span>
+              <Link href="/home">Library</Link>
+              <Link href="/chat">Chatbot</Link>
+              <Link href="/favorites">Favorites</Link>
+            </div>
+
+            <div className="landing-footer-links">
+              <span className="landing-footer-label">Resources</span>
+              <a href="/api/rss">RSS Feed</a>
+              <a href="/api/atom">Atom Feed</a>
+              <a href="/feed.json">JSON Feed</a>
+              <a
+                href="https://github.com/hoangsonww/DevVerse-SWE-Blog"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
+            </div>
+
+            <div className="landing-footer-cta">
+              <span className="landing-footer-label">Start learning</span>
+              <Link className="footer-cta primary" href="/home">
+                Enter the library
+              </Link>
+              <Link className="footer-cta secondary" href="/chat">
+                Ask a question
+              </Link>
+            </div>
+          </div>
+
+          <div className="landing-footer-bottom">
+            <span>Copyright {year} DevVerse CS Blog.</span>
+            <span className="landing-footer-meta">
+              Built in public by Son (David) Nguyen.
+            </span>
+          </div>
+        </footer>
       </div>
     </div>
   );

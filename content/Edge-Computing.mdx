@@ -1,0 +1,182 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "Edge Computing: Designing Low-Latency Systems at the Network Edge",
+  description:
+    "Learn how to design edge-first architectures, balance data placement, and deliver low-latency experiences across distributed regions.",
+  topics: [
+    "Distributed Systems",
+    "Cloud Computing",
+    "Networking",
+    "Performance",
+  ],
+};
+
+export default function EdgeComputingArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# Edge Computing: Designing Low-Latency Systems at the Network Edge
+
+### Author: Son Nguyen
+
+> Date: 2024-11-02
+
+Edge computing brings computation closer to users by moving logic, storage, and caching to regional or on-device locations. It can reduce latency, improve resiliency, and unlock new real-time experiences. This guide covers the architectural decisions and tradeoffs that make edge systems succeed.
+
+---
+
+## 1. Edge versus centralized cloud
+
+Centralized clouds optimize for scale and operational simplicity. Edge systems optimize for:
+
+- **Lower latency** by reducing physical distance.
+- **Local resiliency** when connectivity is degraded.
+- **Data sovereignty** by keeping sensitive data in-region.
+
+The right model depends on latency budgets, data compliance, and operational maturity.
+
+---
+
+## 2. Core building blocks
+
+A typical edge stack includes:
+
+- **Global routing** (Anycast, DNS-based routing, or global load balancers).
+- **Edge compute** (serverless edge functions, lightweight containers).
+- **Regional caches** for static and dynamic content.
+- **Control plane** for configuration, rollout, and telemetry.
+
+Treat the edge as a tier, not a replacement, for your core platform.
+
+---
+
+## 3. Edge compute models
+
+Edge compute comes in multiple flavors:
+
+- **CDN edge functions:** fast cold starts, limited execution time.
+- **Regional serverless:** more power, slightly higher latency.
+- **Dedicated edge clusters:** highest control, highest cost.
+
+Choose a model based on runtime limits, data locality, and maintenance overhead.
+
+---
+
+## 4. Data placement strategy
+
+Not all data belongs at the edge. Classify data into:
+
+- **Hot data:** cacheable or quickly recomputed values.
+- **Warm data:** replicated datasets updated in the background.
+- **Cold data:** centralized, strongly consistent sources of truth.
+
+Use TTLs, change feeds, and streaming replication to balance freshness and cost.
+
+---
+
+## 5. Consistency and conflict handling
+
+Edge environments are inherently distributed. Plan for:
+
+- Eventual consistency when replicating mutable state.
+- Conflict resolution strategies (last-write-wins, CRDTs, or application rules).
+- Read-repair and backfill pipelines for late updates.
+
+Design user experiences that tolerate slight delays when consistency is relaxed.
+
+---
+
+## 6. Routing and latency budgets
+
+Routing decisions determine perceived performance:
+
+- Send read-heavy traffic to the nearest PoP.
+- Route write-heavy traffic to centralized services.
+- Split reads and writes when consistency is required.
+
+Define explicit latency budgets per request so teams can validate whether the edge is actually helping.
+
+---
+
+## 7. Observability at the edge
+
+Distributed footprints require strong telemetry. Focus on:
+
+- **Latency percentiles** per region and per edge PoP.
+- **Cache hit ratios** and origin fetch rates.
+- **Error budgets** for edge-specific failures.
+- **Replayable logs** for debugging region-specific issues.
+
+Instrument every edge function with consistent trace IDs.
+
+---
+
+## 8. Security and compliance
+
+Edge deployments expand your attack surface. Protect them with:
+
+- Mutual TLS between edge and core services.
+- Signed configuration bundles and immutability guarantees.
+- Local data minimization and regional access controls.
+
+Treat edge nodes as semi-trusted and design for rapid revocation.
+
+---
+
+## 9. Cost modeling
+
+Edge traffic can be expensive without governance. Watch for:
+
+- Per-request pricing on edge runtimes.
+- Data egress fees from regional caches.
+- Over-replication of warm datasets.
+
+Track cost per region and build budgets into product planning.
+
+---
+
+## 10. Failure modes and fallbacks
+
+Edge systems need explicit fallback paths:
+
+- If edge compute fails, route to centralized services.
+- If a region is degraded, fail over to a nearby PoP.
+- If data is stale, show cached content with freshness indicators.
+
+Failover playbooks should be tested just like database failovers.
+
+---
+
+## 11. Deployment and rollout strategy
+
+Shipping to the edge requires careful rollouts:
+
+- Canary by region or traffic segment.
+- Use feature flags for progressive exposure.
+- Build a rapid rollback path to centralized services.
+
+Treat edge rollouts like multi-region deployments, because they are.
+
+---
+
+## 12. Use cases that benefit most
+
+Edge-first architectures shine when:
+
+- Interactive experiences need sub-50ms latency.
+- IoT devices require local processing when offline.
+- Media processing, personalization, and A/B tests must be regional.
+- Compliance requires data residency guarantees.
+
+---
+
+## 13. Delivery checklist
+
+- Define latency budgets and regional SLAs early.
+- Separate stateless edge logic from stateful core services.
+- Build a rollout mechanism with canaries per region.
+- Track edge costs by function, region, and traffic class.
+- Plan for fallback to centralized services when the edge fails.
+
+Edge computing is powerful when paired with clear data boundaries, resilient control planes, and rigorous observability.

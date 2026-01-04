@@ -1,0 +1,179 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "Database Index Design: From Theory to Production Performance",
+  description:
+    "A detailed guide to choosing and operating database indexes, covering data access patterns, index types, maintenance, and real-world tradeoffs.",
+  topics: ["Databases", "Performance", "System Design", "Backend"],
+};
+
+export default function DatabaseIndexDesignArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# Database Index Design: From Theory to Production Performance
+
+### Author: Son Nguyen
+
+> Date: 2024-12-05
+
+Indexes are the main lever for speeding up database queries, but they also add write overhead, storage cost, and operational complexity. This article explains how to choose and maintain indexes based on real production workloads.
+
+---
+
+## 1. Start with access patterns
+
+Indexes should be derived from how the application actually queries data:
+
+- Identify the top queries by latency and frequency.
+- Map filtering predicates, join keys, and sort clauses.
+- Separate read-heavy endpoints from write-heavy workflows.
+
+Treat indexes as an optimization for specific queries, not a general-purpose boost.
+
+---
+
+## 2. Cardinality, selectivity, and data distribution
+
+Index effectiveness depends on data distribution:
+
+- **High cardinality** columns (user IDs) are great index keys.
+- **Low cardinality** columns (boolean flags) often do not help.
+- **Skewed distributions** can make some indexes unreliable.
+
+Use query plans and statistics to validate selectivity before adding indexes.
+
+---
+
+## 3. B-tree indexes and when they shine
+
+B-trees are the default for most relational databases because they support:
+
+- Equality lookups (`WHERE id = ...`).
+- Range scans (`WHERE created_at >= ...`).
+- Ordered results (`ORDER BY created_at DESC`).
+
+B-trees work best when queries align with the index order and avoid skipping large ranges.
+
+---
+
+## 4. Composite indexes: order matters
+
+Composite indexes are powerful but easy to misuse. The left-most prefix rule means:
+
+- `INDEX (account_id, created_at)` helps queries that filter by `account_id`.
+- It does **not** help queries that only filter by `created_at`.
+- Ordering can support `ORDER BY` if it matches the index direction.
+
+Design composite indexes around the most selective predicates first, then the sort key.
+
+---
+
+## 5. Covering indexes and index-only scans
+
+A covering index stores all columns needed by a query, allowing the database to avoid reading the base table. This can reduce IO dramatically.
+
+Use covering indexes when:
+
+- The query is read-heavy and latency-sensitive.
+- The result set is narrow (few columns).
+- You can afford additional index storage.
+
+Be cautious of over-indexing columns that change frequently.
+
+---
+
+## 6. Partial and filtered indexes
+
+Partial indexes target only a subset of rows:
+
+- Index only `status = 'active'` to reduce size.
+- Use filtered indexes for archival tables.
+- Combine with partitioning for large datasets.
+
+Partial indexes are powerful when access patterns focus on a small slice of data.
+
+---
+
+## 7. Specialized index types
+
+Different workloads benefit from specialized indexes:
+
+- **Hash indexes:** fast equality lookups, weak for ranges.
+- **GIN/GiST (Postgres):** full-text search, JSONB, and spatial data.
+- **Bitmap indexes:** common in analytical systems for low-cardinality columns.
+
+Choose a specialized index only when the query planner is consistently bottlenecked.
+
+---
+
+## 8. Indexes for joins and foreign keys
+
+Join performance depends on index alignment:
+
+- Index foreign keys used in joins.
+- Match index order to the join predicate.
+- Avoid unnecessary composite indexes when a single-column index is enough.
+
+Join-related indexes often provide the biggest wins for relational workloads.
+
+---
+
+## 9. Write amplification and maintenance
+
+Every index adds work on inserts, updates, and deletes:
+
+- High-cardinality indexes slow down bulk writes.
+- Hot tables with many indexes can become write-bound.
+- Autovacuum and index reindexing matter for long-lived tables.
+
+Use write-heavy benchmarks to validate index impact before deploying to production.
+
+---
+
+## 10. Measuring effectiveness
+
+Index performance should be validated using:
+
+- Query plans (`EXPLAIN`, `EXPLAIN ANALYZE`).
+- Index hit ratios and buffer cache stats.
+- Slow query logs and p95 latency tracking.
+
+If the planner ignores an index, it is likely not selective enough or the query shape is wrong.
+
+---
+
+## 11. Index lifecycle and governance
+
+Indexes require lifecycle management:
+
+- Add indexes via controlled migrations with backfill windows.
+- Monitor index usage; drop unused indexes after verification.
+- Document index intent so future teams understand why it exists.
+
+Treat indexes as product assets with owners and SLOs.
+
+---
+
+## 12. Common pitfalls
+
+Avoid common mistakes:
+
+- Indexing low-selectivity columns (status flags, booleans).
+- Creating redundant indexes that overlap or compete.
+- Ignoring index bloat and fragmentation.
+- Using indexes to mask inefficient query patterns.
+
+Indexes should reinforce good query design, not hide bad queries.
+
+---
+
+## 13. Practical checklist
+
+- Build indexes from the highest-cost queries.
+- Use composite indexes for multi-column predicates.
+- Avoid indexing columns with low selectivity.
+- Validate with real data and realistic concurrency.
+- Revisit index strategy after product or traffic shifts.
+
+Thoughtful index design turns database performance from guesswork into a measurable, repeatable process.
