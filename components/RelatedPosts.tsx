@@ -14,14 +14,7 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
   if (!posts || posts.length === 0) return null;
 
   return (
-    <section
-      aria-labelledby="related-posts-title"
-      style={{
-        marginTop: "2.5rem",
-        paddingTop: "1.5rem",
-        borderTop: "1px solid var(--border-color, #eaeaea)",
-      }}
-    >
+    <section aria-labelledby="related-posts-title" className="related-posts">
       <h2
         id="related-posts-title"
         style={{ marginBottom: "1rem", fontSize: "2rem" }}
@@ -48,10 +41,26 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
         ))}
       </div>
       <style jsx>{`
+        .related-posts {
+          margin-top: 2.5rem;
+          padding: 1.5rem 2rem 0;
+          border-top: 1px solid var(--border-color, #eaeaea);
+          max-width: 800px;
+          width: 100%;
+          margin-left: auto;
+          margin-right: auto;
+          box-sizing: border-box;
+        }
         .article-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 1.5rem;
+        }
+        @media (max-width: 640px) {
+          .related-posts {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+          }
         }
         @media (max-width: 640px) {
           .article-grid {

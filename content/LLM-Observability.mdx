@@ -1,0 +1,166 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "Observability for LLM Applications: Tracing, Evaluation, and Safety",
+  description:
+    "A practical observability playbook for LLM systems, covering tracing, metrics, evaluation pipelines, and safety guardrails.",
+  topics: ["AI", "Machine Learning", "MLOps", "Observability"],
+};
+
+export default function LLMObservabilityArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# Observability for LLM Applications: Tracing, Evaluation, and Safety
+
+### Author: Son Nguyen
+
+> Date: 2024-11-20
+
+LLM applications are probabilistic systems that blend prompts, retrieval, tools, and model outputs. Traditional observability is necessary but not sufficient. You need visibility into quality, cost, and safety to ship reliable AI experiences. This guide outlines the signals and workflows that keep LLM systems healthy.
+
+---
+
+## 1. The key signals to track
+
+Beyond uptime, LLM systems need product and model signals:
+
+- **Latency:** end-to-end and per tool call.
+- **Cost:** token usage, model mix, and retrieval overhead.
+- **Quality:** human ratings, automated evals, task success.
+- **Safety:** hallucination rate, policy violations, and refusal accuracy.
+
+Define service-level objectives for each category so failures are measurable.
+
+---
+
+## 2. Structured tracing for prompts
+
+You need traces that capture every step:
+
+- Prompt template version.
+- System instructions and tool calls.
+- Retrieval context (documents, scores, filters).
+- Model response and post-processing steps.
+
+Store this data with consistent trace IDs so you can reconstruct failures quickly.
+
+---
+
+## 3. Evaluation pipelines
+
+Automated evaluation is critical for regression detection:
+
+- Maintain a curated set of prompts and expected outcomes.
+- Run evaluations in CI for prompt changes.
+- Use LLM-as-judge with calibrated grading rubrics.
+
+Track evaluation scores over time, not just pass/fail thresholds.
+
+---
+
+## 4. Safety and policy guardrails
+
+Safety observability requires dedicated metrics:
+
+- Flag and store unsafe outputs for review.
+- Track refusal rates and false positives.
+- Monitor policy rule hits by category.
+
+Pair automated rules with periodic human audits.
+
+---
+
+## 5. Retrieval observability (RAG)
+
+Retrieval quality determines answer quality. Track:
+
+- Recall rates for known queries.
+- Embedding drift and index freshness.
+- Latency per vector search and reranking step.
+
+Store the top-k documents for every request so you can debug relevance gaps.
+
+---
+
+## 6. Data governance and privacy
+
+LLM logs often contain sensitive data. Implement:
+
+- Redaction and hashing of PII fields.
+- Data retention policies with time-based deletion.
+- Access controls and audit logs for prompt traces.
+
+Privacy constraints should be visible in the observability pipeline, not bolted on later.
+
+---
+
+## 7. Feedback loops
+
+Production feedback fuels reliability:
+
+- Collect user ratings and annotate failures.
+- Link feedback to prompt versions and model configs.
+- Prioritize fixes based on severity and volume.
+
+An efficient feedback loop shortens the gap between insight and improvement.
+
+---
+
+## 8. Cost and performance optimization
+
+Instrumentation should help control spend:
+
+- Alert on token spikes by route or user tier.
+- Cache retrieval results for repeat queries.
+- Route lightweight queries to smaller models.
+
+Use cost dashboards to balance quality and budget.
+
+---
+
+## 9. Drift detection and model monitoring
+
+Model behavior changes with fine-tunes, updates, or new data. Detect drift by:
+
+- Monitoring score changes on evaluation sets.
+- Sampling real user prompts for periodic re-grading.
+- Tracking changes in refusal or hallucination rates.
+
+Drift alerts help prevent silent regressions.
+
+---
+
+## 10. Runbooks and incident response
+
+LLM incidents look different from traditional outages. Prepare for:
+
+- Prompt regressions that degrade quality without errors.
+- Retrieval index drift or stale embeddings.
+- Safety policy changes that alter refusal behavior.
+
+Write runbooks that include evaluation rollbacks and model routing switches.
+
+---
+
+## 11. Governance and model versioning
+
+Large teams need a clear model governance process:
+
+- Track prompt, model, and tool versions as deployable artifacts.
+- Gate changes behind evaluation thresholds.
+- Store full provenance so you can reproduce outputs later.
+
+Model governance is what keeps observability data actionable.
+
+---
+
+## 12. Implementation checklist
+
+- Log prompt versions, retrieval context, and tool calls.
+- Set quality and safety SLOs with alerting.
+- Run evaluations for every prompt or model change.
+- Review unsafe outputs on a regular cadence.
+- Track cost per request and per feature.
+
+Strong observability transforms LLM apps from experiments into reliable products.

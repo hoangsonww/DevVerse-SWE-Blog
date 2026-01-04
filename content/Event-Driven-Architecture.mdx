@@ -1,0 +1,191 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "Event-Driven Architecture: Building Resilient, Scalable Systems",
+  description:
+    "A practical guide to event-driven architecture, covering core concepts, delivery guarantees, topology patterns, and operational best practices.",
+  topics: ["System Design", "Distributed Systems", "Architecture", "Backend"],
+};
+
+export default function EventDrivenArchitectureArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# Event-Driven Architecture: Building Resilient, Scalable Systems
+
+### Author: Son Nguyen
+
+> Date: 2024-10-18
+
+Event-driven architecture (EDA) lets systems communicate through immutable events rather than direct requests. This shift enables looser coupling, better scalability, and more resilient workflows, but it also introduces new operational and data consistency challenges. This article breaks down the building blocks, design decisions, and the operational guardrails that make EDA successful in production.
+
+---
+
+## 1. Core concepts
+
+EDA revolves around a few fundamental pieces:
+
+- **Event producers** emit events when something meaningful occurs.
+- **Event brokers** route and buffer events (Kafka, Pulsar, SNS/SQS).
+- **Event consumers** subscribe and react to events asynchronously.
+- **Event payloads** represent facts that already happened.
+
+An event should be immutable, timestamped, and easy to reason about without requiring side-channel state. Think of events as historical records, not commands.
+
+---
+
+## 2. Event modeling and domain boundaries
+
+Well-modeled events mirror domain reality:
+
+- Use business verbs and nouns: `billing.invoice_paid`, `identity.user_verified`.
+- Avoid imperative naming like `charge_card`.
+- Include the minimum required fields for downstream consumers.
+
+Keep domain boundaries explicit. Avoid one mega-topic that mixes unrelated events, which makes governance, access control, and ownership ambiguous.
+
+---
+
+## 3. Delivery semantics and idempotency
+
+Your system behavior depends on how reliably events are delivered:
+
+- **At-most-once:** Lowest latency, but events can be dropped.
+- **At-least-once:** Events may be duplicated; consumers must be idempotent.
+- **Exactly-once:** Hard to achieve end-to-end and typically limited to a platform boundary.
+
+In practice, build consumers that tolerate duplicates and out-of-order delivery using idempotency keys, deduplication tables, and natural idempotency (same input produces the same output).
+
+---
+
+## 4. Topology patterns
+
+Common EDA patterns include:
+
+- **Publish/subscribe:** Multiple consumers receive the same event.
+- **Event streams:** Ordered event logs that can be replayed and reprocessed.
+- **CQRS:** Write-side emits events, read-side builds optimized views.
+- **Saga workflows:** Coordinated long-running processes with compensation.
+
+Choose a topology based on the required ordering guarantees and replay needs. If you must support replays and auditing, event streams become the default architecture.
+
+---
+
+## 5. Schema design and versioning
+
+Event payloads are APIs that evolve over time. Use explicit versioning and compatibility rules:
+
+- Define schemas with JSON Schema, Avro, or Protobuf.
+- Use a schema registry to validate producers and consumers.
+- Prefer backward-compatible changes (additive fields) to avoid breaking consumers.
+
+Document the event contract just like you would for REST or GraphQL APIs. Every event should have a canonical definition, ownership, and deprecation policy.
+
+---
+
+## 6. Choosing the right broker
+
+The broker defines your reliability and operational model:
+
+- **Kafka/Pulsar:** High throughput, ordering, replay, and long retention.
+- **SNS/SQS or Pub/Sub:** Managed, simpler operations, weaker ordering.
+- **NATS:** Low latency, lightweight, often for internal messaging.
+
+Select based on throughput, ordering requirements, operational maturity, and cost tolerance.
+
+---
+
+## 7. The outbox pattern and atomicity
+
+A common failure mode is the "double write" problem: writing to the database and emitting an event separately. Fix this with the outbox pattern:
+
+- Write the event and business data in one local transaction.
+- A background worker publishes the event from the outbox table.
+- Consumers treat events as authoritative facts.
+
+This pattern makes event emission reliable without distributed transactions.
+
+---
+
+## 8. Ordering guarantees and partitioning
+
+Event ordering is local to partitions or topics. When strict ordering matters:
+
+- Partition by a stable key (user ID, account ID).
+- Avoid cross-aggregate transactions.
+- Use compensating actions when consistency windows are acceptable.
+
+For many systems, eventual consistency plus strong monitoring is a pragmatic tradeoff.
+
+---
+
+## 9. Backpressure and flow control
+
+EDA pipelines can overwhelm consumers if left unchecked. Mitigate by:
+
+- Applying broker-level retention and quota limits.
+- Setting consumer concurrency caps.
+- Using rate-limited retries and circuit breakers.
+
+Backpressure must be treated as a first-class feature, not a last-minute fix.
+
+---
+
+## 10. Error handling and retries
+
+Define explicit failure paths:
+
+- **Transient failures:** retry with exponential backoff and jitter.
+- **Poison messages:** route to a dead-letter queue (DLQ).
+- **Permanent errors:** store for manual inspection and replay.
+
+Every consumer should report retry counts and DLQ volumes to centralized monitoring.
+
+---
+
+## 11. Observability and traceability
+
+Asynchronous systems can fail quietly without strong observability. Prioritize:
+
+- **Tracing:** Correlate events across services with trace IDs.
+- **Metrics:** Lag, throughput, retry counts, DLQ size.
+- **Replay tooling:** Reprocess events after fixes without data loss.
+
+Observability must cover the entire event lifecycle, from production to consumption.
+
+---
+
+## 12. Testing and validation
+
+EDA testing should mirror production realities:
+
+- Contract tests for event schemas.
+- Replay tests with real production samples.
+- Chaos tests to validate retry and DLQ behavior.
+
+Testing is the difference between theoretical reliability and real resilience.
+
+---
+
+## 13. When EDA is the right fit
+
+EDA works best when:
+
+- Services need to scale independently.
+- Multiple teams consume the same domain signals.
+- You want replayability for analytics, ML training, or audits.
+- Latency requirements tolerate asynchronous processing.
+
+For tight request-response workflows, a synchronous API may still be simpler.
+
+---
+
+## 14. Implementation checklist
+
+- Define event naming conventions and schemas early.
+- Enforce idempotency in every consumer.
+- Provide dashboards for lag, retry counts, and DLQ volume.
+- Build runbooks for replaying and backfilling.
+- Treat events as durable facts, not commands.
+
+Event-driven architecture unlocks powerful decoupling and scalability, but it succeeds only when reliability and observability are first-class concerns.

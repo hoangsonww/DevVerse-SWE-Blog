@@ -1,0 +1,152 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "Zero Trust Security: Designing Systems That Assume Breach",
+  description:
+    "An in-depth overview of zero trust security, covering identity, network segmentation, device posture, and implementation strategy.",
+  topics: ["Security", "Architecture", "System Design", "Infrastructure"],
+};
+
+export default function ZeroTrustSecurityArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# Zero Trust Security: Designing Systems That Assume Breach
+
+### Author: Son Nguyen
+
+> Date: 2024-12-20
+
+Zero trust is a security model that assumes no implicit trust between users, devices, or networks. Every request is continuously verified based on identity, context, and policy. This article explains the components of zero trust and how to implement it without stopping delivery velocity.
+
+---
+
+## 1. Core principles
+
+Zero trust rests on three principles:
+
+- **Verify explicitly:** Authenticate and authorize every request.
+- **Use least privilege:** Limit access to only what is required.
+- **Assume breach:** Design for lateral movement resistance.
+
+These principles shift security from perimeter defense to continuous verification.
+
+---
+
+## 2. Identity as the control plane
+
+Identity replaces the network as the primary control point:
+
+- Centralized identity providers (IdP) for users and services.
+- Short-lived credentials and automatic rotation.
+- Conditional access policies based on user role, device health, and location.
+
+Every service should validate identity and policy before granting access.
+
+---
+
+## 3. Network segmentation and micro-perimeters
+
+Segment the network to reduce blast radius:
+
+- Separate critical workloads into isolated zones.
+- Use service meshes with mutual TLS for east-west traffic.
+- Enforce explicit allowlists instead of broad network trust.
+
+Segmentation limits how far an attacker can move if a system is compromised.
+
+---
+
+## 4. Device posture and endpoint trust
+
+Endpoints are a common weak link. Strengthen them with:
+
+- Device compliance checks (OS version, disk encryption, EDR).
+- Certificate-based authentication for managed devices.
+- Just-in-time access for privileged actions.
+
+Access decisions should be denied if device posture is unknown or risky.
+
+---
+
+## 5. Data protection and encryption
+
+Data is the ultimate asset. Protect it by:
+
+- Encrypting data in transit and at rest.
+- Using field-level encryption for sensitive attributes.
+- Applying data loss prevention (DLP) and exfiltration monitoring.
+
+Plan for both accidental leaks and malicious exfiltration.
+
+---
+
+## 6. Policy engines and access brokers
+
+Zero trust relies on policy enforcement points:
+
+- Central policy engines evaluate identity, device, and context.
+- Access proxies enforce decisions at every request.
+- Policies should be versioned, tested, and auditable.
+
+A strong policy layer prevents ad-hoc exceptions from becoming vulnerabilities.
+
+---
+
+## 7. Service-to-service authentication
+
+Internal traffic needs the same scrutiny as external access:
+
+- Use mutual TLS and service identities.
+- Rotate credentials automatically.
+- Enforce least-privilege service roles.
+
+Service-to-service identity prevents attackers from moving laterally after a breach.
+
+---
+
+## 8. Logging, monitoring, and response
+
+Zero trust depends on continuous visibility:
+
+- Centralize audit logs for every access decision.
+- Alert on anomalous access patterns.
+- Build response workflows for policy violations.
+
+Monitoring makes policy enforcement measurable and improvable.
+
+---
+
+## 9. Migration strategy
+
+Zero trust is a journey, not a single project:
+
+- Start with high-risk systems and privileged access paths.
+- Inventory critical services and map trust relationships.
+- Roll out policies incrementally with monitoring and rollback plans.
+
+Adopt a phased approach to avoid blocking core business workflows.
+
+---
+
+## 10. Common pitfalls
+
+Watch out for:
+
+- Overly strict policies that break developer productivity.
+- Shadow access paths that bypass the identity layer.
+- Weak service-to-service authentication.
+
+Zero trust only works when it is enforced consistently.
+
+---
+
+## 11. Implementation checklist
+
+- Centralize identity and enforce MFA.
+- Require mutual TLS for service traffic.
+- Implement device posture checks.
+- Log and audit every access decision.
+- Review policies regularly and tune for usability.
+
+Zero trust shifts security from a perimeter mindset to continuous, identity-driven control. Done well, it reduces breach impact while keeping systems usable.

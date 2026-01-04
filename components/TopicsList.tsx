@@ -33,16 +33,17 @@ export default function TopicsList({ topics }: TopicsListProps) {
 
       <style jsx>{`
         .topics-wrapper {
-          max-width: 700px;
-          width: auto;
+          max-width: 800px;
+          width: 100%;
           margin: 1rem auto;
-          padding: 1rem;
+          padding: 2rem;
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 1rem;
           border: 2px solid var(--border-color);
           border-radius: 12px;
+          box-sizing: border-box;
         }
 
         .topics-heading {

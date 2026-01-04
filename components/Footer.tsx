@@ -1,20 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { FaRss } from "react-icons/fa";
 import { BiAtom } from "react-icons/bi";
 import { VscJson } from "react-icons/vsc";
 
 export default function Footer() {
+  const pathname = usePathname();
   const [year, setYear] = useState("");
   const [mounted, setMounted] = useState(false);
+  const isLanding = pathname === "/";
 
   useEffect(() => {
     setYear(new Date().getFullYear().toString());
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted || isLanding) return null;
 
   return (
     <footer

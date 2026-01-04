@@ -1,0 +1,167 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "SRE Incident Response: A Playbook for High-Stakes Outages",
+  description:
+    "A step-by-step incident response guide for SRE teams, covering roles, communications, mitigation strategies, and postmortems.",
+  topics: ["SRE", "Reliability", "Operations", "System Design"],
+};
+
+export default function SREIncidentResponseArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# SRE Incident Response: A Playbook for High-Stakes Outages
+
+### Author: Son Nguyen
+
+> Date: 2024-12-12
+
+Incident response is a performance sport. When systems fail, teams need structure, clarity, and a common operating model. This playbook outlines how to detect incidents early, coordinate during mitigation, and learn effectively afterward.
+
+---
+
+## 1. Define incident severity levels
+
+Severity levels help teams prioritize:
+
+- **SEV-1:** Customer-impacting outage or security incident.
+- **SEV-2:** Major degradation with limited blast radius.
+- **SEV-3:** Partial impact or degraded performance with workarounds.
+- **SEV-4:** Minor issues tracked for later fixes.
+
+Define who can declare an incident and how escalation works.
+
+---
+
+## 2. Establish incident roles
+
+Clear roles prevent confusion:
+
+- **Incident Commander (IC):** Owns coordination and decision flow.
+- **Operations Lead:** Executes mitigation and system changes.
+- **Comms Lead:** Updates stakeholders and customer channels.
+- **Scribe:** Captures timeline and key decisions.
+
+Roles can rotate, but responsibilities must be explicit.
+
+---
+
+## 3. Detect and verify quickly
+
+Fast verification avoids false alarms:
+
+- Confirm metrics and alert sources.
+- Check user reports and support tickets.
+- Validate the current deployment or change window.
+
+If in doubt, treat it as real until proven otherwise.
+
+---
+
+## 4. Stabilize the system
+
+Focus on restoring service, not finding root cause:
+
+- Roll back the last risky change.
+- Shed load or disable non-critical features.
+- Shift traffic to healthy regions or read replicas.
+
+Keep mitigation steps reversible when possible.
+
+---
+
+## 5. Communicate clearly
+
+Communication is part of the incident response:
+
+- Set a regular update cadence (every 15 to 30 minutes).
+- Separate internal chatter from external status updates.
+- Use plain language for customers and exec stakeholders.
+
+Trust is built by predictable updates, even when the news is bad.
+
+---
+
+## 6. Track the timeline
+
+A good timeline powers good postmortems:
+
+- Log every change, alert, and decision.
+- Capture timestamps for mitigation actions.
+- Note when customer impact started and ended.
+
+Use a shared incident doc so the team has one source of truth.
+
+---
+
+## 7. Mitigation decision patterns
+
+Useful decision patterns during outages include:
+
+- **Rollback-first:** revert changes before deep diagnosis.
+- **Feature isolation:** disable non-critical features that share dependencies.
+- **Capacity rebalancing:** reroute traffic to reduce pressure on hot services.
+
+Agree on a default approach before the incident happens.
+
+---
+
+## 8. Verification and recovery
+
+After mitigation, confirm recovery:
+
+- Validate core user journeys manually.
+- Watch error rates and latency for at least one full release interval.
+- Ensure downstream systems catch up after backlogs.
+
+Recovery is not complete until system health is stable and backlogs are cleared.
+
+---
+
+## 9. Post-incident review
+
+Postmortems should be blameless and actionable:
+
+- Summarize impact, duration, and customer symptoms.
+- Explain root cause and contributing factors.
+- Identify detection gaps and response friction.
+
+Every incident should produce corrective and preventive actions.
+
+---
+
+## 10. Hardening the system
+
+Follow-up work is where reliability improves:
+
+- Add alerts for missed signals.
+- Improve runbooks and automated rollbacks.
+- Test failure scenarios with game days and chaos drills.
+
+Resilience is built by systematic reinforcement, not heroics.
+
+---
+
+## 11. Incident response metrics
+
+Measure maturity by tracking:
+
+- Mean time to detect (MTTD).
+- Mean time to mitigate (MTTM).
+- Mean time to resolve (MTTR).
+- Incident recurrence rates.
+
+Metrics reveal whether your process is improving over time.
+
+---
+
+## 12. Incident response checklist
+
+- Declare severity and assign roles.
+- Mitigate quickly, prioritize customer impact.
+- Communicate on a fixed cadence.
+- Capture the timeline while events happen.
+- Write a postmortem with follow-up owners.
+
+Strong incident response practices keep outages short, stakeholders informed, and teams learning forward.
