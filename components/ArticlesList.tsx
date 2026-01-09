@@ -272,6 +272,7 @@ export default function ArticlesList({
 
   const [carouselPage, setCarouselPage] = useState(0);
   const [carouselPageSize, setCarouselPageSize] = useState(3);
+  const [carouselInteractionKey, setCarouselInteractionKey] = useState(0);
 
   useEffect(() => {
     if (!showCarousel) return;
@@ -394,7 +395,7 @@ export default function ArticlesList({
     }, 3000);
 
     return () => window.clearInterval(intervalId);
-  }, [showCarousel, totalCarouselPages]);
+  }, [showCarousel, totalCarouselPages, carouselInteractionKey]);
 
   const carouselKicker = hasVisitHistory ? "Recommended" : "Quick browse";
   const carouselTitle = hasVisitHistory
@@ -496,22 +497,36 @@ export default function ArticlesList({
               <button
                 type="button"
                 className="carousel-btn"
-                onClick={() => setCarouselPage((prev) => Math.max(prev - 1, 0))}
+                onClick={() => {
+                  setCarouselPage((prev) =>
+                    totalCarouselPages === 0
+                      ? 0
+                      : prev === 0
+                        ? totalCarouselPages - 1
+                        : prev - 1,
+                  );
+                  setCarouselInteractionKey((prev) => prev + 1);
+                }}
                 aria-label="Previous articles"
-                disabled={carouselPage === 0}
+                disabled={totalCarouselPages === 0}
               >
                 <FaChevronLeft aria-hidden="true" />
               </button>
               <button
                 type="button"
                 className="carousel-btn"
-                onClick={() =>
+                onClick={() => {
                   setCarouselPage((prev) =>
-                    Math.min(prev + 1, totalCarouselPages - 1),
-                  )
-                }
+                    totalCarouselPages === 0
+                      ? 0
+                      : prev >= totalCarouselPages - 1
+                        ? 0
+                        : prev + 1,
+                  );
+                  setCarouselInteractionKey((prev) => prev + 1);
+                }}
                 aria-label="Next articles"
-                disabled={carouselPage === totalCarouselPages - 1}
+                disabled={totalCarouselPages === 0}
               >
                 <FaChevronRight aria-hidden="true" />
               </button>
@@ -554,7 +569,10 @@ export default function ArticlesList({
                 key={`carousel-dot-${index}`}
                 type="button"
                 className={`carousel-dot ${index === carouselPage ? "active" : ""}`}
-                onClick={() => setCarouselPage(index)}
+                onClick={() => {
+                  setCarouselPage(index);
+                  setCarouselInteractionKey((prev) => prev + 1);
+                }}
                 aria-label={`Go to carousel page ${index + 1}`}
               />
             ))}
@@ -1030,7 +1048,8 @@ export default function ArticlesList({
         }
 
         .carousel-page {
-          min-width: 100%;
+          flex: 0 0 100%;
+          width: 100%;
           display: grid;
           grid-template-columns: repeat(var(--carousel-cols), minmax(0, 1fr));
           gap: 1.5rem;
