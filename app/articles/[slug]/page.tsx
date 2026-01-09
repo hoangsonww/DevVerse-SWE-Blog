@@ -5,6 +5,7 @@ import React from "react";
 import TopicsList from "@/components/TopicsList";
 import TableOfContents from "@/components/TableOfContents";
 import RelatedPosts from "@/components/RelatedPosts";
+import ArticleVisitTracker from "@/components/ArticleVisitTracker";
 import { getRelatedPosts, getAllPosts } from "@/lib/rss";
 import { formatReadingLabel } from "@/utils/calculateReadingTime";
 import "./article.css";
@@ -39,11 +40,13 @@ export default async function ArticlePage({ params }: PageProps) {
   let topics: string[] = [];
   let related: Awaited<ReturnType<typeof getRelatedPosts>> = [];
   let readingMinutes: number | undefined = undefined;
+  let title = slug;
 
   try {
     const mod = await import(`@/content/${slug}.mdx`);
     MDXComponent = mod.default;
     topics = mod.metadata?.topics ?? [];
+    title = mod.metadata?.title ?? slug;
     const all = await getAllPosts();
     const me = all.find((p) => p.slug === slug);
     readingMinutes = me?.readingMinutes;
@@ -85,6 +88,7 @@ export default async function ArticlePage({ params }: PageProps) {
       </article>
       <TableOfContents />
       <FavButton articleSlug={slug} />
+      <ArticleVisitTracker slug={slug} title={title} topics={topics} />
       <BackToTopButton />
     </>
   );
