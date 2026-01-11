@@ -153,6 +153,89 @@ const workflowItems = [
   },
 ];
 
+const coverageItems = [
+  {
+    title: "Core CS foundations",
+    description:
+      "Algorithms, data structures, and performance thinking built for real systems.",
+    topics: ["Algorithms", "Data structures", "Complexity"],
+    fill: "92%",
+    icon: <FiBookOpen />,
+  },
+  {
+    title: "Systems and reliability",
+    description:
+      "Service design, observability, and scalable infrastructure patterns.",
+    topics: ["System design", "SRE", "Observability"],
+    fill: "88%",
+    icon: <FiGitBranch />,
+  },
+  {
+    title: "AI systems and retrieval",
+    description:
+      "RAG pipelines, evaluation, and production AI workflows you can trust.",
+    topics: ["RAG pipelines", "Evaluation", "Safety"],
+    fill: "76%",
+    icon: <FiCpu />,
+  },
+];
+
+const pulseItems = [
+  {
+    status: "Fresh drop",
+    title: "Vector search in production",
+    text: "Benchmarks across HNSW, IVF, and hybrid rerankers.",
+    meta: "12 min read",
+    tag: "AI systems",
+    icon: <FiDatabase />,
+  },
+  {
+    status: "In review",
+    title: "Kubernetes reliability drills",
+    text: "Failure modes, guardrails, and incident response rehearsals.",
+    meta: "Playbook",
+    tag: "Infra",
+    icon: <FiShield />,
+  },
+  {
+    status: "Updated",
+    title: "Latency budgets at scale",
+    text: "SLI math, budget burn alerts, and performance governance.",
+    meta: "Systems",
+    tag: "Performance",
+    icon: <FiTrendingUp />,
+  },
+  {
+    status: "Next up",
+    title: "Event-driven pipelines",
+    text: "Backpressure, retries, and data contract strategies.",
+    meta: "Labs",
+    tag: "Data",
+    icon: <FiLayers />,
+  },
+];
+
+const testimonialItems = [
+  {
+    quote:
+      "DevVerse is the fastest way we align on architecture decisions across teams.",
+    name: "Staff engineer, infrastructure",
+    signal: "Used during design reviews",
+  },
+  {
+    quote:
+      "The RAG chatbot keeps our research grounded with sources we can trust.",
+    name: "Engineering manager, platform",
+    signal: "Shared in weekly learning syncs",
+  },
+  {
+    quote:
+      "We onboard new hires with the curated paths and labs, it saves weeks.",
+    name: "Senior engineer, systems",
+    signal: "Onboarding toolkit",
+  },
+];
+
 const pathItems = [
   {
     title: "Foundations",
@@ -433,6 +516,56 @@ export default function LandingPage({
         </motion.section>
 
         <motion.section
+          className="section coverage-section"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <div className="section-header">
+            <p className="section-eyebrow">Coverage</p>
+            <h2 className={`${headingFontClassName} section-title`}>
+              Depth across the topics that matter most.
+            </h2>
+            <p className="section-subtitle">
+              Each collection is scoped to deliver practical confidence, not
+              surface-level summaries.
+            </p>
+          </div>
+          <motion.div className="coverage-grid" variants={listVariants}>
+            {coverageItems.map((item) => (
+              <motion.article
+                className="coverage-card"
+                key={item.title}
+                variants={cardVariants}
+                whileHover={{ y: -6 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="coverage-header">
+                  <div className="coverage-icon">{item.icon}</div>
+                  <span className="coverage-label">{item.fill} coverage</span>
+                </div>
+                <h3 className={`${headingFontClassName} coverage-title`}>
+                  {item.title}
+                </h3>
+                <p className="coverage-text">{item.description}</p>
+                <div className="coverage-meter">
+                  <span
+                    className="coverage-fill"
+                    style={{ width: item.fill }}
+                  />
+                </div>
+                <div className="coverage-topics">
+                  {item.topics.map((topic) => (
+                    <span key={topic}>{topic}</span>
+                  ))}
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
+        </motion.section>
+
+        <motion.section
           className="section split-section"
           variants={sectionVariants}
           initial="hidden"
@@ -514,6 +647,47 @@ export default function LandingPage({
         </motion.section>
 
         <motion.section
+          className="section pulse-section"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <div className="section-header">
+            <p className="section-eyebrow">Live pulse</p>
+            <h2 className={`${headingFontClassName} section-title`}>
+              What we are shipping right now.
+            </h2>
+            <p className="section-subtitle">
+              Track the latest drops, refreshes, and work in progress across the
+              DevVerse library.
+            </p>
+          </div>
+          <motion.div className="pulse-grid" variants={listVariants}>
+            {pulseItems.map((item) => (
+              <motion.article
+                className="pulse-card"
+                key={item.title}
+                variants={cardVariants}
+              >
+                <div className="pulse-top">
+                  <div className="pulse-icon">{item.icon}</div>
+                  <span className="pulse-status">{item.status}</span>
+                </div>
+                <h3 className={`${headingFontClassName} pulse-title`}>
+                  {item.title}
+                </h3>
+                <p className="pulse-text">{item.text}</p>
+                <div className="pulse-meta">
+                  <span>{item.meta}</span>
+                  <span className="pulse-chip">{item.tag}</span>
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
+        </motion.section>
+
+        <motion.section
           className="section paths-section"
           variants={sectionVariants}
           initial="hidden"
@@ -588,6 +762,42 @@ export default function LandingPage({
               </span>
             ))}
           </div>
+        </motion.section>
+
+        <motion.section
+          className="section community-section"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          id="community"
+        >
+          <div className="section-header">
+            <p className="section-eyebrow">Community</p>
+            <h2 className={`${headingFontClassName} section-title`}>
+              Trusted by teams building critical systems.
+            </h2>
+            <p className="section-subtitle">
+              Engineers use DevVerse to speed up decisions and onboard faster.
+            </p>
+          </div>
+          <motion.div className="testimonial-grid" variants={listVariants}>
+            {testimonialItems.map((item) => (
+              <motion.figure
+                className="testimonial-card"
+                key={item.name}
+                variants={cardVariants}
+              >
+                <blockquote className="testimonial-quote">
+                  &quot;{item.quote}&quot;
+                </blockquote>
+                <figcaption className="testimonial-caption">
+                  <span className="testimonial-name">{item.name}</span>
+                  <span className="testimonial-meta">{item.signal}</span>
+                </figcaption>
+              </motion.figure>
+            ))}
+          </motion.div>
         </motion.section>
 
         <motion.section
