@@ -14,6 +14,7 @@ import {
 import { FaRegStar } from "react-icons/fa";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
 import UserMenu from "./UserMenu";
+import TranslateMenu from "./TranslateMenu";
 import { supabase } from "@/supabase/supabaseClient";
 
 function formatSegment(segment: string): string {
@@ -298,6 +299,7 @@ export default function Navbar() {
               }}
             >
               <UserMenu />
+              <TranslateMenu />
               {user && (
                 <div
                   className="icon-btn favorites-btn"
@@ -330,6 +332,7 @@ export default function Navbar() {
             }}
           >
             <UserMenu />
+            <TranslateMenu />
             {user && (
               <div
                 className="icon-btn"
