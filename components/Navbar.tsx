@@ -229,13 +229,14 @@ export default function Navbar() {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 700px)");
+    const breakpoint = isHomePage ? 750 : 700;
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
 
     setIsMobile(mq.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, []);
+  }, [isHomePage]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -263,8 +264,7 @@ export default function Navbar() {
           borderBottom: "1px solid var(--border-color)",
           display: "flex",
           flexWrap: "wrap",
-          flexDirection:
-            isMobile && isHomePage ? "row" : isMobile ? "column" : "row",
+          flexDirection: isMobile ? "column" : "row",
           alignItems: "center",
           justifyContent: "space-between",
           animation: "fadeDown 0.6s ease forwards",
@@ -276,81 +276,43 @@ export default function Navbar() {
             fontSize: "1.125rem",
             flex: "1 1 auto",
             display: "flex",
-            justifyContent:
-              isMobile && isHomePage
-                ? "flex-start"
-                : isMobile
-                  ? "center"
-                  : "flex-start",
+            justifyContent: isMobile ? "center" : "flex-start",
             width: isMobile ? "100%" : "auto",
-            marginBottom: isMobile && !isHomePage ? "0.5rem" : 0,
+            marginBottom: isMobile ? "0.5rem" : 0,
           }}
         >
           {breadcrumb}
-          {isMobile && isHomePage && (
-            <div
-              className="right-section"
-              style={{
-                display: "flex",
-                gap: "1rem",
-                alignItems: "center",
-                marginLeft: "auto",
-                justifyContent: "flex-start",
-              }}
-            >
-              <UserMenu />
-              <TranslateMenu />
-              {user && (
-                <div
-                  className="icon-btn favorites-btn"
-                  onClick={() => router.push("/favorites")}
-                  aria-label="View Favorites"
-                >
-                  <FaRegStar size={24} />
-                </div>
-              )}
-              <div
-                className="icon-btn toggle-btn"
-                onClick={() => setDarkMode(!darkMode)}
-                aria-label="Toggle dark mode"
-              >
-                {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
-              </div>
-            </div>
-          )}
         </div>
 
-        {!isMobile || !isHomePage ? (
-          <div
-            className="right-section"
-            style={{
-              display: "flex",
-              gap: "1rem",
-              alignItems: "center",
-              justifyContent: isMobile ? "center" : "flex-end",
-              width: isMobile ? "100%" : "auto",
-            }}
-          >
-            <UserMenu />
-            <TranslateMenu />
-            {user && (
-              <div
-                className="icon-btn"
-                onClick={() => router.push("/favorites")}
-                aria-label="View Favorites"
-              >
-                <FaRegStar size={24} />
-              </div>
-            )}
+        <div
+          className="right-section"
+          style={{
+            display: "flex",
+            gap: "1rem",
+            alignItems: "center",
+            justifyContent: isMobile ? "center" : "flex-end",
+            width: isMobile ? "100%" : "auto",
+          }}
+        >
+          <UserMenu />
+          <TranslateMenu />
+          {user && (
             <div
               className="icon-btn"
-              onClick={() => setDarkMode(!darkMode)}
-              aria-label="Toggle dark mode"
+              onClick={() => router.push("/favorites")}
+              aria-label="View Favorites"
             >
-              {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
+              <FaRegStar size={24} />
             </div>
+          )}
+          <div
+            className="icon-btn"
+            onClick={() => setDarkMode(!darkMode)}
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
           </div>
-        ) : null}
+        </div>
       </nav>
 
       <style jsx>{`

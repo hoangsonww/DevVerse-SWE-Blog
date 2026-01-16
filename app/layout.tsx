@@ -2,6 +2,7 @@ import "./globals.css";
 import ConditionalNavbar from "@/components/ConditionalNavbar";
 import Footer from "@/components/Footer";
 import ConditionalMain from "@/components/ConditionalMain";
+import { TranslateMenuProvider } from "@/components/TranslateMenuProvider";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { DarkModeProvider } from "@/provider/DarkModeProvider";
@@ -188,25 +189,27 @@ export default function RootLayout({
       <body className={inter.className}>
         <Analytics />
         <DarkModeProvider>
-          <div style={{ position: "relative", zIndex: 99999 }}>
-            <ConditionalNavbar />
-          </div>
-          <ToastContainer
-            position="bottom-center"
-            autoClose={2000}
-            hideProgressBar={false}
-            closeOnClick
-            pauseOnHover={false}
-            pauseOnFocusLoss={false}
-            draggable={false}
-            theme="light"
-            toastStyle={{
-              fontFamily: "Inter, sans-serif",
-            }}
-            limit={3}
-          />
-          <ConditionalMain>{children}</ConditionalMain>
-          <Footer />
+          <TranslateMenuProvider>
+            <div style={{ position: "relative", zIndex: 99999 }}>
+              <ConditionalNavbar />
+            </div>
+            <ToastContainer
+              position="bottom-center"
+              autoClose={2000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnHover={false}
+              pauseOnFocusLoss={false}
+              draggable={false}
+              theme="light"
+              toastStyle={{
+                fontFamily: "Inter, sans-serif",
+              }}
+              limit={3}
+            />
+            <ConditionalMain>{children}</ConditionalMain>
+            <Footer />
+          </TranslateMenuProvider>
         </DarkModeProvider>
       </body>
     </html>
