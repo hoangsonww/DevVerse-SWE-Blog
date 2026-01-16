@@ -30,6 +30,8 @@ const loadGoogleTranslate = () => {
     return translateScriptPromise;
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   translateScriptPromise = new Promise((resolve, reject) => {
     let settled = false;
     let pollingStarted = false;
@@ -51,6 +53,8 @@ const loadGoogleTranslate = () => {
       const intervalId = window.setInterval(() => {
         if (window.google?.translate?.TranslateElement) {
           window.clearInterval(intervalId);
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           settle(resolve);
           return;
         }
@@ -69,6 +73,8 @@ const loadGoogleTranslate = () => {
 
     if (existingScript) {
       if (window.google?.translate?.TranslateElement) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         settle(resolve);
         return;
       }
@@ -204,6 +210,8 @@ export default function TranslateMenu({
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     loadGoogleTranslate()
       .then(() => {
         if (!isActive) {
