@@ -16,6 +16,7 @@ import {
   FiTrendingUp,
   FiZap,
 } from "react-icons/fi";
+import TranslateMenu from "./TranslateMenu";
 
 interface LandingPageProps {
   articleCount: number;
@@ -297,6 +298,7 @@ export default function LandingPage({
         <span className="orb orb-three" />
         <span className="grid-sheen" />
       </div>
+      <TranslateMenu variant="floating" />
 
       <div className="landing-container">
         <motion.section

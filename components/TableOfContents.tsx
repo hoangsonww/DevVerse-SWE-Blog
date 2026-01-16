@@ -17,6 +17,7 @@ export default function TableOfContents() {
   const [activeId, setActiveId] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showMobileTrigger, setShowMobileTrigger] = useState(false);
   const tocRef = useRef<HTMLDivElement>(null);
 
   // Detect mobile viewport
@@ -29,6 +30,21 @@ export default function TableOfContents() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowMobileTrigger(false);
+      return undefined;
+    }
+
+    const updateVisibility = () => {
+      setShowMobileTrigger(window.scrollY > 8);
+    };
+
+    updateVisibility();
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    return () => window.removeEventListener("scroll", updateVisibility);
+  }, [isMobile]);
 
   // Extract headings from the article
   useEffect(() => {
@@ -147,7 +163,7 @@ export default function TableOfContents() {
           maxWidth: "250px",
           maxHeight: "calc(100vh - 140px)",
           overflowY: "auto",
-          zIndex: 100,
+          zIndex: 100000,
           padding: "1rem",
           backgroundColor: "var(--background-color)",
           border: "1px solid var(--border-color, #e2e8f0)",
@@ -239,13 +255,15 @@ export default function TableOfContents() {
   return (
     <>
       {/* Floating action button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="toc-mobile-button"
-        aria-label="Toggle table of contents"
-      >
-        <FaList size={20} />
-      </button>
+      {showMobileTrigger && (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="toc-mobile-button"
+          aria-label="Toggle table of contents"
+        >
+          <FaList size={20} />
+        </button>
+      )}
 
       {/* Overlay backdrop */}
       {isOpen && (
