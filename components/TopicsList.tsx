@@ -17,7 +17,11 @@ export default function TopicsList({ topics }: TopicsListProps) {
 
       <div className="topics-container">
         {topics.map((topic) => (
-          <Link key={topic} href="/home" passHref>
+          <Link
+            key={topic}
+            href={`/home?topics=${encodeURIComponent(topic)}`}
+            passHref
+          >
             <span className="topic-pill">{topic}</span>
           </Link>
         ))}
