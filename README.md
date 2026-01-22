@@ -141,6 +141,8 @@ DevVerse is packed with modern dev & user-centric features to enhance both the d
 - **Animation:** Smooth animations with [Framer Motion](https://www.framer.com/motion/).
 - **Mathematics Rendering:** Render mathematical equations using [KaTeX](https://katex.org/), [rehype-katex](https://github.com/remarkjs/rehype-katex), and [remark-math](https://github.com/remarkjs/remark-math).
 - **Code Splitting & Performance:** Automatic code splitting and image optimization for improved performance.
+- **Google Translations:** Built-in support for Google Translate to reach a global audience.
+- **User Authentication:** Secure user authentication with [Supabase Auth](https://supabase.io/docs/guides/auth).
 - **Containerized Development:** Docker and Docker Compose configurations for an isolated development environment.
 - **Recommended Articles:** Display related articles based on tags or categories.
 - **Estimated Reading Time:** Show estimated reading time for each article.
