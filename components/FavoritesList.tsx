@@ -101,182 +101,186 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
 
   return (
     <div
+      className="favorites-page"
       style={{
         minHeight: "100vh",
         padding: "2rem",
-        textAlign: "center",
         fontFamily: "Inter, sans-serif",
         backgroundColor: "var(--background-color)",
         borderRadius: "8px",
         transition: "background-color 0.3s ease, border-color 0.3s ease",
       }}
     >
-      <h1
-        style={{
-          fontSize: "2.5rem",
-          marginBottom: "1rem",
-          color: "var(--text-color)",
-          opacity: 1,
-          transform: "translateY(0)",
-          animation: "fadeSlideIn 0.6s ease forwards",
-        }}
-      >
-        Favorite Articles 📚
-      </h1>
-
-      <p
-        style={{
-          fontSize: "1.125rem",
-          marginBottom: "2rem",
-          color: "var(--text-color)",
-          opacity: 0,
-          animation: "fadeInText 0.6s ease forwards",
-          animationDelay: "0.3s",
-        }}
-      >
-        {user
-          ? `Welcome, ${user.user_metadata.display_name ?? user.email}! Here are your favorites:`
-          : "Please log in to view your favorite articles."}
-      </p>
-
-      {/* Search Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "2rem",
-        }}
-      >
-        <div
-          className={`search-bar ${isFocused || searchTerm ? "expanded" : ""}`}
+      <div className="favorites-hero">
+        <h1
           style={{
-            display: "flex",
-            alignItems: "center",
-            position: "relative",
-            padding: "0.75rem 1rem",
-            border: "2px solid var(--border-color, #ccc)",
-            borderRadius: "12px",
-            backgroundColor: "var(--container-background)",
-            gap: "0.75rem",
-            width: isFocused || searchTerm ? "500px" : "400px",
-            transition: "width 0.3s ease-in-out, background-color 0.3s ease",
+            fontSize: "2.5rem",
+            marginBottom: "1rem",
+            color: "var(--text-color)",
+            opacity: 1,
+            transform: "translateY(0)",
+            animation: "fadeSlideIn 0.6s ease forwards",
           }}
         >
-          <FaSearch
-            className={`search-icon ${isFocused ? "focused" : ""}`}
-            style={{
-              color: isFocused ? "#0070f3" : "var(--text-color)",
-              transition: "color 0.3s ease",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Search favorites..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="search-input"
-            style={{
-              border: "none",
-              outline: "none",
-              width: "100%",
-              fontSize: "1rem",
-              fontFamily: "inherit",
-              backgroundColor: "transparent",
-              color: "var(--text-color)",
-            }}
-          />
+          Favorite Articles 📚
+        </h1>
 
-          {searchTerm && (
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                const params = new URLSearchParams(window.location.search);
-                params.delete("search");
-                router.replace(
-                  `${window.location.pathname}${params.toString() ? `?${params}` : ""}`,
-                  { scroll: false },
-                );
-              }}
-              style={{
-                position: "absolute",
-                right: "1rem",
-                top: 0,
-                bottom: 0,
-                margin: "auto 0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "1.25rem",
-                color: "var(--text-color)",
-                zIndex: 10,
-                opacity: 0,
-                transform: "scale(0.8)",
-                animation: "fadeInScale 0.2s ease-out forwards",
-                transition: "color 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.2)";
-                e.currentTarget.style.color = "#0070f3";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.color = "var(--text-color)";
-              }}
-              aria-label="Clear search"
-            >
-              <FaTimes />
-            </button>
-          )}
-        </div>
+        <p
+          style={{
+            fontSize: "1.125rem",
+            marginBottom: "2rem",
+            color: "var(--text-color)",
+            opacity: 0,
+            animation: "fadeInText 0.6s ease forwards",
+            animationDelay: "0.3s",
+          }}
+        >
+          {user
+            ? `Welcome, ${user.user_metadata.display_name ?? user.email}! Here are your favorites:`
+            : "Please log in to view your favorite articles."}
+        </p>
       </div>
 
-      {loading ? (
+      <div className="favorites-content">
+        {/* Search Bar */}
         <div
           style={{
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
-            height: "200px",
+            marginBottom: "2rem",
           }}
         >
-          <FaSpinner className="spinner" size={32} />
-          <span className="loading-text">Loading…</span>
+          <div
+            className={`search-bar ${isFocused || searchTerm ? "expanded" : ""}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              position: "relative",
+              padding: "0.75rem 1rem",
+              border: "2px solid var(--border-color, #ccc)",
+              borderRadius: "12px",
+              backgroundColor: "var(--container-background)",
+              gap: "0.75rem",
+              width: isFocused || searchTerm ? "500px" : "400px",
+              transition: "width 0.3s ease-in-out, background-color 0.3s ease",
+            }}
+          >
+            <FaSearch
+              className={`search-icon ${isFocused ? "focused" : ""}`}
+              style={{
+                color: isFocused ? "#0070f3" : "var(--text-color)",
+                transition: "color 0.3s ease",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search favorites..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              className="search-input"
+              style={{
+                border: "none",
+                outline: "none",
+                width: "100%",
+                fontSize: "1rem",
+                fontFamily: "inherit",
+                backgroundColor: "transparent",
+                color: "var(--text-color)",
+              }}
+            />
+
+            {searchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  const params = new URLSearchParams(window.location.search);
+                  params.delete("search");
+                  router.replace(
+                    `${window.location.pathname}${params.toString() ? `?${params}` : ""}`,
+                    { scroll: false },
+                  );
+                }}
+                style={{
+                  position: "absolute",
+                  right: "1rem",
+                  top: 0,
+                  bottom: 0,
+                  margin: "auto 0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1.25rem",
+                  color: "var(--text-color)",
+                  zIndex: 10,
+                  opacity: 0,
+                  transform: "scale(0.8)",
+                  animation: "fadeInScale 0.2s ease-out forwards",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.2)";
+                  e.currentTarget.style.color = "#0070f3";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.color = "var(--text-color)";
+                }}
+                aria-label="Clear search"
+              >
+                <FaTimes />
+              </button>
+            )}
+          </div>
         </div>
-      ) : favoriteSlugs.length === 0 ? (
-        <p className="no-favorites-message">You have no favorite articles.</p>
-      ) : filteredFavorites.length > 0 ? (
-        <div className="articles-list-wrapper">
-          <ArticlesList
-            articles={filteredFavorites}
-            showSearch={false}
-            showCarousel={false}
-          />
-        </div>
-      ) : (
-        <p className="no-favorites-message">
-          We’re sorry - no articles matched
-          {searchTerm && (
-            <>
-              {" "}
-              your search for “<strong>{searchTerm}</strong>”
-            </>
-          )}
-          {searchTerm && selectedTopics.length > 0 && " and"}
-          {selectedTopics.length > 0 && (
-            <>
-              {" "}
-              all the topic{selectedTopics.length > 1 ? "s" : ""} “
-              <strong>{selectedTopics.join(", ")}</strong>”
-            </>
-          )}
-          {!searchTerm && selectedTopics.length === 0 && " any criteria"}.
-        </p>
-      )}
+
+        {loading ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "200px",
+            }}
+          >
+            <FaSpinner className="spinner" size={32} />
+            <span className="loading-text">Loading…</span>
+          </div>
+        ) : favoriteSlugs.length === 0 ? (
+          <p className="no-favorites-message">You have no favorite articles.</p>
+        ) : filteredFavorites.length > 0 ? (
+          <div className="articles-list-wrapper">
+            <ArticlesList
+              articles={filteredFavorites}
+              showSearch={false}
+              showCarousel={false}
+            />
+          </div>
+        ) : (
+          <p className="no-favorites-message">
+            We’re sorry - no articles matched
+            {searchTerm && (
+              <>
+                {" "}
+                your search for “<strong>{searchTerm}</strong>”
+              </>
+            )}
+            {searchTerm && selectedTopics.length > 0 && " and"}
+            {selectedTopics.length > 0 && (
+              <>
+                {" "}
+                all the topic{selectedTopics.length > 1 ? "s" : ""} “
+                <strong>{selectedTopics.join(", ")}</strong>”
+              </>
+            )}
+            {!searchTerm && selectedTopics.length === 0 && " any criteria"}.
+          </p>
+        )}
+      </div>
 
       <style jsx global>{`
         .articles-list-wrapper {
@@ -380,6 +384,32 @@ export default function FavoritesList({ articles }: FavoritesListProps) {
           color: var(--text-color);
           opacity: 0;
           animation: fadeInNoFav 0.5s ease forwards;
+        }
+
+        .favorites-hero {
+          text-align: center;
+        }
+
+        .favorites-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          text-align: left;
+        }
+
+        .favorites-page .search-filter-shell {
+          text-align: left;
+        }
+
+        .favorites-page .search-filter-header {
+          align-items: center;
+        }
+
+        .favorites-page .filter-topics {
+          justify-content: flex-start;
+        }
+
+        .favorites-page .no-favorites-message {
+          text-align: center;
         }
 
         @keyframes fadeInNoFav {

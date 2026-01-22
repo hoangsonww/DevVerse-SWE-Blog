@@ -86,10 +86,10 @@ export default async function ArticlePage({ params }: PageProps) {
           />
         ) : null}
       </article>
+      <BackToTopButton placement="toc" showWhenNavbarHidden />
       <TableOfContents />
       <FavButton articleSlug={slug} />
       <ArticleVisitTracker slug={slug} title={title} topics={topics} />
-      <BackToTopButton />
     </>
   );
 }

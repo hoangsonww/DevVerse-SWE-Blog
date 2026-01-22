@@ -277,7 +277,7 @@ export default function TableOfContents() {
             bottom: 0,
             backgroundColor: "rgba(0, 0, 0, 0.4)",
             backdropFilter: "blur(4px)",
-            zIndex: 999,
+            zIndex: 200001,
             animation: "fadeIn 0.2s ease",
           }}
         />
@@ -293,7 +293,7 @@ export default function TableOfContents() {
           width: "min(320px, 85vw)",
           backgroundColor: "var(--background-color)",
           boxShadow: isOpen ? "0 0 20px rgba(0, 0, 0, 0.15)" : "none",
-          zIndex: 1000,
+          zIndex: 200002,
           transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           overflowY: "auto",
           display: "flex",
@@ -407,7 +407,7 @@ export default function TableOfContents() {
           width: 3rem;
           height: 3rem;
           cursor: pointer;
-          z-index: 998;
+          z-index: 200000;
           display: flex;
           align-items: center;
           justify-content: center;

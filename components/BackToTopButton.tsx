@@ -3,7 +3,21 @@
 import React, { useState, useEffect } from "react";
 import { FiArrowUp } from "react-icons/fi";
 
-export default function BackToTopButton() {
+type BackToTopPlacement = "floating" | "toc";
+
+interface BackToTopButtonProps {
+  placement?: BackToTopPlacement;
+  scrollThreshold?: number;
+  showWhenNavbarHidden?: boolean;
+  className?: string;
+}
+
+export default function BackToTopButton({
+  placement = "floating",
+  scrollThreshold = 10,
+  showWhenNavbarHidden = false,
+  className,
+}: BackToTopButtonProps) {
   const [visible, setVisible] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
@@ -23,17 +37,32 @@ export default function BackToTopButton() {
 
   // Toggle button visibility when scrolling.
   useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.pageYOffset || window.scrollY >= 10) {
-        setVisible(true);
-      } else {
-        setVisible(false);
-      }
-    };
+    if (!showWhenNavbarHidden) {
+      const toggleVisibility = () => {
+        setVisible(window.scrollY > scrollThreshold);
+      };
 
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
+      toggleVisibility();
+      window.addEventListener("scroll", toggleVisibility);
+      return () => window.removeEventListener("scroll", toggleVisibility);
+    }
+
+    const navbar = document.querySelector(".navbar");
+    if (!navbar) {
+      setVisible(window.scrollY > scrollThreshold);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setVisible(!entry.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+
+    observer.observe(navbar);
+    return () => observer.disconnect();
+  }, [scrollThreshold, showWhenNavbarHidden]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -44,20 +73,21 @@ export default function BackToTopButton() {
 
   if (!visible) return null;
 
+  const placementClass =
+    placement === "toc" ? "back-to-top--toc" : "back-to-top--floating";
+
   return (
     <>
       <button
         onClick={scrollToTop}
         aria-label="Back to top"
-        className="back-to-top"
+        className={`back-to-top ${placementClass} ${className ?? ""}`.trim()}
       >
         <FiArrowUp size={20} />
       </button>
       <style jsx>{`
         .back-to-top {
           position: fixed;
-          bottom: 2rem;
-          right: 2rem;
           background-color: #0070f3;
           color: #fff;
           border: none;
@@ -79,6 +109,27 @@ export default function BackToTopButton() {
             transform 0.2s ease,
             box-shadow 0.2s ease;
         }
+
+        .back-to-top--floating {
+          bottom: 2rem;
+          right: 2rem;
+        }
+
+        .back-to-top--toc {
+          top: 32px;
+          right: 20px;
+          z-index: 100001;
+        }
+
+        @media (max-width: 1024px) {
+          .back-to-top--toc {
+            top: auto;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+          }
+        }
+
         .back-to-top:hover {
           backdrop-filter: blur(5px);
           transform: scale(1.1);
