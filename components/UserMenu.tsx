@@ -1,17 +1,41 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import { supabase } from "@/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FiUser } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { createPortal } from "react-dom";
 
 const UserMenu: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
+    null,
+  );
+  const [dropdownPosition, setDropdownPosition] = useState<{
+    top: number;
+    left: number;
+    maxHeight: number;
+    maxWidth: number;
+  } | null>(null);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const containerId = "user-menu-portal";
+    let container = document.getElementById(containerId);
+
+    if (!container) {
+      container = document.createElement("div");
+      container.id = containerId;
+      document.body.appendChild(container);
+    }
+
+    setPortalContainer(container);
+  }, []);
 
   useEffect(() => {
     async function fetchSession() {
@@ -30,13 +54,77 @@ const UserMenu: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
+      const target = e.target as Node;
+      if (menuRef.current?.contains(target)) {
+        return;
       }
+      if (dropdownRef.current?.contains(target)) {
+        return;
+      }
+      setMenuOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    const anchor = triggerRef.current;
+    if (!anchor) {
+      return undefined;
+    }
+
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(Math.max(value, min), max);
+
+    const updatePosition = () => {
+      const anchorRect = anchor.getBoundingClientRect();
+      const dropdownRect = dropdownRef.current?.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const margin = 12;
+      const offset = 12;
+      const maxHeight = Math.max(0, viewportHeight - margin * 2);
+      const maxWidth = Math.max(0, viewportWidth - margin * 2);
+      const rawWidth = dropdownRect?.width ?? 280;
+      const rawHeight = dropdownRect?.height ?? 240;
+      const width = Math.min(rawWidth, maxWidth);
+      const height = Math.min(rawHeight, maxHeight);
+      const desiredLeft = anchorRect.right - width;
+      const left = clamp(desiredLeft, margin, viewportWidth - width - margin);
+      let top = anchorRect.bottom + offset;
+      if (top + height > viewportHeight - margin) {
+        const above = anchorRect.top - height - offset;
+        top =
+          above >= margin
+            ? above
+            : clamp(top, margin, viewportHeight - height - margin);
+      }
+
+      setDropdownPosition({ top, left, maxHeight, maxWidth });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (dropdownRef.current && "ResizeObserver" in window) {
+      resizeObserver = new ResizeObserver(() => updatePosition());
+      resizeObserver.observe(dropdownRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [menuOpen]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -99,52 +187,66 @@ const UserMenu: React.FC = () => {
       <div
         className="icon-wrapper"
         onClick={() => setMenuOpen((prev) => !prev)}
+        ref={triggerRef}
       >
         <FiUser size={24} />
       </div>
 
-      {menuOpen && (
-        <div className="dropdown">
-          {!user ? (
-            <div className="menu-items">
-              <MenuItem
-                label="Login"
-                onClick={() => {
-                  setMenuOpen(false);
-                  router.push("/auth/login");
-                }}
-              />
+      {menuOpen &&
+        portalContainer &&
+        createPortal(
+          <div
+            className="dropdown"
+            ref={dropdownRef}
+            style={{
+              top: `${dropdownPosition?.top ?? 0}px`,
+              left: `${dropdownPosition?.left ?? 0}px`,
+              maxHeight: `${dropdownPosition?.maxHeight ?? 320}px`,
+              maxWidth: `${dropdownPosition?.maxWidth ?? 320}px`,
+              visibility: dropdownPosition ? "visible" : "hidden",
+            }}
+          >
+            {!user ? (
+              <div className="menu-items">
+                <MenuItem
+                  label="Login"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/auth/login");
+                  }}
+                />
 
-              <MenuItem
-                label="Register"
-                onClick={() => {
-                  setMenuOpen(false);
-                  router.push("/auth/register");
-                }}
-              />
-            </div>
-          ) : (
-            <>
-              <div className="user-info">
-                <span className="user-greeting">{getGreeting()}</span>
-                <span className="user-name">
-                  {user?.identities?.[0]?.identity_data?.display_name ||
-                    "Guest"}
-                </span>
-                <span className="user-email">{user.email}</span>
+                <MenuItem
+                  label="Register"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/auth/register");
+                  }}
+                />
               </div>
-              <div className="divider" />
-              <button
-                className="logout-btn"
-                onClick={handleLogout}
-                type="button"
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </div>
-      )}
+            ) : (
+              <>
+                <div className="user-info">
+                  <span className="user-greeting">{getGreeting()}</span>
+                  <span className="user-name">
+                    {user?.identities?.[0]?.identity_data?.display_name ||
+                      "Guest"}
+                  </span>
+                  <span className="user-email">{user.email}</span>
+                </div>
+                <div className="divider" />
+                <button
+                  className="logout-btn"
+                  onClick={handleLogout}
+                  type="button"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>,
+          portalContainer,
+        )}
 
       <style jsx>{`
         .user-menu-wrapper {
@@ -171,9 +273,7 @@ const UserMenu: React.FC = () => {
         }
 
         .dropdown {
-          position: absolute;
-          top: calc(100% + 0.65rem);
-          right: 0;
+          position: fixed;
           background:
             linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(0, 0, 0, 0)),
             var(--container-background);
@@ -182,8 +282,9 @@ const UserMenu: React.FC = () => {
           box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
           padding: 0.85rem;
           z-index: 99999;
-          min-width: 240px;
-          max-width: 320px;
+          min-width: min(240px, calc(100vw - 24px));
+          max-width: min(320px, calc(100vw - 24px));
+          overflow-y: auto;
           animation: dropdownIn 0.2s ease-out;
         }
 

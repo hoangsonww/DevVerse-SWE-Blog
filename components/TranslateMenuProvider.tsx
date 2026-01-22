@@ -141,7 +141,9 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{
     top: number;
-    right: number;
+    left: number;
+    maxHeight: number;
+    maxWidth: number;
   } | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -206,18 +208,48 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
 
     const updatePosition = () => {
       const rect = anchorEl.getBoundingClientRect();
-      const right = Math.max(12, window.innerWidth - rect.right);
-      const top = rect.bottom + 12;
-      setPopoverPosition({ top, right });
+      const popoverRect = popoverRef.current?.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const margin = 12;
+      const offset = 12;
+      const maxHeight = Math.max(0, viewportHeight - margin * 2);
+      const maxWidth = Math.max(0, viewportWidth - margin * 2);
+      const rawWidth = popoverRect?.width ?? 280;
+      const rawHeight = popoverRect?.height ?? 240;
+      const width = Math.min(rawWidth, maxWidth);
+      const height = Math.min(rawHeight, maxHeight);
+      const desiredLeft = rect.right - width;
+      const left = Math.min(
+        Math.max(desiredLeft, margin),
+        viewportWidth - width - margin,
+      );
+      let top = rect.bottom + offset;
+      if (top + height > viewportHeight - margin) {
+        const above = rect.top - height - offset;
+        top =
+          above >= margin
+            ? above
+            : Math.min(Math.max(top, margin), viewportHeight - height - margin);
+      }
+      setPopoverPosition({ top, left, maxHeight, maxWidth });
     };
 
     updatePosition();
     window.addEventListener("scroll", updatePosition, { passive: true });
     window.addEventListener("resize", updatePosition);
+    let resizeObserver: ResizeObserver | null = null;
+    if (popoverRef.current && "ResizeObserver" in window) {
+      resizeObserver = new ResizeObserver(() => updatePosition());
+      resizeObserver.observe(popoverRef.current);
+    }
 
     return () => {
       window.removeEventListener("scroll", updatePosition);
       window.removeEventListener("resize", updatePosition);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
   }, [isOpen, anchorEl]);
 
@@ -396,7 +428,10 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
             style={{
               position: "fixed",
               top: `${popoverPosition?.top ?? 80}px`,
-              right: `${popoverPosition?.right ?? 20}px`,
+              left: `${popoverPosition?.left ?? 20}px`,
+              maxHeight: `${popoverPosition?.maxHeight ?? 360}px`,
+              maxWidth: `${popoverPosition?.maxWidth ?? 320}px`,
+              visibility: isOpen && popoverPosition ? "visible" : "hidden",
             }}
             ref={popoverRef}
           >
@@ -428,7 +463,7 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
         )}
       <style jsx>{`
         .translate-popover {
-          min-width: 240px;
+          min-width: min(240px, calc(100vw - 24px));
           background: var(--container-background);
           border: 1px solid var(--border-color);
           border-radius: 16px;
@@ -437,6 +472,8 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
           opacity: 0;
           transform: translateY(-6px);
           pointer-events: none;
+          max-width: min(320px, calc(100vw - 24px));
+          overflow-y: auto;
           transition:
             opacity 0.18s ease,
             transform 0.18s ease;
