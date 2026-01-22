@@ -128,12 +128,17 @@ const UserMenu: React.FC = () => {
               <div className="user-info">
                 <span className="user-greeting">{getGreeting()}</span>
                 <span className="user-name">
-                  {user?.identities?.[0]?.identity_data?.display_name || "Guest"}
+                  {user?.identities?.[0]?.identity_data?.display_name ||
+                    "Guest"}
                 </span>
                 <span className="user-email">{user.email}</span>
               </div>
               <div className="divider" />
-              <button className="logout-btn" onClick={handleLogout} type="button">
+              <button
+                className="logout-btn"
+                onClick={handleLogout}
+                type="button"
+              >
                 Logout
               </button>
             </>
@@ -170,11 +175,7 @@ const UserMenu: React.FC = () => {
           top: calc(100% + 0.65rem);
           right: 0;
           background:
-            linear-gradient(
-              135deg,
-              rgba(15, 118, 110, 0.12),
-              rgba(0, 0, 0, 0)
-            ),
+            linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(0, 0, 0, 0)),
             var(--container-background);
           border: 1px solid var(--border-color);
           border-radius: 16px;

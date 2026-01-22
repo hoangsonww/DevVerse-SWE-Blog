@@ -122,7 +122,9 @@ const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
           justify-content: center;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
           font-family: "Inter, sans-serif";
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .fav-tooltip {

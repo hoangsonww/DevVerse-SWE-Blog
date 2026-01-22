@@ -10,10 +10,6 @@ import {
   FiSun,
   FiMoon,
   FiMessageSquare,
-  FiLogIn,
-  FiUserPlus,
-  FiKey,
-  FiAlertCircle,
 } from "react-icons/fi";
 import { FaRegStar } from "react-icons/fa";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
@@ -150,14 +146,6 @@ export default function Navbar() {
         ? "Reset Password"
         : formatSegment(second)
       : "404 Not Found";
-    const AuthIcon =
-      second === "login"
-        ? FiLogIn
-        : second === "register"
-          ? FiUserPlus
-          : second === "reset"
-            ? FiKey
-            : FiAlertCircle;
 
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -174,10 +162,7 @@ export default function Navbar() {
           <span>Home</span>
         </Link>
         <FiChevronRight />
-        <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-          <AuthIcon />
-          <span>{authPage}</span>
-        </span>
+        <span>{authPage}</span>
       </span>
     );
   } else if (segments[0] === "favorites") {
@@ -196,23 +181,7 @@ export default function Navbar() {
           <span>Home</span>
         </Link>
         <FiChevronRight />
-        <Link
-          href="/home"
-          style={{
-            color: "var(--link-color)",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.25rem",
-          }}
-        >
-          <FiBook />
-          <span>Articles</span>
-        </Link>
-        <FiChevronRight />
-        <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-          <FaRegStar />
-          <span>Favorites</span>
-        </span>
+        <span>Favorites</span>
       </span>
     );
   } else if (segments[0] === "chat") {
