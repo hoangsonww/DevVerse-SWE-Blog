@@ -19,7 +19,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
         {topics.map((topic) => (
           <Link
             key={topic}
-            href={`/?topics=${encodeURIComponent(topic)}`}
+            href={`/home?topics=${encodeURIComponent(topic)}`}
             passHref
           >
             <span className="topic-pill">{topic}</span>
