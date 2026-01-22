@@ -451,7 +451,8 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
               <div className="translate-hint">
                 If you see &quot;Translation unavailable&quot; or similar, try
                 reloading this page. If nothing appears yet, please give it a
-                moment to load or reload the page.
+                moment to load or reload the page. Please also check your
+                Internet connection if the problem persists.
               </div>
             )}
             <div
