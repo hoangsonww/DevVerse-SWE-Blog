@@ -87,28 +87,46 @@ Feel free to explore the content and features of the blog! 🚀
 > [!NOTE]
 > The Supabase BaaS might be down sometimes due to inactivity. Please [let me know](mailto:hoangson091104@gmail.com) in that case so that I can get it back up ASAP!
 
+### Landing Page
+
+<p align="center">
+  <img src="images/landing.png" alt="Landing Page" width="100%">
+</p>
+
 ### Home Page
 
 <p align="center">
-  <img src="images/home-page.png" alt="Home Page" width="100%">
-</p>
-
-### Home Page - Dark Mode
-
-<p align="center">
-  <img src="images/home-page-dark.png" alt="Home Page - Dark Mode" width="100%">
+  <img src="images/home.png" alt="Home Page" width="100%">
 </p>
 
 ### Article Page
 
 <p align="center">
-  <img src="images/article-page.png" alt="Article Page" width="100%">
+  <img src="images/article.png" alt="Article Page" width="100%">
 </p>
 
 ### Favorites Page
 
 <p align="center">
-  <img src="images/favorite-article-page.png" alt="Favorites Page" width="100%">
+  <img src="images/favorites.png" alt="Favorites Page" width="100%">
+</p>
+
+### Login Page
+
+<p align="center">
+  <img src="images/login.png" alt="Login Page" width="100%">
+</p>
+
+### Register Page
+
+<p align="center">
+  <img src="images/register.png" alt="Register Page" width="100%">
+</p>
+
+### Reset Password Page
+
+<p align="center">
+  <img src="images/reset-password.png" alt="Reset Password Page" width="100%">
 </p>
 
 **and many more pages...**
