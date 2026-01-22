@@ -61,24 +61,33 @@ const UserMenu: React.FC = () => {
     <p
       onClick={onClick}
       style={{
-        margin: "0.5rem 0",
-        fontSize: "1rem",
+        margin: 0,
+        fontSize: "0.95rem",
         color: "var(--text-color)",
-        backgroundColor: "transparent",
+        backgroundColor: "rgba(0, 112, 243, 0.06)",
         cursor: "pointer",
-        textAlign: "center",
-        padding: "0.5rem",
-        borderRadius: "4px",
-        transition: "background-color 0.2s, color 0.2s",
-        display: "block",
+        textAlign: "left",
+        padding: "0.65rem 0.75rem",
+        borderRadius: "10px",
+        border: "1px solid rgba(0, 112, 243, 0.2)",
+        transition:
+          "background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        fontWeight: 600,
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = "var(--link-color)";
         e.currentTarget.style.color = "var(--background-color)";
+        e.currentTarget.style.borderColor = "var(--link-color)";
+        e.currentTarget.style.transform = "translateY(-1px)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "transparent";
+        e.currentTarget.style.backgroundColor = "rgba(0, 112, 243, 0.06)";
         e.currentTarget.style.color = "var(--text-color)";
+        e.currentTarget.style.borderColor = "rgba(0, 112, 243, 0.2)";
+        e.currentTarget.style.transform = "translateY(0)";
       }}
     >
       {label}
@@ -97,7 +106,7 @@ const UserMenu: React.FC = () => {
       {menuOpen && (
         <div className="dropdown">
           {!user ? (
-            <>
+            <div className="menu-items">
               <MenuItem
                 label="Login"
                 onClick={() => {
@@ -113,18 +122,20 @@ const UserMenu: React.FC = () => {
                   router.push("/auth/register");
                 }}
               />
-            </>
+            </div>
           ) : (
             <>
-              <p className="user-info">
-                {getGreeting()}{" "}
-                {user?.identities?.[0]?.identity_data?.display_name || "Guest"}{" "}
-                ({user.email})
-              </p>
+              <div className="user-info">
+                <span className="user-greeting">{getGreeting()}</span>
+                <span className="user-name">
+                  {user?.identities?.[0]?.identity_data?.display_name || "Guest"}
+                </span>
+                <span className="user-email">{user.email}</span>
+              </div>
               <div className="divider" />
-              <p className="logout-btn" onClick={handleLogout}>
+              <button className="logout-btn" onClick={handleLogout} type="button">
                 Logout
-              </p>
+              </button>
             </>
           )}
         </div>
@@ -156,73 +167,95 @@ const UserMenu: React.FC = () => {
 
         .dropdown {
           position: absolute;
-          top: calc(100% + 0.5rem);
-          right: -180%;
-          background-color: var(--container-background);
+          top: calc(100% + 0.65rem);
+          right: 0;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(15, 118, 110, 0.12),
+              rgba(0, 0, 0, 0)
+            ),
+            var(--container-background);
           border: 1px solid var(--border-color);
-          border-radius: 6px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          padding: 1rem;
+          border-radius: 16px;
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+          padding: 0.85rem;
           z-index: 99999;
-          min-width: 150px;
-          animation: fadeIn 0.2s ease-out;
-        }
-
-        .menu-item {
-          margin: 0.5rem 0;
-          font-size: 1rem;
-          color: var(--text-color);
-          background-color: transparent;
-          cursor: pointer;
-          text-align: center;
-          padding: 0.5rem;
-          border-radius: 4px;
-          transition:
-            background-color 0.2s,
-            color 0.2s;
-        }
-
-        .menu-item:hover {
-          background-color: var(--link-color);
-          color: var(--background-color);
-        }
-
-        .menu-item.logout {
-          color: red;
+          min-width: 240px;
+          max-width: 320px;
+          animation: dropdownIn 0.2s ease-out;
         }
 
         .user-info {
-          margin: 0.5rem 0;
-          font-size: 1rem;
+          margin: 0.2rem 0 0.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+          text-align: left;
+          padding: 0.7rem 0.85rem;
+          border-radius: 12px;
+          background: rgba(0, 112, 243, 0.08);
+          border: 1px solid rgba(0, 112, 243, 0.2);
+        }
+
+        .user-greeting {
+          font-size: 0.7rem;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: var(--link-color);
+        }
+
+        .user-name {
+          font-size: 1.05rem;
+          font-weight: 700;
           color: var(--text-color);
-          text-align: center;
+        }
+
+        .user-email {
+          font-size: 0.88rem;
+          color: var(--text-color);
+          opacity: 0.8;
+          word-break: break-word;
         }
 
         .divider {
-          margin-top: 1rem;
+          margin: 0.6rem 0 0.75rem;
           border-bottom: 1px solid var(--border-color);
         }
 
         .logout-btn {
-          margin: 0.5rem 0;
-          font-size: 1rem;
-          color: red;
-          background-color: transparent;
+          width: 100%;
+          margin: 0;
+          font-size: 0.95rem;
+          color: #b91c1c;
+          background-color: rgba(239, 68, 68, 0.12);
+          border: 1px solid rgba(239, 68, 68, 0.45);
           cursor: pointer;
           text-align: center;
-          padding: 0.5rem;
-          border-radius: 4px;
+          padding: 0.65rem 0.75rem;
+          border-radius: 10px;
+          font-weight: 600;
           transition:
             background-color 0.2s,
-            color 0.2s;
+            color 0.2s,
+            border-color 0.2s,
+            transform 0.2s;
         }
 
         .logout-btn:hover {
-          background-color: var(--link-color);
-          color: var(--background-color);
+          background-color: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.7);
+          transform: translateY(-1px);
         }
 
-        @keyframes fadeIn {
+        .menu-items {
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+
+        @keyframes dropdownIn {
           from {
             opacity: 0;
             transform: translateY(-10px);
@@ -231,38 +264,6 @@ const UserMenu: React.FC = () => {
             opacity: 1;
             transform: translateY(0);
           }
-        }
-
-        .menu-item,
-        .logout-btn {
-          margin: 0.5rem 0;
-          font-size: 1rem;
-          background-color: transparent;
-          cursor: pointer;
-          text-align: center;
-          padding: 0.5rem;
-          border-radius: 4px;
-          transition:
-            background-color 0.2s,
-            color 0.2s;
-        }
-
-        /* For login/register - styled like logout but not red */
-        .menu-item {
-          color: var(--text-color);
-        }
-        .menu-item:hover {
-          background-color: var(--link-color);
-          color: var(--background-color);
-        }
-
-        /* Logout still red */
-        .logout-btn {
-          color: red;
-        }
-        .logout-btn:hover {
-          background-color: var(--link-color);
-          color: var(--background-color);
         }
       `}</style>
     </div>

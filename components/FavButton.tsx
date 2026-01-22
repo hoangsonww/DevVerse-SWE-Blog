@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/supabase/supabaseClient";
 import { addFavorite, removeFavorite, isFavorited } from "@/supabase/favorites";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -19,8 +17,6 @@ interface FavButtonProps {
 const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
   const [user, setUser] = useState<any>(null);
   const [favorited, setFavorited] = useState<boolean>(false);
-  const router = useRouter();
-
   // Fetch user session
   useEffect(() => {
     async function fetchSession() {
@@ -80,40 +76,85 @@ const FavButton: React.FC<FavButtonProps> = ({ articleSlug }) => {
     }
   };
 
+  const tooltipText = favorited ? "Remove from favorites" : "Add to favorites";
+
   return (
-    <button
-      onClick={handleToggleFavorite}
-      title={favorited ? "Remove from favorites" : "Add to favorites"}
-      style={{
-        position: "fixed",
-        bottom: "2rem",
-        left: "2rem",
-        background: favorited ? "var(--hover-link-color)" : "var(--link-color)",
-        color: "#fff",
-        border: "none",
-        borderRadius: "50%",
-        width: "3.5rem",
-        height: "3.5rem",
-        cursor: "pointer",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.3)",
-        fontFamily: "Inter, sans-serif",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.1)";
-        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
-      }}
-    >
-      {favorited ? <FaStar size={20} /> : <FaRegStar size={20} />}
-    </button>
+    <div className="fav-button-wrapper">
+      <button
+        onClick={handleToggleFavorite}
+        aria-label={tooltipText}
+        className="fav-button"
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+        }}
+      >
+        {favorited ? <FaStar size={20} /> : <FaRegStar size={20} />}
+      </button>
+      <span className="fav-tooltip" role="tooltip">
+        {tooltipText}
+      </span>
+
+      <style jsx>{`
+        .fav-button-wrapper {
+          position: fixed;
+          bottom: 2rem;
+          left: 2rem;
+          z-index: 1000;
+        }
+
+        .fav-button {
+          background: ${favorited
+            ? "var(--hover-link-color)"
+            : "var(--link-color)"};
+          color: #fff;
+          border: none;
+          border-radius: 50%;
+          width: 3.5rem;
+          height: 3.5rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+          font-family: "Inter, sans-serif";
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .fav-tooltip {
+          position: absolute;
+          left: calc(100% + 0.6rem);
+          top: 50%;
+          transform: translate(4px, -50%);
+          background: var(--container-background);
+          color: var(--text-color);
+          border: 1px solid var(--border-color);
+          border-radius: 10px;
+          padding: 0.4rem 0.65rem;
+          font-size: 0.85rem;
+          white-space: nowrap;
+          max-width: calc(100vw - 2.5rem);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          opacity: 0;
+          pointer-events: none;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+        }
+
+        .fav-button-wrapper:hover .fav-tooltip,
+        .fav-button:focus-visible + .fav-tooltip {
+          opacity: 1;
+          transform: translate(0, -50%);
+        }
+      `}</style>
+    </div>
   );
 };
 
