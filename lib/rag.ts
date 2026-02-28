@@ -1,5 +1,9 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  getLocalSourcesForQuery,
+  scoreSourceAgainstQuery,
+} from "@/lib/rag-local";
 
 export type ChatRole = "user" | "assistant";
 
@@ -165,7 +169,7 @@ async function getEmbedding(text: string): Promise<number[]> {
   return values.map((value: number) => value / magnitude);
 }
 
-export async function retrieveSources(
+async function retrieveVectorSources(
   query: string,
   limit: number = 6,
 ): Promise<ChatSource[]> {
@@ -202,6 +206,70 @@ export async function retrieveSources(
   });
 }
 
+function mergeAndRankSources(
+  query: string,
+  vectorSources: ChatSource[],
+  localSources: ChatSource[],
+  limit: number,
+) {
+  const deduped = new Map<string, ChatSource>();
+
+  [...localSources, ...vectorSources].forEach((source) => {
+    const key = `${source.url}::${source.chunkIndex}::${source.title}`;
+    const existing = deduped.get(key);
+    if (!existing || source.score > existing.score) {
+      deduped.set(key, source);
+    }
+  });
+
+  const ranked = Array.from(deduped.values())
+    .map((source) => ({
+      source,
+      lexicalScore: scoreSourceAgainstQuery(query, source),
+    }))
+    .sort((left, right) => {
+      if (right.lexicalScore !== left.lexicalScore) {
+        return right.lexicalScore - left.lexicalScore;
+      }
+      return right.source.score - left.source.score;
+    });
+
+  const hasLexicalMatch = ranked.some((entry) => entry.lexicalScore > 0);
+  const filtered = hasLexicalMatch
+    ? ranked.filter((entry) => entry.lexicalScore > 0)
+    : ranked;
+
+  return filtered.slice(0, limit).map((entry) => entry.source);
+}
+
+export async function retrieveSources(
+  query: string,
+  limit: number = 6,
+): Promise<ChatSource[]> {
+  const [vectorResult, localResult] = await Promise.allSettled([
+    retrieveVectorSources(query, limit),
+    getLocalSourcesForQuery(query, limit),
+  ]);
+
+  const vectorSources =
+    vectorResult.status === "fulfilled" ? vectorResult.value : [];
+  const localSources =
+    localResult.status === "fulfilled" ? localResult.value : [];
+
+  if (vectorResult.status === "rejected") {
+    console.warn(
+      "Vector retrieval failed, using local fallback:",
+      vectorResult.reason,
+    );
+  }
+
+  if (localResult.status === "rejected") {
+    console.warn("Local content retrieval failed:", localResult.reason);
+  }
+
+  return mergeAndRankSources(query, vectorSources, localSources, limit);
+}
+
 function formatHistory(history: ChatHistoryMessage[]) {
   if (!history.length) {
     return "";
@@ -233,7 +301,8 @@ async function generateAnswer(
     "You are a DevVerse assistant for a technical blog.",
     "Answer using only the sources provided.",
     "Cite sources with brackets like [1] after each claim.",
-    "If the sources do not contain the answer, say you do not have enough information.",
+    "If the sources partially answer the question, answer only the supported parts and clearly note what is missing.",
+    "Only say you do not have enough information when the sources are not relevant to the question.",
     "Finish with a Sources section listing each citation as [n] Title - URL.",
     "",
     formatHistory(history),
