@@ -9,6 +9,7 @@ let batchSize = 40;
 let maxRetries = 6;
 let retryBaseMs = 1000;
 let embedDelayMs = 250;
+const EMBEDDING_DIMENSION = 768;
 
 let pinecone = null;
 let embeddingModel = null;
@@ -53,7 +54,7 @@ function getEmbeddingModel() {
     }
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
     embeddingModel = genAI.getGenerativeModel({
-      model: "models/text-embedding-004",
+      model: "models/gemini-embedding-001",
     });
   }
   return embeddingModel;
@@ -85,7 +86,13 @@ async function getEmbedding(text) {
   const model = getEmbeddingModel();
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
-      const embedResp = await model.embedContent(text);
+      const embedResp = await model.embedContent({
+        content: {
+          role: "user",
+          parts: [{ text }],
+        },
+        outputDimensionality: EMBEDDING_DIMENSION,
+      });
       if (
         !embedResp ||
         !embedResp.embedding ||
@@ -93,10 +100,15 @@ async function getEmbedding(text) {
       ) {
         throw new Error("Invalid embedding response format.");
       }
+      const values = embedResp.embedding.values;
+      const magnitude = Math.hypot(...values);
+      if (!Number.isFinite(magnitude) || magnitude === 0) {
+        throw new Error("Embedding normalization failed.");
+      }
       if (embedDelayMs > 0) {
         await sleep(embedDelayMs);
       }
-      return embedResp.embedding.values;
+      return values.map((value) => value / magnitude);
     } catch (error) {
       if (isQuotaError(error)) {
         throw error;
