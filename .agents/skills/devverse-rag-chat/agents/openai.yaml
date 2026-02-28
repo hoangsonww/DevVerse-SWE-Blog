@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse RAG Chat"
+  short_description: "Chat, citations, retrieval, and vectorization guidance"
+  default_prompt: "Modify the DevVerse chat or retrieval stack while preserving the citation and source contract."
+
+policy:
+  allow_implicit_invocation: true

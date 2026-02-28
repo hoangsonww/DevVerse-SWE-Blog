@@ -295,6 +295,14 @@ export default function Navbar() {
           }}
         >
           <UserMenu />
+          <div
+            className="icon-btn"
+            onClick={() => router.push("/chat")}
+            aria-label="Open Chatbot"
+            title="Open Chatbot"
+          >
+            <FiMessageSquare size={24} />
+          </div>
           <TranslateMenu />
           {user && (
             <div

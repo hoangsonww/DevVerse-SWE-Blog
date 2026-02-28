@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse Supabase Auth"
+  short_description: "Supabase auth, favorites, and server-only boundaries"
+  default_prompt: "Update DevVerse auth or favorites behavior while preserving anon and service-role boundaries."
+
+policy:
+  allow_implicit_invocation: true

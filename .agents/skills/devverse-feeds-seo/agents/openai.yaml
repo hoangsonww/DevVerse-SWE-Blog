@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse Feeds SEO"
+  short_description: "Feed generation, sitemap, metadata, and publishing guidance"
+  default_prompt: "Modify DevVerse feed or SEO-related behavior while preserving publishing contracts and URL assumptions."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse Validate"
+  short_description: "Repo-aware validation workflow for changes"
+  default_prompt: "Validate the current DevVerse change set and report what ran, what passed, and what still needs manual verification."
+
+policy:
+  allow_implicit_invocation: false

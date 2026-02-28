@@ -11,6 +11,11 @@ import {
 } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {
+  getCitationNumberFromHref,
+  linkifyCitations,
+  stripSourcesSection,
+} from "@/lib/chat-citations";
 import styles from "./chat.module.css";
 
 interface ChatSource {
@@ -63,10 +68,6 @@ const getInitialMessages = (): ChatMessage[] => [
     content: "Ask about any DevVerse article and I will answer with citations.",
   },
 ];
-
-function stripSourcesSection(content: string) {
-  return content.replace(/\n?Sources:[\s\S]*$/i, "").trim();
-}
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
@@ -212,8 +213,10 @@ export default function ChatPage() {
     setInput(target.value);
   };
 
-  const handleCitationClick = (messageId: string, index: number) => {
-    const element = document.getElementById(`source-${messageId}-${index + 1}`);
+  const handleCitationClick = (messageId: string, sourceNumber: number) => {
+    const element = document.getElementById(
+      `source-${messageId}-${sourceNumber}`,
+    );
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -241,12 +244,6 @@ export default function ChatPage() {
       console.warn("Failed to clear chat history:", error);
     }
   };
-
-  const linkifyCitations = (content: string, messageId: string) =>
-    content.replace(
-      /\[(\d+)\]/g,
-      (_match, number) => `[${number}](#source-${messageId}-${number})`,
-    );
 
   const ThinkingIcon = thinkingStates[thinkingIndex].icon;
 
@@ -338,8 +335,8 @@ export default function ChatPage() {
                       components={{
                         a: ({ href, children }) => {
                           if (href?.startsWith("#source-")) {
-                            const match = href.match(/#source-[^-]+-(\d+)/);
-                            const index = match ? Number(match[1]) - 1 : 0;
+                            const sourceNumber =
+                              getCitationNumberFromHref(href);
                             const label = Array.isArray(children)
                               ? children.join("")
                               : children;
@@ -348,7 +345,10 @@ export default function ChatPage() {
                                 type="button"
                                 className={styles.citationLink}
                                 onClick={() =>
-                                  handleCitationClick(message.id, index)
+                                  handleCitationClick(
+                                    message.id,
+                                    sourceNumber ?? 1,
+                                  )
                                 }
                               >
                                 [{label}]
