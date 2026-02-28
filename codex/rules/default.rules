@@ -1,0 +1,112 @@
+prefix_rule(
+    pattern = ["git", "status"],
+    decision = "allow",
+    justification = "Read-only repo status is safe and commonly needed.",
+    match = [
+        "git status",
+    ],
+    not_match = [
+        "git add .",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "diff"],
+    decision = "allow",
+    justification = "Read-only diffs are safe and commonly needed.",
+    match = [
+        "git diff",
+        "git diff --stat",
+        "git diff -- app/chat/page.tsx",
+    ],
+    not_match = [
+        "git status",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npx", "tsc", "--noEmit", "--pretty", "false"],
+    decision = "allow",
+    justification = "Type checking is a routine validation step for this repo.",
+    match = [
+        "npx tsc --noEmit --pretty false",
+    ],
+)
+
+prefix_rule(
+    pattern = ["python3", "scripts/check_content_contract.py"],
+    decision = "allow",
+    justification = "Content contract validation is a safe repository-specific check.",
+    match = [
+        "python3 scripts/check_content_contract.py",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", "test"],
+    decision = "allow",
+    justification = "Running tests is a routine validation step.",
+    match = [
+        "npm test",
+        "npm test -- --runInBand --watchman=false",
+    ],
+    not_match = [
+        "npm run build",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "coverage"],
+    decision = "allow",
+    justification = "Coverage runs are a routine validation step.",
+    match = [
+        "npm run coverage",
+        "npm run coverage -- --runInBand --watchman=false",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "build"],
+    decision = "prompt",
+    justification = "Production builds are useful but slower and can fail on external font fetching in restricted environments.",
+    match = [
+        "npm run build",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "format"],
+    decision = "prompt",
+    justification = "Formatting mutates files and should remain an explicit choice.",
+    match = [
+        "npm run format",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "lint"],
+    decision = "prompt",
+    justification = "In this repository lint runs format and mutates files; do not treat it as a read-only check.",
+    match = [
+        "npm run lint",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "vectorize:articles"],
+    decision = "prompt",
+    justification = "Vector refresh calls external AI and Pinecone services and should be intentional.",
+    match = [
+        "npm run vectorize:articles",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing repository state should always be a deliberate step.",
+    match = [
+        "git push",
+        "git push -u origin feat/example",
+    ],
+)

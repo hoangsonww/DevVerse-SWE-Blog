@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse Refresh Vectors"
+  short_description: "Refresh Pinecone article embeddings intentionally"
+  default_prompt: "Refresh DevVerse article vectors only if the content or retrieval change truly requires it, and report any env or quota blockers."
+
+policy:
+  allow_implicit_invocation: false

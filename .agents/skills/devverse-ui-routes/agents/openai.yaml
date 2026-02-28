@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse UI Routes"
+  short_description: "Route and UI conventions for the Next.js app"
+  default_prompt: "Update this DevVerse route or UI change while preserving the repository's routing and styling contracts."
+
+policy:
+  allow_implicit_invocation: true

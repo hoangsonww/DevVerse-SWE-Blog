@@ -1,0 +1,7 @@
+interface:
+  display_name: "DevVerse MDX Content"
+  short_description: "MDX article conventions, template, and parser contract"
+  default_prompt: "Create or update a DevVerse article while preserving the repository's MDX parsing contract."
+
+policy:
+  allow_implicit_invocation: true
