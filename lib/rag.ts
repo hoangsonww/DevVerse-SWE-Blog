@@ -24,6 +24,7 @@ const chatModelCache = new Map<string, any>();
 let cachedModelList: string[] | null = null;
 let cachedModelListAt = 0;
 const modelListCacheTtlMs = 1000 * 60 * 10;
+const EMBEDDING_DIMENSION = 768;
 
 const indexName = process.env.PINECONE_INDEX || "devverse-articles";
 
@@ -46,7 +47,7 @@ function getEmbeddingModel() {
     }
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
     embeddingModel = genAI.getGenerativeModel({
-      model: "models/text-embedding-004",
+      model: "models/gemini-embedding-001",
     });
   }
   return embeddingModel;
@@ -136,7 +137,16 @@ async function generateWithModelRotation(prompt: string) {
 
 async function getEmbedding(text: string): Promise<number[]> {
   const model = getEmbeddingModel();
-  const embedResp = await model.embedContent(text);
+  const embedResp = await model.embedContent({
+    content: {
+      role: "user",
+      parts: [{ text }],
+    },
+    outputDimensionality: EMBEDDING_DIMENSION,
+  } as {
+    content: { role: "user"; parts: { text: string }[] };
+    outputDimensionality: number;
+  });
   if (
     !embedResp ||
     !embedResp.embedding ||
@@ -144,7 +154,15 @@ async function getEmbedding(text: string): Promise<number[]> {
   ) {
     throw new Error("Invalid embedding response format.");
   }
-  return embedResp.embedding.values;
+
+  const values: number[] = embedResp.embedding.values;
+  const magnitude = Math.hypot(...values);
+
+  if (!Number.isFinite(magnitude) || magnitude === 0) {
+    throw new Error("Embedding normalization failed.");
+  }
+
+  return values.map((value: number) => value / magnitude);
 }
 
 export async function retrieveSources(
