@@ -32,6 +32,16 @@ EDA revolves around a few fundamental pieces:
 
 An event should be immutable, timestamped, and easy to reason about without requiring side-channel state. Think of events as historical records, not commands.
 
+```mermaid
+graph LR
+    P1[Producer A] --> B[Event Broker]
+    P2[Producer B] --> B
+    B --> C1[Consumer X]
+    B --> C2[Consumer Y]
+    B --> C3[Consumer Z]
+    B --> DLQ[Dead Letter Queue]
+```
+
 ---
 
 ## 2. Event modeling and domain boundaries
@@ -69,6 +79,57 @@ Common EDA patterns include:
 
 Choose a topology based on the required ordering guarantees and replay needs. If you must support replays and auditing, event streams become the default architecture.
 
+The CQRS pattern separates the write path from the read path via events:
+
+```mermaid
+graph LR
+    CMD[Command] --> WS[Write Service]
+    WS --> DB[(Write Store)]
+    WS --> EB[Event Bus]
+    EB --> RS[Read Service]
+    RS --> RDB[(Read Store)]
+    Q[Query] --> RS
+```
+
+A saga workflow coordinates long-running transactions with compensation:
+
+```mermaid
+sequenceDiagram
+    participant Orchestrator
+    participant OrderSvc as Order Service
+    participant PaySvc as Payment Service
+    participant InvSvc as Inventory Service
+
+    Orchestrator->>OrderSvc: Create order
+    OrderSvc-->>Orchestrator: Order created
+    Orchestrator->>PaySvc: Charge payment
+    PaySvc-->>Orchestrator: Payment failed
+    Orchestrator->>OrderSvc: Cancel order
+    OrderSvc-->>Orchestrator: Order cancelled
+```
+
+Event store replay allows downstream systems to rebuild state or catch up after a failure by re-reading the durable log:
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Replay as Replay Tool
+    participant Store as Event Store
+    participant Consumer as Consumer Service
+    participant State as Read Model
+
+    Admin->>Replay: Trigger replay from offset 0
+    Replay->>Store: Read events from offset 0
+    Store-->>Replay: Event batch 1
+    Replay->>Consumer: Reprocess event batch 1
+    Consumer->>State: Rebuild state projection
+    Store-->>Replay: Event batch 2
+    Replay->>Consumer: Reprocess event batch 2
+    Consumer->>State: Update projection
+    Store-->>Replay: End of log
+    Replay-->>Admin: Replay complete
+```
+
 ---
 
 ## 5. Schema design and versioning
@@ -80,6 +141,41 @@ Event payloads are APIs that evolve over time. Use explicit versioning and compa
 - Prefer backward-compatible changes (additive fields) to avoid breaking consumers.
 
 Document the event contract just like you would for REST or GraphQL APIs. Every event should have a canonical definition, ownership, and deprecation policy.
+
+An event versioning strategy determines how schema evolution is handled without breaking existing consumers:
+
+```mermaid
+graph TD
+    CHANGE[Schema Change Required] --> COMPAT[Is it backward compatible?]
+    COMPAT --> YES[Yes - additive field only]
+    COMPAT --> NO[No - breaking change]
+    YES --> ADDFIELD[Add optional field with default]
+    ADDFIELD --> SAMEVERSION[Keep same event version]
+    NO --> NEWVER[Increment event version]
+    NEWVER --> PARALLEL[Run old and new version in parallel]
+    PARALLEL --> MIGRATE[Migrate consumers to new version]
+    MIGRATE --> DEPRECATE[Deprecate old version]
+    DEPRECATE --> REMOVE[Remove old version after migration window]
+```
+
+The Kafka partition topology shows how producers write to partitions and consumer groups divide the work with ordering guaranteed per partition:
+
+```mermaid
+graph TD
+    P1[Producer 1] --> T[Topic - orders]
+    P2[Producer 2] --> T
+    T --> PART0[Partition 0]
+    T --> PART1[Partition 1]
+    T --> PART2[Partition 2]
+    PART0 --> CGA1[Consumer Group A - Consumer 1]
+    PART1 --> CGA2[Consumer Group A - Consumer 2]
+    PART2 --> CGA3[Consumer Group A - Consumer 3]
+    PART0 --> CGB1[Consumer Group B - Consumer 1]
+    PART1 --> CGB1
+    PART2 --> CGB2[Consumer Group B - Consumer 2]
+    NOTE1[Each partition consumed by one member per group] -.-> CGA1
+    NOTE2[Different groups are independent - full fan-out] -.-> CGB1
+```
 
 ---
 
@@ -105,6 +201,42 @@ A common failure mode is the "double write" problem: writing to the database and
 
 This pattern makes event emission reliable without distributed transactions.
 
+```mermaid
+graph TD
+    APP[Application] --> TX[Begin Transaction]
+    TX --> W1[Write Business Data]
+    TX --> W2[Write to Outbox Table]
+    TX --> COMMIT[Commit Transaction]
+    COMMIT --> POLL[Outbox Poller]
+    POLL --> BROKER[Event Broker]
+    BROKER --> CONSUMER[Consumer]
+```
+
+Consumer group rebalancing happens when a consumer joins or leaves the group, temporarily pausing consumption while partitions are reassigned:
+
+```mermaid
+sequenceDiagram
+    participant B as Broker - Group Coordinator
+    participant C1 as Consumer 1
+    participant C2 as Consumer 2
+    participant C3 as Consumer 3 - new
+
+    Note over B,C2: Stable state - C1 owns P0 and P1 - C2 owns P2 and P3
+    C3->>B: JoinGroup request
+    B->>C1: Revoke all partitions - stop consuming
+    B->>C2: Revoke all partitions - stop consuming
+    C1-->>B: Revoked
+    C2-->>B: Revoked
+    B->>B: Elect leader consumer - run partition assignor
+    B->>C1: Assign P0 and P1
+    B->>C2: Assign P2
+    B->>C3: Assign P3
+    C1->>B: Resume consuming P0 and P1
+    C2->>B: Resume consuming P2
+    C3->>B: Start consuming P3
+    Note over B,C3: Rebalance complete - consumption resumes
+```
+
 ---
 
 ## 8. Ordering guarantees and partitioning
@@ -116,6 +248,23 @@ Event ordering is local to partitions or topics. When strict ordering matters:
 - Use compensating actions when consistency windows are acceptable.
 
 For many systems, eventual consistency plus strong monitoring is a pragmatic tradeoff.
+
+Event sourcing rebuilds the current state of an entity by replaying its complete history of events rather than storing mutable rows:
+
+```mermaid
+graph TD
+    EVENTS[Event Store - append-only log] --> E1[AccountOpened - balance 0]
+    E1 --> E2[MoneyDeposited - amount 500]
+    E2 --> E3[MoneyWithdrawn - amount 200]
+    E3 --> E4[MoneyDeposited - amount 100]
+    APPLY[Fold - apply events left to right] --> E1
+    APPLY --> E2
+    APPLY --> E3
+    APPLY --> E4
+    APPLY --> STATE[Current State - balance 400]
+    SNAP[Optional Snapshot at E3 - balance 300] --> FAST[Fast rebuild from snapshot plus E4 only]
+    FAST --> STATE
+```
 
 ---
 
@@ -132,6 +281,26 @@ Backpressure must be treated as a first-class feature, not a last-minute fix.
 ---
 
 ## 10. Error handling and retries
+
+The dead letter queue handling flow shows how a poison message travels from initial failure through retries to DLQ inspection:
+
+```mermaid
+graph TD
+    MSG[Incoming Event] --> CONSUMER[Consumer Processing]
+    CONSUMER --> SUCCESS[Processing Success]
+    CONSUMER --> FAIL[Processing Failure]
+    FAIL --> RETRY1[Retry 1 - 1s backoff]
+    RETRY1 --> RETRY2[Retry 2 - 2s backoff]
+    RETRY2 --> RETRY3[Retry 3 - 4s backoff]
+    RETRY3 --> MAXRETRY[Max retries exceeded]
+    MAXRETRY --> DLQ[Dead Letter Queue]
+    DLQ --> ALERT[Alert On-Call Engineer]
+    DLQ --> INSPECT[Manual Inspection]
+    INSPECT --> FIX[Fix Consumer Bug]
+    FIX --> REPLAY[Replay from DLQ]
+    REPLAY --> CONSUMER
+    SUCCESS --> ACK[Acknowledge Offset]
+```
 
 Define explicit failure paths:
 
@@ -165,6 +334,21 @@ EDA testing should mirror production realities:
 
 Testing is the difference between theoretical reliability and real resilience.
 
+This comparison helps choose between synchronous and event-driven communication based on the nature of the interaction:
+
+```mermaid
+graph TD
+    DECIDE[Communication Decision] --> Q1{Does caller need an immediate result?}
+    Q1 -->|Yes| SYNC[Use synchronous REST or gRPC]
+    Q1 -->|No| Q2{Can multiple services react independently?}
+    Q2 -->|Yes| PUBSUB[Use pub/sub event broadcast]
+    Q2 -->|No| Q3{Is this a long-running multi-step workflow?}
+    Q3 -->|Yes| SAGA[Use saga with events and compensation]
+    Q3 -->|No| Q4{Is replay or audit history required?}
+    Q4 -->|Yes| STREAM[Use event stream with durable log]
+    Q4 -->|No| QUEUE[Use point-to-point queue]
+```
+
 ---
 
 ## 13. When EDA is the right fit
@@ -189,3 +373,485 @@ For tight request-response workflows, a synchronous API may still be simpler.
 - Treat events as durable facts, not commands.
 
 Event-driven architecture unlocks powerful decoupling and scalability, but it succeeds only when reliability and observability are first-class concerns.
+
+---
+
+## 15. Event sourcing implementation
+
+Event sourcing replaces the mutable-row storage pattern with an append-only event log. The current state of any entity is derived by replaying its event history. This eliminates the "update overwrites history" problem and gives you a complete audit trail as a natural side effect.
+
+### Core event store interface
+
+```typescript
+// event-store.ts: a typed event store for a bank account aggregate
+interface DomainEvent {
+  eventId: string;
+  aggregateId: string;
+  aggregateVersion: number;
+  eventType: string;
+  occurredAt: string;
+  payload: unknown;
+}
+
+// All possible events for the account aggregate
+type AccountEvent =
+  | {
+      eventType: "AccountOpened";
+      payload: { initialBalance: number; currency: string };
+    }
+  | {
+      eventType: "MoneyDeposited";
+      payload: { amount: number; reference: string };
+    }
+  | {
+      eventType: "MoneyWithdrawn";
+      payload: { amount: number; reference: string };
+    }
+  | { eventType: "AccountFrozen"; payload: { reason: string } }
+  | { eventType: "AccountClosed"; payload: { closedBy: string } };
+
+// The current read model derived from events
+interface AccountState {
+  id: string;
+  balance: number;
+  currency: string;
+  status: "active" | "frozen" | "closed";
+  version: number;
+}
+
+// Reducer: folds events left-to-right into state
+function applyAccountEvent(
+  state: AccountState,
+  event: DomainEvent & AccountEvent,
+): AccountState {
+  switch (event.eventType) {
+    case "AccountOpened":
+      return {
+        ...state,
+        balance: event.payload.initialBalance,
+        currency: event.payload.currency,
+        status: "active",
+        version: event.aggregateVersion,
+      };
+
+    case "MoneyDeposited":
+      return {
+        ...state,
+        balance: state.balance + event.payload.amount,
+        version: event.aggregateVersion,
+      };
+
+    case "MoneyWithdrawn":
+      if (state.balance < event.payload.amount) {
+        throw new Error(
+          "Insufficient funds - this event should not have been stored",
+        );
+      }
+      return {
+        ...state,
+        balance: state.balance - event.payload.amount,
+        version: event.aggregateVersion,
+      };
+
+    case "AccountFrozen":
+      return { ...state, status: "frozen", version: event.aggregateVersion };
+
+    case "AccountClosed":
+      return { ...state, status: "closed", version: event.aggregateVersion };
+
+    default:
+      return state;
+  }
+}
+
+// Rebuild current state by loading and replaying all events
+async function loadAccount(
+  accountId: string,
+  eventStore: EventStore,
+): Promise<AccountState> {
+  const events = await eventStore.loadEvents(accountId);
+
+  if (events.length === 0) {
+    throw new Error(`Account ${accountId} does not exist`);
+  }
+
+  return events.reduce(
+    (state, event) => applyAccountEvent(state, event as any),
+    {
+      id: accountId,
+      balance: 0,
+      currency: "USD",
+      status: "active",
+      version: 0,
+    },
+  );
+}
+```
+
+### Snapshot pattern for long-lived aggregates
+
+Replaying thousands of events on every load is expensive. Snapshots store a materialized state at a point in time so only the events after the snapshot need to be replayed.
+
+```typescript
+// snapshot-store.ts
+interface Snapshot {
+  aggregateId: string;
+  version: number;
+  state: AccountState;
+  createdAt: string;
+}
+
+async function loadAccountWithSnapshot(
+  accountId: string,
+  eventStore: EventStore,
+  snapshotStore: SnapshotStore,
+): Promise<AccountState> {
+  // Try to load the latest snapshot
+  const snapshot = await snapshotStore.loadLatest(accountId);
+
+  const fromVersion = snapshot?.version ?? 0;
+  const initialState = snapshot?.state ?? {
+    id: accountId,
+    balance: 0,
+    currency: "USD",
+    status: "active",
+    version: 0,
+  };
+
+  // Only load events after the snapshot version
+  const events = await eventStore.loadEvents(accountId, { fromVersion });
+
+  const currentState = events.reduce(
+    (state, event) => applyAccountEvent(state, event as any),
+    initialState,
+  );
+
+  // Store a new snapshot every 100 events to bound future replay cost
+  if (events.length >= 100) {
+    await snapshotStore.save({
+      aggregateId: accountId,
+      version: currentState.version,
+      state: currentState,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  return currentState;
+}
+```
+
+```mermaid
+graph TD
+    EVENTS[Event Store - append-only] --> E1[AccountOpened - v1]
+    E1 --> E2[MoneyDeposited 500 - v2]
+    E2 --> E3[MoneyWithdrawn 200 - v3]
+    E3 --> SNAP[Snapshot at v3 - balance 300]
+    SNAP --> E4[MoneyDeposited 100 - v4]
+    LOAD[Load account - v4] --> SNAPCHECK{Snapshot available?}
+    SNAPCHECK -- Yes --> FROMSNAP[Load snapshot at v3 - balance 300]
+    FROMSNAP --> REPLAY[Replay only E4 - balance 400]
+    SNAPCHECK -- No --> FULLREPLAY[Replay all events from v1]
+```
+
+---
+
+## 16. Change data capture with Debezium
+
+Change Data Capture (CDC) captures row-level changes from a database's transaction log and publishes them as events. Debezium is the most widely deployed CDC tool, supporting PostgreSQL, MySQL, MongoDB, and others.
+
+```mermaid
+graph TD
+    PG[PostgreSQL primary] --> WAL[Write-Ahead Log - WAL]
+    WAL --> DEBEZIUM[Debezium PostgreSQL Connector]
+    DEBEZIUM --> KAFKA[Kafka topic - dbserver1.public.orders]
+    KAFKA --> SEARCH[Search Index Consumer - Elasticsearch]
+    KAFKA --> CACHE[Cache Invalidation Consumer - Redis]
+    KAFKA --> ANALYTICS[Analytics Consumer - ClickHouse]
+    KAFKA --> NOTIFY[Notification Consumer - email and webhooks]
+```
+
+### Debezium connector configuration
+
+```json
+{
+  "name": "orders-cdc-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "plugin.name": "pgoutput",
+    "database.hostname": "postgres-primary.internal",
+    "database.port": "5432",
+    "database.user": "debezium_user",
+    "database.password": "${file:/etc/debezium-secrets/connector.properties:database.password}",
+    "database.dbname": "orders_db",
+    "database.server.name": "dbserver1",
+    "table.include.list": "public.orders,public.line_items",
+    "publication.autocreate.mode": "filtered",
+    "decimal.handling.mode": "string",
+    "heartbeat.interval.ms": "10000",
+    "transforms": "route,unwrap",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.delete.handling.mode": "rewrite"
+  }
+}
+```
+
+### Consuming CDC events
+
+```typescript
+// cdc-consumer.ts: process Debezium change events to invalidate a cache
+interface DebeziumChangeEvent {
+  op: "c" | "u" | "d" | "r"; // create, update, delete, read (snapshot)
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  source: {
+    table: string;
+    ts_ms: number;
+    txId: number;
+    lsn: number;
+  };
+}
+
+async function handleOrderChange(event: DebeziumChangeEvent): Promise<void> {
+  const { op, after, before, source } = event;
+
+  switch (op) {
+    case "c": {
+      // New order created - warm cache
+      const orderId = after?.id as string;
+      await cache.set(`order:${orderId}`, JSON.stringify(after), { ttl: 300 });
+      await searchIndex.index("orders", orderId, after);
+      break;
+    }
+
+    case "u": {
+      // Order updated - invalidate cache, re-index
+      const orderId = after?.id as string;
+      await cache.delete(`order:${orderId}`);
+      await searchIndex.update("orders", orderId, after);
+      break;
+    }
+
+    case "d": {
+      // Order deleted - remove from all downstream stores
+      const orderId = before?.id as string;
+      await cache.delete(`order:${orderId}`);
+      await searchIndex.delete("orders", orderId);
+      break;
+    }
+  }
+
+  // Emit metrics for CDC lag monitoring
+  const lagMs = Date.now() - source.ts_ms;
+  metrics.histogram("cdc.lag.ms", lagMs, { table: source.table });
+}
+```
+
+---
+
+## 17. Schema registry setup
+
+A schema registry enforces that producers and consumers agree on event structure. Without it, a producer silently breaking a field name or removing a required property can corrupt downstream consumers. Confluent Schema Registry with Avro is the most common setup, but JSON Schema registries work equally well for HTTP-native organizations.
+
+```mermaid
+sequenceDiagram
+    participant Producer
+    participant Registry as Schema Registry
+    participant Kafka
+    participant Consumer
+
+    Producer->>Registry: Register schema for order.created v1
+    Registry-->>Producer: Schema ID 42
+    Producer->>Kafka: Publish message with schema ID 42 in header
+    Consumer->>Kafka: Consume message
+    Consumer->>Registry: Fetch schema for ID 42
+    Registry-->>Consumer: Schema definition
+    Consumer->>Consumer: Deserialize and validate message against schema
+    Note over Consumer: If schema changes break compatibility, registry rejects registration
+```
+
+### Avro schema definition
+
+```json
+{
+  "type": "record",
+  "name": "OrderCreated",
+  "namespace": "com.example.orders.events",
+  "doc": "Emitted when a new order is placed. Schema v2.",
+  "fields": [
+    { "name": "order_id", "type": "string", "doc": "UUID of the new order" },
+    { "name": "account_id", "type": "string" },
+    {
+      "name": "line_items",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "LineItem",
+          "fields": [
+            { "name": "product_id", "type": "string" },
+            { "name": "quantity", "type": "int" },
+            { "name": "unit_price_cents", "type": "long" }
+          ]
+        }
+      }
+    },
+    { "name": "total_cents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "created_at", "type": "long", "logicalType": "timestamp-millis" },
+    {
+      "name": "metadata",
+      "type": { "type": "map", "values": "string" },
+      "default": {},
+      "doc": "Optional extensible metadata - added in v2, backward compatible"
+    }
+  ]
+}
+```
+
+### Schema compatibility modes
+
+| Mode     | Description                      | When to use                            |
+| -------- | -------------------------------- | -------------------------------------- |
+| BACKWARD | New schema can read old messages | Default - safe for most changes        |
+| FORWARD  | Old schema can read new messages | When consumers deploy before producers |
+| FULL     | Both backward and forward        | Strictest; requires most discipline    |
+| NONE     | No compatibility checks          | Development only; never production     |
+
+---
+
+## 18. Testing event-driven systems
+
+Event-driven systems require a testing strategy that addresses both the producer contract (what events are emitted) and the consumer contract (what events are handled correctly).
+
+### Contract testing with Pact
+
+```typescript
+// order-producer.pact.test.ts: verify the order service emits correct events
+import {
+  MessageProviderPact,
+  synchronousBodyHandler,
+} from "@pact-foundation/pact";
+import { createOrderCreatedEvent } from "../src/order-service";
+
+describe("Order service - Pact contract", () => {
+  const provider = new MessageProviderPact({
+    messageProviders: {
+      "an order.created event": () =>
+        createOrderCreatedEvent({
+          orderId: "order-123",
+          accountId: "account-456",
+          lineItems: [
+            { productId: "prod-1", quantity: 2, unitPriceCents: 1999 },
+          ],
+        }),
+    },
+    provider: "OrderService",
+    pactBrokerUrl: process.env.PACT_BROKER_URL!,
+    publishVerificationResult: true,
+    providerVersion: process.env.GIT_SHA!,
+  });
+
+  it("verifies message contracts", () => provider.verify());
+});
+```
+
+### Integration testing with embedded Kafka
+
+```typescript
+// kafka-integration.test.ts: test a full producer → consumer flow
+import { Kafka } from "kafkajs";
+import { GenericContainer } from "testcontainers";
+
+describe("Order processing pipeline", () => {
+  let kafka: Kafka;
+  let container: StartedTestContainer;
+
+  beforeAll(async () => {
+    // Start a real Kafka broker in a Docker container
+    container = await new GenericContainer("confluentinc/cp-kafka:7.5.0")
+      .withExposedPorts(9092)
+      .withEnvironment({
+        KAFKA_BROKER_ID: "1",
+        KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181",
+        KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092",
+        KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true",
+      })
+      .start();
+
+    kafka = new Kafka({
+      clientId: "test",
+      brokers: [`localhost:${container.getMappedPort(9092)}`],
+    });
+  }, 60_000);
+
+  afterAll(() => container.stop());
+
+  it("consumer processes order.created events correctly", async () => {
+    const admin = kafka.admin();
+    await admin.createTopics({ topics: [{ topic: "orders" }] });
+
+    // Publish a test event
+    const producer = kafka.producer();
+    await producer.connect();
+    await producer.send({
+      topic: "orders",
+      messages: [
+        {
+          key: "order-123",
+          value: JSON.stringify({
+            eventType: "order.created",
+            orderId: "order-123",
+            total: 3998,
+          }),
+        },
+      ],
+    });
+    await producer.disconnect();
+
+    // Verify the consumer processes it
+    const received: unknown[] = [];
+    const consumer = kafka.consumer({ groupId: "test-group" });
+    await consumer.connect();
+    await consumer.subscribe({ topic: "orders" });
+    await consumer.run({
+      eachMessage: async ({ message }) => {
+        received.push(JSON.parse(message.value!.toString()));
+      },
+    });
+
+    // Wait for consumption
+    await new Promise((r) => setTimeout(r, 2000));
+    await consumer.disconnect();
+
+    expect(received).toHaveLength(1);
+    expect(received[0]).toMatchObject({
+      eventType: "order.created",
+      orderId: "order-123",
+    });
+  }, 30_000);
+});
+```
+
+```mermaid
+graph TD
+    TESTS[EDA Test Strategy] --> CONTRACT[Contract Tests - Pact]
+    TESTS --> INTEGRATION[Integration Tests - Testcontainers Kafka]
+    TESTS --> CHAOS[Chaos Tests - retry and DLQ]
+    TESTS --> SNAPSHOT[Event Snapshot Tests - schema regression]
+    CONTRACT --> PRODUCER[Verify producer emits correct event shape]
+    CONTRACT --> CONSUMER[Verify consumer handles expected events]
+    INTEGRATION --> E2E[Full pipeline - produce to consume to side effect]
+    CHAOS --> RETRY[Verify exponential backoff behavior]
+    CHAOS --> DLQ[Verify poison messages reach DLQ]
+    SNAPSHOT --> SCHEMA[Detect schema regressions in CI]
+```
+
+---
+
+## 19. Conclusion
+
+Event-driven architecture rewards teams that invest in the operational discipline it requires. The decoupling it provides is real: services can scale independently, deploy independently, and fail without cascading. But this decoupling moves the coordination problem from synchronous call stacks into asynchronous event flows that are harder to observe and reason about without the right tooling.
+
+The patterns covered in this guide - the outbox pattern for reliable emission, schema registries for contract enforcement, CDC for database-to-event integration, event sourcing for audit-friendly aggregates, and contract and integration testing with embedded brokers - are the production building blocks that separate robust EDA implementations from fragile ones. Start with the outbox pattern and schema validation. Add CDC when you need to project database changes into event streams. Adopt event sourcing selectively for aggregates where the full history is a product requirement.

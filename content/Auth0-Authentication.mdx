@@ -77,6 +77,28 @@ Auth0 provides a complete suite of identity management solutions that empower de
 
 ### 3.1. Overview of Auth0 Integration Flow
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Your Application
+    participant Auth0
+    participant API as Protected API
+
+    User->>App: Clicks Login
+    App->>Auth0: Redirect to /authorize
+    Auth0->>User: Show Login Page
+    User->>Auth0: Submit credentials
+    Auth0->>Auth0: Validate credentials
+    Auth0->>App: Redirect with authorization code
+    App->>Auth0: Exchange code for tokens
+    Auth0->>App: Access token and ID token
+    App->>API: Request with Bearer token
+    API->>Auth0: Validate token via JWKS
+    Auth0->>API: Token valid
+    API->>App: Protected resource
+    App->>User: Show protected content
+```
+
 Integrating Auth0 typically involves:
 
 - **Configuring an Auth0 Application:** Set up application settings, including allowed callback URLs and logout URLs.
@@ -250,7 +272,42 @@ npm start
 
 Enhance security by enabling MFA in your Auth0 tenant. This can be configured to require additional verification methods like SMS codes or authenticator apps.
 
+The following sequence diagram shows the MFA enrollment flow for a new user:
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant App as Application
+    participant Auth0
+    participant TOTP as Authenticator App
+
+    U->>App: Login with username and password
+    App->>Auth0: Forward credentials
+    Auth0->>Auth0: Credentials valid - MFA required
+    Auth0->>App: Challenge - enroll MFA
+    App->>U: Show MFA setup screen
+    U->>TOTP: Scan QR code
+    TOTP->>U: Display 6-digit code
+    U->>App: Submit TOTP code
+    App->>Auth0: Verify TOTP enrollment
+    Auth0->>App: MFA enrolled and verified
+    Auth0->>App: Issue access token and ID token
+    App->>U: Grant access to protected resources
+```
+
 ### 5.2. Role-Based Access Control (RBAC)
+
+```mermaid
+graph TD
+    User[Authenticated User] --> TokenCheck[JWT Validated]
+    TokenCheck --> RoleCheck{Check Role}
+    RoleCheck -->|admin| AdminRoute[Access Admin Endpoint]
+    RoleCheck -->|user| UserRoute[Access User Endpoint]
+    RoleCheck -->|no role| PublicRoute[Access Public Endpoint]
+    RoleCheck -->|forbidden| Reject[403 Forbidden]
+    AdminCheck[Check admin:access permission] --> AdminRoute
+    AdminCheck --> Reject
+```
 
 Leverage Auth0’s RBAC features:
 
@@ -264,6 +321,41 @@ Leverage Auth0’s RBAC features:
 - **Short-Lived Tokens:** Set a reasonable expiration time for access tokens and use refresh tokens where applicable.
 - **Token Revocation:** Implement mechanisms to revoke tokens if needed.
 
+The token refresh flow ensures sessions stay alive without forcing re-authentication:
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Auth0
+    participant API as Protected API
+
+    App->>API: Request with expired access token
+    API->>App: 401 Unauthorized
+    App->>Auth0: POST /oauth/token with refresh_token
+    Auth0->>Auth0: Validate refresh token
+    Auth0->>App: New access token and rotated refresh token
+    App->>API: Retry request with new access token
+    API->>App: Protected resource returned
+```
+
+### 5.3.1. Social Login Federation
+
+Auth0 simplifies social login by federating identity across providers:
+
+```mermaid
+graph LR
+    User[User] --> AppLogin[App Login Screen]
+    AppLogin --> Auth0[Auth0 Universal Login]
+    Auth0 --> Google[Google IdP]
+    Auth0 --> GitHub[GitHub IdP]
+    Auth0 --> Facebook[Facebook IdP]
+    Google -->|id_token| Auth0
+    GitHub -->|id_token| Auth0
+    Facebook -->|id_token| Auth0
+    Auth0 -->|Normalized user profile| App[Application]
+    App --> Session[Create session for user]
+```
+
 ### 5.4. Monitoring and Logging
 
 - **Activity Logs:** Use Auth0’s logging features to monitor authentication activities and detect anomalies.
@@ -276,13 +368,353 @@ Leverage Auth0’s RBAC features:
 
 ---
 
-## 6. Conclusion
+### 5.6. B2B Multi-Tenant Auth with Auth0 Organizations
 
-Integrating Auth0 into your applications provides a robust and scalable solution for managing authentication and authorization. This guide has delved into the theoretical concepts behind secure identity management, detailed best practices for configuring Auth0, and provided a full example application demonstrating secure API endpoints in Node.js. By leveraging advanced features such as MFA, RBAC, and continuous monitoring, you can build secure applications that meet today’s high security standards.
+Auth0 Organizations is the purpose-built feature for B2B SaaS products. It lets each of your customers (organizations) have their own identity connections, member management, and branding — all within a single Auth0 tenant.
+
+### 5.7. Creating an Organization via the Management API
+
+```javascript
+// scripts/provision-organization.js
+const { ManagementClient } = require("auth0");
+
+const management = new ManagementClient({
+  domain: process.env.AUTH0_DOMAIN,
+  clientId: process.env.AUTH0_MGMT_CLIENT_ID,
+  clientSecret: process.env.AUTH0_MGMT_CLIENT_SECRET,
+});
+
+async function provisionOrganization(tenantName, adminEmail) {
+  // Create the organization
+  const org = await management.organizations.create({
+    name: tenantName.toLowerCase().replace(/\s+/g, "-"),
+    display_name: tenantName,
+    branding: {
+      logo_url: `https://cdn.example.com/logos/${tenantName}.png`,
+      colors: { primary: "#0066cc", page_background: "#ffffff" },
+    },
+  });
+
+  // Enable username/password connection for this org
+  await management.organizations.addEnabledConnection(org.id, {
+    connection_id: process.env.AUTH0_DB_CONNECTION_ID,
+    assign_membership_on_login: false,
+  });
+
+  // Invite the admin user
+  await management.organizations.createInvitation(org.id, {
+    inviter: { name: "DevVerse Platform" },
+    invitee: { email: adminEmail },
+    client_id: process.env.AUTH0_CLIENT_ID,
+    roles: ["org:admin"],
+    send_invitation_email: true,
+  });
+
+  console.log(`Organization created: ${org.id}`);
+  return org;
+}
+```
+
+### 5.8. Protecting Routes by Organization Membership
+
+```javascript
+// middleware/org-check.js
+const { ManagementClient } = require("auth0");
+
+function requireOrgMembership(requiredOrgSlug) {
+  return async (req, res, next) => {
+    const orgId = req.auth?.org_id; // present in token when user logs in via org
+
+    if (!orgId) {
+      return res
+        .status(403)
+        .json({ error: "No organization context in token" });
+    }
+
+    // Optionally verify the org slug matches the route
+    if (requiredOrgSlug) {
+      const management = new ManagementClient({
+        /* ... */
+      });
+      const org = await management.organizations.get({ id: orgId });
+      if (org.name !== requiredOrgSlug) {
+        return res.status(403).json({ error: "Organization mismatch" });
+      }
+    }
+
+    req.orgId = orgId;
+    next();
+  };
+}
+```
+
+```mermaid
+graph TD
+    USER[B2B User] --> LOGIN[Auth0 Organization Login]
+    LOGIN --> ORGCONN{Org has custom IdP?}
+    ORGCONN -->|Yes - SAML or OIDC| CORPIDP[Corporate Identity Provider]
+    ORGCONN -->|No| DBCONN[Auth0 Username/Password DB]
+    CORPIDP --> AUTH0[Auth0 federates identity]
+    DBCONN --> AUTH0
+    AUTH0 --> TOKEN[JWT includes org_id claim]
+    TOKEN --> APP[SaaS Application]
+    APP --> RBAC{Check org membership and roles}
+    RBAC --> ORGADMIN[Org Admin features]
+    RBAC --> MEMBER[Member features]
+    RBAC --> SUPERADMIN[Platform Super Admin features]
+```
 
 ---
 
-## 7. Further Resources
+### 5.7. Machine-to-Machine Auth (Client Credentials Flow)
+
+Backend services, CI/CD pipelines, and cron jobs need to call APIs without a human user. The OAuth 2.0 Client Credentials flow is the correct solution — the service authenticates using its own credentials, not a user’s tokens.
+
+### 5.8. Creating an M2M Application in Auth0
+
+```javascript
+// In Auth0 Dashboard: Applications > Create Application > Machine to Machine
+// Then grant it access to your API with specific scopes
+
+// server-to-server API call
+const { ManagementClient } = require("auth0");
+
+async function getAccessToken() {
+  const response = await fetch(
+    `https://${process.env.AUTH0_DOMAIN}/oauth/token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grant_type: "client_credentials",
+        client_id: process.env.AUTH0_M2M_CLIENT_ID,
+        client_secret: process.env.AUTH0_M2M_CLIENT_SECRET,
+        audience: process.env.AUTH0_API_AUDIENCE,
+      }),
+    },
+  );
+
+  const { access_token, expires_in } = await response.json();
+  return { access_token, expires_in };
+}
+
+// Cache the token and refresh before expiry
+class M2MTokenCache {
+  constructor() {
+    this.token = null;
+    this.expiresAt = 0;
+  }
+
+  async getToken() {
+    if (Date.now() < this.expiresAt - 60_000) {
+      return this.token; // still valid with 60s buffer
+    }
+
+    const { access_token, expires_in } = await getAccessToken();
+    this.token = access_token;
+    this.expiresAt = Date.now() + expires_in * 1000;
+    return this.token;
+  }
+}
+
+const tokenCache = new M2MTokenCache();
+
+// Use in outgoing HTTP calls
+async function callInternalAPI(endpoint, body) {
+  const token = await tokenCache.getToken();
+  return fetch(`https://internal-api.example.com${endpoint}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+```
+
+```mermaid
+sequenceDiagram
+    participant SVC as Background Service
+    participant CACHE as Token Cache
+    participant AUTH0 as Auth0
+    participant API as Internal API
+
+    SVC->>CACHE: getToken()
+    CACHE->>CACHE: Is cached token still valid?
+    alt Token expired or missing
+        CACHE->>AUTH0: POST /oauth/token (client_credentials)
+        AUTH0-->>CACHE: access_token (valid 24h)
+        CACHE->>CACHE: Store token with expiry
+    end
+    CACHE-->>SVC: access_token
+    SVC->>API: POST /process with Bearer token
+    API->>API: Validate JWT signature and scopes
+    API-->>SVC: 200 OK with result
+```
+
+---
+
+### 5.8. Custom Database Connections
+
+Auth0’s Custom Database Connections allow you to authenticate users from your own existing database without migrating credentials to Auth0. You provide JavaScript scripts for login, user search, and creation; Auth0 executes them in a sandboxed environment.
+
+```javascript
+// Auth0 Dashboard: Authentication > Database > Create DB Connection > Custom Database
+// Login script
+function login(email, password, callback) {
+  const bcrypt = require("bcrypt");
+  const mysql = require("mysql");
+
+  const connection = mysql.createConnection({
+    host: configuration.DB_HOST,
+    user: configuration.DB_USER,
+    password: configuration.DB_PASSWORD,
+    database: configuration.DB_NAME,
+  });
+
+  connection.connect();
+
+  const query =
+    "SELECT id, email, password_hash, name FROM users WHERE email = ?";
+  connection.query(query, [email], (err, results) => {
+    connection.end();
+
+    if (err) return callback(err);
+    if (results.length === 0)
+      return callback(new WrongUsernameOrPasswordError(email));
+
+    const user = results[0];
+    bcrypt.compare(password, user.password_hash, (bcryptErr, isValid) => {
+      if (bcryptErr || !isValid) {
+        return callback(new WrongUsernameOrPasswordError(email));
+      }
+
+      callback(null, {
+        user_id: `legacy|${user.id}`,
+        email: user.email,
+        name: user.name,
+      });
+    });
+  });
+}
+```
+
+Enable **Import Users** mode to transparently migrate users to Auth0’s database the first time they log in, so you can sunset your legacy auth system incrementally.
+
+---
+
+## 6. JWT Structure and Validation
+
+A JSON Web Token carries three base64url-encoded segments. The following diagram shows how a token is constructed and validated:
+
+```mermaid
+graph TD
+    Token[JWT String] --> Header[Header segment - algorithm and type]
+    Token --> Payload[Payload segment - claims]
+    Token --> Signature[Signature segment - HMAC or RSA]
+    Header --> Alg[alg: RS256]
+    Header --> Typ[typ: JWT]
+    Payload --> Sub[sub: user ID]
+    Payload --> Iss[iss: auth0 domain]
+    Payload --> Aud[aud: API identifier]
+    Payload --> Exp[exp: expiry timestamp]
+    Payload --> Permissions[permissions: admin:access]
+    Signature --> JWKS[Verified against Auth0 JWKS endpoint]
+    JWKS --> Valid{Signature valid?}
+    Valid -->|Yes| TrustClaims[Trust payload claims]
+    Valid -->|No| Reject[Reject request - 401]
+```
+
+---
+
+## 7. Auth0 Tenant Architecture
+
+A production Auth0 setup typically separates tenants by environment and uses custom domains for branding:
+
+```mermaid
+graph LR
+    Org[Organization] --> DevTenant[Dev Tenant]
+    Org --> StagingTenant[Staging Tenant]
+    Org --> ProdTenant[Production Tenant]
+    ProdTenant --> CustomDomain[Custom Domain - auth.example.com]
+    ProdTenant --> Connections[Identity Connections]
+    Connections --> DBConn[Username and Password DB]
+    Connections --> GoogleConn[Google Social]
+    Connections --> SAMLConn[Enterprise SAML IdP]
+    ProdTenant --> Applications[Registered Applications]
+    Applications --> SPA[SPA - PKCE flow]
+    Applications --> API[API - Client Credentials]
+    Applications --> M2M[Machine to Machine app]
+    ProdTenant --> Rules[Auth0 Actions and Rules]
+    Rules --> EnrichToken[Enrich token with roles]
+    Rules --> BlockSuspicious[Block suspicious IPs]
+```
+
+---
+
+## 8. PKCE Authorization Code Flow
+
+Single-page applications and mobile apps use PKCE to protect the authorization code flow without a client secret:
+
+```mermaid
+sequenceDiagram
+    participant SPA as SPA or Mobile App
+    participant Auth0
+    participant API as Protected API
+
+    SPA->>SPA: Generate code_verifier and code_challenge
+    SPA->>Auth0: GET /authorize with code_challenge
+    Auth0->>SPA: Redirect to login page
+    SPA->>Auth0: User submits credentials
+    Auth0->>SPA: Redirect with authorization code
+    SPA->>Auth0: POST /oauth/token with code and code_verifier
+    Auth0->>Auth0: Verify code_verifier matches code_challenge
+    Auth0->>SPA: Access token and refresh token
+    SPA->>API: Request with Bearer access token
+    API->>SPA: Protected resource
+```
+
+---
+
+## 9. Auth0 Actions Pipeline
+
+Auth0 Actions replace legacy Rules and Hooks. The following shows when each trigger fires during a login:
+
+```mermaid
+graph TD
+    LoginStart[User initiates login] --> PreUserReg[Pre-User Registration Action]
+    PreUserReg --> Authenticate[Auth0 authenticates credentials]
+    Authenticate --> PostLogin[Post-Login Action]
+    PostLogin --> EnrichClaims[Add custom claims to token]
+    PostLogin --> CheckRisk[Risk assessment check]
+    CheckRisk --> MFARequired{High risk detected?}
+    MFARequired -->|Yes| TriggerMFA[Trigger MFA challenge]
+    MFARequired -->|No| IssueToken[Issue access token]
+    TriggerMFA --> IssueToken
+    IssueToken --> SendTokenToApp[Deliver tokens to application]
+    SendTokenToApp --> PostPasswordChange[Post-Password-Change Action]
+    PostPasswordChange --> AuditLog[Write to audit log]
+```
+
+---
+
+## 10. Conclusion
+
+Integrating Auth0 into your applications provides a robust and scalable solution for managing authentication and authorization. This guide has delved into the theoretical concepts behind secure identity management, detailed best practices for configuring Auth0, and provided a full example application demonstrating secure API endpoints in Node.js. By leveraging advanced features such as MFA, RBAC, and continuous monitoring, you can build secure applications that meet today’s high security standards.
+
+**Key Takeaways:**
+
+- Use Auth0 Organizations for any B2B SaaS product — it handles per-tenant IdP federation, member management, and branding out of the box.
+- Machine-to-machine services must use the Client Credentials flow and cache the token (refreshing 60 seconds before expiry) to avoid rate-limiting Auth0’s token endpoint.
+- Custom Database Connections let you validate credentials against your existing database while migrating users transparently to Auth0 over time.
+- Always use PKCE for SPAs and mobile apps — never use the implicit flow, which exposes tokens in URL fragments and browser history.
+- Auth0 Actions (Post-Login trigger) are the correct place to enrich tokens with custom claims — avoid putting sensitive data in the `id_token` if it is exposed to the browser.
+- Separate tenants by environment (dev / staging / prod) and use custom domains in production so your branding is consistent and you can rotate tenant secrets without affecting other environments.
+
+---
+
+## 11. Further Resources
 
 - **Auth0 Documentation:** [https://auth0.com/docs](https://auth0.com/docs)
 - **Auth0 Quickstarts:** Explore sample implementations for various platforms.

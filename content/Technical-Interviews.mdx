@@ -42,6 +42,22 @@ This guide explores key topics such as arrays, linked lists, stacks, queues, tre
 
 ## 2. Data Structures
 
+```mermaid
+graph TD
+    A[Data Structures] --> B[Linear]
+    A --> C[Non-Linear]
+    B --> D[Array]
+    B --> E[Linked List]
+    B --> F[Stack - LIFO]
+    B --> G[Queue - FIFO]
+    C --> H[Tree]
+    C --> I[Graph]
+    C --> J[Hash Table]
+    C --> K[Heap]
+    H --> L[Binary Tree]
+    H --> M[Trie]
+```
+
 ### 2.1 Arrays
 
 Arrays are one of the most basic data structures. They allow you to store elements sequentially and provide immediate access to any element using its index.
@@ -352,6 +368,20 @@ def longest_common_subsequence(text1, text2):
 print(longest_common_subsequence("abcde", "ace"))  # Expected output: 3
 ```
 
+```mermaid
+graph LR
+    A[Operation Type] --> B[Constant Time - O1]
+    A --> C[Logarithmic Time - O log n]
+    A --> D[Linear Time - On]
+    A --> E[Linearithmic Time - On log n]
+    A --> F[Quadratic Time - On squared]
+    B --> G[Array index lookup]
+    C --> H[Binary search]
+    D --> I[Single loop scan]
+    E --> J[Merge sort - Quick sort]
+    F --> K[Nested loops - Bubble sort]
+```
+
 ---
 
 ## 4. Performance Analysis Without Mathematical Notation
@@ -383,6 +413,26 @@ def binary_search(arr, target):
 
 # Example usage:
 print(binary_search([1, 2, 3, 4, 5], 3))  # Expected output: 2
+```
+
+```mermaid
+graph TD
+    A[Graph Start Node] --> B[BFS - Use Queue]
+    A --> C[DFS - Use Stack or Recursion]
+    B --> D[Enqueue Start Node]
+    D --> E[Dequeue Front Node]
+    E --> F[Visit and Mark Seen]
+    F --> G[Enqueue All Unvisited Neighbors]
+    G --> H{Queue Empty?}
+    H -- No --> E
+    H -- Yes --> I[BFS Complete - Level Order]
+    C --> J[Push Start Node]
+    J --> K[Pop Top Node]
+    K --> L[Visit and Mark Seen]
+    L --> M[Push Unvisited Neighbors]
+    M --> N{Stack Empty?}
+    N -- No --> K
+    N -- Yes --> O[DFS Complete - Depth First]
 ```
 
 ---
@@ -455,6 +505,23 @@ print(maximum_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]))  # Expected output: 6
 
 ## 6. Interview Preparation Tips
 
+```mermaid
+graph TD
+    A[Receive Problem] --> B[Clarify Requirements]
+    B --> C[Identify Data Structures Needed]
+    C --> D{Simple Brute Force First?}
+    D -- Yes --> E[State Brute Force Solution]
+    E --> F[Analyze Time and Space]
+    F --> G{Can Optimize?}
+    D -- No --> G
+    G -- Yes --> H[Apply Better Technique]
+    H --> I[DP or Greedy or Two Pointers]
+    I --> F
+    G -- No --> J[Write Clean Code]
+    J --> K[Test with Edge Cases]
+    K --> L[Discuss Trade-offs]
+```
+
 - **Practice Regularly:**
   Use platforms like LeetCode, HackerRank, CodeSignal, and Codewars to expose yourself to a wide variety of problems.
 
@@ -470,9 +537,399 @@ print(maximum_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]))  # Expected output: 6
 - **Review Fundamentals:**
   Regularly revisit core data structures and algorithmic techniques to strengthen your foundation.
 
+```mermaid
+graph TD
+    A[Problem with Overlapping Subproblems] --> B{Approach?}
+    B --> C[Top-Down - Memoization]
+    B --> D[Bottom-Up - Tabulation]
+    C --> E[Recursive Call]
+    E --> F{Result Cached?}
+    F -- Yes --> G[Return Cached Value]
+    F -- No --> H[Compute and Cache]
+    H --> G
+    D --> I[Fill Base Cases in Table]
+    I --> J[Iterate and Build Up Results]
+    J --> K[Return Final Cell]
+    G --> L[Optimal Solution]
+    K --> L
+```
+
+```mermaid
+graph TD
+    A[Binary Search Tree] --> B[Insert Value]
+    B --> C{Value less than Root?}
+    C -- Yes --> D[Go Left]
+    C -- No --> E[Go Right]
+    D --> F{Left Child Exists?}
+    F -- Yes --> C
+    F -- No --> G[Insert as Left Child]
+    E --> H{Right Child Exists?}
+    H -- Yes --> C
+    H -- No --> I[Insert as Right Child]
+    G --> J[BST Property Maintained]
+    I --> J
+```
+
+```mermaid
+graph LR
+    A[Sorting Algorithms] --> B[Comparison Based]
+    A --> C[Non-Comparison Based]
+    B --> D[Bubble Sort - On squared]
+    B --> E[Merge Sort - On log n]
+    B --> F[Quick Sort - On log n avg]
+    B --> G[Heap Sort - On log n]
+    C --> H[Counting Sort - On plus k]
+    C --> I[Radix Sort - On times k]
+    C --> J[Bucket Sort - On avg]
+```
+
+```mermaid
+graph TD
+    A[Two-Pointer Technique] --> B[Sorted Array or String]
+    B --> C[Left Pointer at Start]
+    B --> D[Right Pointer at End]
+    C --> E{Sum equals Target?}
+    D --> E
+    E -- Equal --> F[Found Answer]
+    E -- Too Small --> G[Move Left Pointer Right]
+    E -- Too Large --> H[Move Right Pointer Left]
+    G --> E
+    H --> E
+    F --> I[Return Indices]
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> ProblemRead
+    ProblemRead --> Clarifying : ask questions
+    Clarifying --> Designing : constraints clear
+    Designing --> BruteForce : think out loud
+    BruteForce --> Optimizing : state complexity
+    Optimizing --> Coding : approach agreed
+    Coding --> Testing : solution written
+    Testing --> Debugging : test case fails
+    Debugging --> Testing : fix applied
+    Testing --> Done : all cases pass
+    Done --> [*]
+```
+
 ---
 
-## 7. Conclusion
+## 7. System Design Interview Patterns
+
+System design interviews assess your ability to architect scalable, reliable, and maintainable distributed systems. Unlike algorithmic problems, they are intentionally open-ended and require you to drive the conversation.
+
+### 7.1 The RESHADED Framework
+
+A repeatable structure for system design answers:
+
+- **R**equirements - functional and non-functional
+- **E**stimation - scale, QPS, storage, bandwidth
+- **S**torage schema - data model and database choice
+- **H**igh-level design - components and data flow
+- **A**PI design - key endpoints and contracts
+- **D**etailed design - dive deep into two or three components
+- **E**dge cases - failure modes, hot partitions, cascading failures
+- **D**iscussion - tradeoffs and alternatives
+
+### 7.2 Designing a URL Shortener
+
+Classic warm-up problem. Walk through it as a reference scaffold.
+
+```mermaid
+graph LR
+    CLIENT[Browser] --> LB[Load Balancer]
+    LB --> APP[App Servers - stateless]
+    APP --> CACHE[Redis Cache - short code to URL]
+    APP --> DB[(PostgreSQL - persistent mapping)]
+    APP --> IDGEN[ID Generator Service - Snowflake or counter]
+    IDGEN --> BASE62[Base62 encode to short code]
+    BASE62 --> APP
+    APP --> CLIENT
+```
+
+**Estimation for 100M URLs, 10B reads/day:**
+
+- Read QPS: 10B / 86400 ≈ 115,000 reads/second
+- Write QPS: 100M total, at creation time, roughly 1,200 writes/second at peak
+- Storage: each row ≈ 500 bytes; 100M rows ≈ 50 GB
+- Cache: store top 20% of URLs (Pareto), ≈ 10 GB RAM
+
+**Key decisions:**
+
+- Use base62 encoding of a 7-character code (62^7 = 3.5 trillion unique URLs).
+- Read-through cache with TTL; write-through on creation.
+- Database sharding by short code if write volume exceeds single-node limits.
+
+### 7.3 Designing a Notification System
+
+```mermaid
+sequenceDiagram
+    participant SVC as Producer Service
+    participant KAFKA as Kafka - notifications topic
+    participant WORKER as Notification Worker
+    participant TEMPLATE as Template Service
+    participant PROVIDER as Email or SMS or Push Provider
+    participant USER as End User
+
+    SVC->>KAFKA: Publish notification event {userId, type, payload}
+    KAFKA->>WORKER: Deliver event to worker group
+    WORKER->>WORKER: Deduplicate using idempotency key
+    WORKER->>TEMPLATE: Fetch and render template
+    TEMPLATE-->>WORKER: Rendered HTML or text
+    WORKER->>PROVIDER: Send via SendGrid or Twilio or FCM
+    PROVIDER-->>WORKER: Delivery receipt
+    WORKER->>KAFKA: Commit offset
+    PROVIDER->>USER: Email or SMS or push notification
+```
+
+**Non-functional requirements to address:**
+
+- At-least-once delivery (acceptable for notifications; idempotency key prevents duplicate sends).
+- Rate limiting per user to prevent spam (e.g., max 10 emails/hour per user).
+- Priority queues: transactional notifications go before marketing.
+
+### 7.4 Common System Design Topics and Their Key Components
+
+```mermaid
+graph TD
+    TOPICS[System Design Topics] --> SCALE[Scalability Patterns]
+    TOPICS --> STORAGE[Storage Decisions]
+    TOPICS --> RELIABILITY[Reliability Patterns]
+    SCALE --> CDN[CDN for static assets]
+    SCALE --> HSHARDING[Horizontal sharding by user or region]
+    SCALE --> ASYNC[Async processing with queues]
+    STORAGE --> SQL[SQL for ACID transactions]
+    STORAGE --> NOSQL[NoSQL for flexible schema and high write throughput]
+    STORAGE --> BLOB[Blob storage for media - S3 or GCS]
+    STORAGE --> SEARCH[Search index - Elasticsearch or Atlas Search]
+    RELIABILITY --> CIRCUIT[Circuit breakers between services]
+    RELIABILITY --> RETRY[Retry with exponential backoff and jitter]
+    RELIABILITY --> IDEMPOTENCY[Idempotency keys on write endpoints]
+    RELIABILITY --> HEALTHCHECK[Health checks and graceful degradation]
+```
+
+---
+
+## 8. Behavioral Interview Framework
+
+Technical skills alone do not win offers. Behavioral interviews assess how you collaborate, handle adversity, and align with company values. The STAR method is the standard structure.
+
+### 8.1 STAR Method
+
+- **S**ituation: Set the context briefly. What was the environment and the stakes?
+- **T**ask: What was your specific responsibility or goal?
+- **A**ction: What did you do? Use "I" statements, not "we."
+- **R**esult: What was the measurable outcome? Quantify whenever possible.
+
+### 8.2 Preparing a Story Bank
+
+Prepare at least two stories per competency area before interviews:
+
+| Competency           | Example Prompt                                                      |
+| -------------------- | ------------------------------------------------------------------- |
+| Leadership           | Tell me about a time you led a project without formal authority.    |
+| Conflict resolution  | Describe a disagreement with a teammate and how you resolved it.    |
+| Failure and learning | Tell me about a significant mistake and what you did afterward.     |
+| Ambiguity            | Give an example of working effectively with incomplete information. |
+| Technical judgment   | Describe a difficult technical decision you made and the tradeoff.  |
+| Ownership            | Tell me about going above and beyond the requirements of a task.    |
+| Collaboration        | Describe a time you helped a teammate who was struggling.           |
+
+### 8.3 Common Follow-Up Questions
+
+Interviewers probe depth after the initial STAR answer. Prepare for:
+
+- "What would you do differently if you faced that situation again?"
+- "What did you learn about yourself from that experience?"
+- "How did other stakeholders perceive the outcome?"
+- "How did you prioritize when you had conflicting deadlines?"
+- "What data or signals did you use to make that decision?"
+
+The following diagram shows how interviewers probe depth after a STAR answer, and what each follow-up question type signals to the hiring panel:
+
+```mermaid
+graph TD
+    STORY[Initial STAR Story] --> FOLLOWUP{Interviewer probes}
+    FOLLOWUP -->|Depth check| ALTERNATIVES[What other options did you consider?]
+    FOLLOWUP -->|Self-awareness| DIFFERENT[What would you change in hindsight?]
+    FOLLOWUP -->|Impact| METRICS[What was the quantified business outcome?]
+    FOLLOWUP -->|Collaboration| OTHERS[How did teammates respond or contribute?]
+    ALTERNATIVES --> DEMONSTRATE[Demonstrates breadth of thinking]
+    DIFFERENT --> DEMONSTRATE
+    METRICS --> DEMONSTRATE
+    OTHERS --> DEMONSTRATE
+    DEMONSTRATE --> OFFER[Strong candidate signal]
+```
+
+---
+
+## 9. Mock Interview Structure and Time Management
+
+### 9.1 Coding Interview Timing Guide (45-minute session)
+
+| Phase                     | Time      | Goal                                          |
+| ------------------------- | --------- | --------------------------------------------- |
+| Clarify the problem       | 3-5 min   | Confirm input/output, constraints, edge cases |
+| Brute force walkthrough   | 3-5 min   | Verbalize the naive approach and complexity   |
+| Optimize                  | 5-8 min   | Discuss better approach before writing code   |
+| Implement                 | 15-20 min | Write clean, working code                     |
+| Test and trace            | 5 min     | Walk through examples, then edge cases        |
+| Questions for interviewer | 2 min     | Show genuine curiosity                        |
+
+### 9.2 Self-Assessment Rubric
+
+Use this rubric after each practice session:
+
+```python
+def evaluate_session(session_notes: dict) -> str:
+    """
+    score each dimension 1 (needs work) to 4 (excellent)
+    dimensions: problem_decomposition, code_quality, complexity_analysis,
+                communication, edge_case_handling, time_management
+    """
+    scores = session_notes.get("scores", {})
+    dimensions = [
+        "problem_decomposition",
+        "code_quality",
+        "complexity_analysis",
+        "communication",
+        "edge_case_handling",
+        "time_management",
+    ]
+
+    total = sum(scores.get(d, 1) for d in dimensions)
+    avg = total / len(dimensions)
+
+    if avg >= 3.5:
+        verdict = "Strong hire signal"
+    elif avg >= 2.5:
+        verdict = "Hire with reservations"
+    elif avg >= 1.5:
+        verdict = "No hire - specific gaps identified"
+    else:
+        verdict = "Strong no hire - fundamentals need review"
+
+    gaps = [d for d in dimensions if scores.get(d, 1) < 2]
+    return f"Score: {avg:.1f}/4 | Verdict: {verdict} | Focus areas: {', '.join(gaps) or 'None'}"
+
+# Example usage after a mock session:
+result = evaluate_session({
+    "scores": {
+        "problem_decomposition": 4,
+        "code_quality": 3,
+        "complexity_analysis": 3,
+        "communication": 4,
+        "edge_case_handling": 2,
+        "time_management": 3,
+    }
+})
+print(result)
+# Score: 3.2/4 | Verdict: Hire with reservations | Focus areas: edge_case_handling
+```
+
+### 9.3 Practice Interview Flow
+
+The following state diagram shows the recommended flow through a full mock interview session, from problem reading to discussing tradeoffs:
+
+```mermaid
+stateDiagram-v2
+    [*] --> ProblemRead : Interviewer states problem
+    ProblemRead --> Clarifying : Candidate asks 2-3 clarifying questions
+    Clarifying --> BruteForce : Constraints confirmed
+    BruteForce --> BruteForce : Verbalize naive approach out loud
+    BruteForce --> Complexity : State time and space complexity
+    Complexity --> Optimize : Is it good enough or can we do better?
+    Optimize --> Coding : Interviewer approves approach
+    Coding --> Testing : Solution written
+    Testing --> EdgeCases : Happy path verified
+    EdgeCases --> Debugging : Edge case fails
+    Debugging --> Testing : Fix applied
+    EdgeCases --> Tradeoffs : All cases pass
+    Tradeoffs --> Done : Discuss alternatives and improvements
+    Done --> [*]
+```
+
+---
+
+## 10. Advanced Algorithm Patterns Quick Reference
+
+### 10.1 Sliding Window
+
+```python
+def max_sum_subarray_k(nums: list[int], k: int) -> int:
+    """Find maximum sum of any subarray of length k in O(n) time."""
+    window_sum = sum(nums[:k])
+    max_sum = window_sum
+
+    for i in range(k, len(nums)):
+        window_sum += nums[i] - nums[i - k]  # Add new element, remove oldest
+        max_sum = max(max_sum, window_sum)
+
+    return max_sum
+
+def longest_substring_no_repeat(s: str) -> int:
+    """Longest substring without repeating characters using variable window."""
+    char_index = {}
+    left = 0
+    max_len = 0
+
+    for right, char in enumerate(s):
+        if char in char_index and char_index[char] >= left:
+            left = char_index[char] + 1  # Shrink window past the duplicate
+        char_index[char] = right
+        max_len = max(max_len, right - left + 1)
+
+    return max_len
+```
+
+### 10.2 Union-Find for Graph Connectivity
+
+```python
+class UnionFind:
+    def __init__(self, n: int):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+        self.components = n
+
+    def find(self, x: int) -> int:
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])  # Path compression
+        return self.parent[x]
+
+    def union(self, x: int, y: int) -> bool:
+        px, py = self.find(x), self.find(y)
+        if px == py:
+            return False  # Already in the same component
+        # Union by rank
+        if self.rank[px] < self.rank[py]:
+            px, py = py, px
+        self.parent[py] = px
+        if self.rank[px] == self.rank[py]:
+            self.rank[px] += 1
+        self.components -= 1
+        return True
+
+def count_islands(grid: list[list[str]]) -> int:
+    """Number of islands using Union-Find instead of DFS."""
+    rows, cols = len(grid), len(grid[0])
+    uf = UnionFind(rows * cols)
+
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == "1":
+                for dr, dc in [(0, 1), (1, 0)]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == "1":
+                        uf.union(r * cols + c, nr * cols + nc)
+
+    return sum(1 for r in range(rows) for c in range(cols)
+               if grid[r][c] == "1" and uf.find(r * cols + c) == r * cols + c)
+```
+
+---
+
+## 11. Conclusion
 
 Technical interviews can be challenging, but with thorough preparation and a deep understanding of data structures and algorithms, you can confidently tackle even the most complex problems. This guide has provided a detailed exploration of a wide range of topics - from basic arrays and linked lists to dynamic programming and backtracking - accompanied by practical example problems and step-by-step solutions.
 

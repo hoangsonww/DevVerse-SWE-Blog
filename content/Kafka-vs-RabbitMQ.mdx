@@ -26,13 +26,29 @@ Messaging systems are the backbone of modern distributed architectures. They ena
 
 ---
 
-## I. Introduction
+## 1. Introduction
 
 In the era of big data and microservices, choosing the right messaging system is crucial for building scalable and resilient distributed applications. **Apache Kafka** is known for its high throughput and real-time streaming capabilities, making it a favorite for log aggregation, event sourcing, and stream processing. On the other hand, **RabbitMQ** is a robust, traditional message broker that excels in flexible routing and reliable delivery. This article examines both platforms, comparing their key features and performance characteristics, and providing practical examples and guidelines for effective implementation.
 
 ---
 
-## II. Architectural Overview
+## 2. Architectural Overview
+
+```mermaid
+graph TD
+    subgraph Kafka - Pull Model
+        KP[Producer] --> KT[Topic Partition - Append-Only Log]
+        KT --> KC1[Consumer Group A - pulls at own pace]
+        KT --> KC2[Consumer Group B - independent offset]
+    end
+    subgraph RabbitMQ - Push Model
+        RP[Producer] --> RE[Exchange - direct, topic, fanout]
+        RE --> RQ1[Queue 1]
+        RE --> RQ2[Queue 2]
+        RQ1 --> RC1[Consumer 1 - pushed with ack]
+        RQ2 --> RC2[Consumer 2 - pushed with ack]
+    end
+```
 
 ### Apache Kafka
 
@@ -68,7 +84,19 @@ RabbitMQ is a mature, traditional message broker built on the Advanced Message Q
 
 ---
 
-## III. Performance and Scalability
+## 3. Performance and Scalability
+
+```mermaid
+graph TD
+    A[RabbitMQ Exchange Types] --> B[Direct Exchange]
+    A --> C[Topic Exchange]
+    A --> D[Fanout Exchange]
+    A --> E[Headers Exchange]
+    B --> F[Route by exact routing key match]
+    C --> G[Route by wildcard pattern match]
+    D --> H[Broadcast to all bound queues]
+    E --> I[Route by message header attributes]
+```
 
 ### Throughput & Latency
 
@@ -96,7 +124,20 @@ RabbitMQ is a mature, traditional message broker built on the Advanced Message Q
 
 ---
 
-## IV. Real-World Use Cases
+## 4. Real-World Use Cases
+
+```mermaid
+graph LR
+    A[Use Case Requirements] --> B{Key Decision Factors}
+    B -- High Throughput and Streaming --> C[Apache Kafka]
+    B -- Complex Routing and Reliability --> D[RabbitMQ]
+    C --> E[Log Aggregation]
+    C --> F[Event Sourcing]
+    C --> G[Stream Processing with Flink or Spark]
+    D --> H[Task Queues and Background Jobs]
+    D --> I[Multi-Protocol Legacy Integration]
+    D --> J[Fine-Grained Message Routing]
+```
 
 ### When to Use Apache Kafka
 
@@ -140,7 +181,7 @@ This table summarizes the key differences between Kafka and RabbitMQ, helping yo
 
 ---
 
-## V. Detailed Code Examples
+## 5. Detailed Code Examples
 
 ### Example: Apache Kafka with Node.js
 
@@ -206,9 +247,38 @@ async function runRabbitMQ() {
 runRabbitMQ().catch(console.error);
 ```
 
+The following diagrams illustrate the delivery guarantee modes available in each system and how Kafka handles partition rebalancing when a consumer group membership changes.
+
+```mermaid
+graph LR
+    A[Message Delivery Guarantees] --> B[At Most Once]
+    A --> C[At Least Once]
+    A --> D[Exactly Once]
+    B --> E[Kafka - auto-commit enabled]
+    B --> F[RabbitMQ - autoAck true]
+    C --> G[Kafka - manual commit with retry]
+    C --> H[RabbitMQ - manual ack with requeue]
+    D --> I[Kafka - transactions plus idempotent producer]
+    D --> J[RabbitMQ - publisher confirms plus consumer ack]
+```
+
+```mermaid
+graph TD
+    A[Kafka Partition Rebalancing] --> B[Consumer joins or leaves group]
+    B --> C[Group Coordinator detects change]
+    C --> D[Revoke all partition assignments]
+    D --> E[Trigger rebalance protocol]
+    E --> F[Eager Rebalance - stop all consumers]
+    E --> G[Cooperative Incremental Rebalance]
+    F --> H[Reassign all partitions to new members]
+    G --> I[Reassign only affected partitions]
+    H --> J[Consumers resume processing]
+    I --> J
+```
+
 ---
 
-## VI. Best Practices & Considerations
+## 6. Best Practices & Considerations
 
 ### Message Durability and Persistence
 
@@ -247,9 +317,315 @@ runRabbitMQ().catch(console.error);
 
 ---
 
-## VII. Conclusion
+## 7. Architecture Diagrams and Client Abstractions
+
+The sequence diagram below shows how a Kafka producer sends a message and receives acknowledgement based on the configured acks setting:
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Producer as Kafka Producer
+    participant Leader as Partition Leader Broker
+    participant Follower1 as Follower Broker 1
+    participant Follower2 as Follower Broker 2
+
+    App->>Producer: send message to topic
+    Producer->>Leader: ProduceRequest - acks=all
+    Leader->>Leader: Append to local log
+    Leader->>Follower1: Replicate record
+    Leader->>Follower2: Replicate record
+    Follower1-->>Leader: Fetch ACK
+    Follower2-->>Leader: Fetch ACK
+    Leader-->>Producer: ProduceResponse - offset assigned
+    Producer-->>App: RecordMetadata - partition and offset
+```
+
+The class diagram models the key abstractions in the Kafka client SDK that developers interact with when building producers and consumers:
+
+```mermaid
+classDiagram
+    class KafkaClient {
+        +String clientId
+        +List bootstrapServers
+        +connect()
+        +disconnect()
+    }
+    class Producer {
+        +String transactionalId
+        +String acks
+        +send()
+        +flush()
+        +transaction()
+    }
+    class Consumer {
+        +String groupId
+        +Boolean autoCommit
+        +subscribe()
+        +run()
+        +commitOffsets()
+    }
+    class TopicPartition {
+        +String topic
+        +Int partition
+        +Long offset
+    }
+    class ConsumerGroup {
+        +String groupId
+        +List members
+        +rebalance()
+    }
+    KafkaClient <|-- Producer
+    KafkaClient <|-- Consumer
+    Consumer --> ConsumerGroup : belongs to
+    ConsumerGroup --> TopicPartition : assigns
+    Producer --> TopicPartition : writes to
+```
+
+The diagram below shows how a RabbitMQ dead-letter exchange handles messages that are rejected or exceed their TTL:
+
+```mermaid
+graph TD
+    P[Producer] --> E[Main Exchange]
+    E --> Q[Work Queue - x-dead-letter-exchange set]
+    Q --> C[Consumer]
+    C --> NACK{Message NACKed or TTL Expired?}
+    NACK -- Yes --> DLX[Dead Letter Exchange]
+    NACK -- No --> DONE[Processing Complete]
+    DLX --> DLQ[Dead Letter Queue]
+    DLQ --> AUDIT[Audit and Retry Service]
+    AUDIT --> RETRY{Retry Eligible?}
+    RETRY -- Yes --> E
+    RETRY -- No --> DISCARD[Log and Discard]
+```
+
+The state diagram captures the full lifecycle of a Kafka consumer group from creation through steady-state processing and shutdown:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Empty : Consumer group created
+    Empty --> Preparing : First consumer joins
+    Preparing --> Rebalancing : All members joined and sync starts
+    Rebalancing --> Stable : Partitions assigned to members
+    Stable --> Processing : Consumers poll and process messages
+    Processing --> Stable : Offsets committed
+    Stable --> Rebalancing : Member joins or leaves group
+    Processing --> Dead : All consumers disconnected
+    Dead --> [*]
+```
+
+## 8. Production Performance Benchmarks
+
+These benchmarks are representative figures from real-world cluster deployments. Your numbers will vary based on hardware, network, message size, and durability settings.
+
+### Throughput Comparison
+
+| Scenario                                 | Kafka                   | RabbitMQ                |
+| ---------------------------------------- | ----------------------- | ----------------------- |
+| Producer throughput (1 KB msg, acks=1)   | ~1.5 M msg/s per broker | ~60–80 K msg/s per node |
+| Producer throughput (1 KB msg, acks=all) | ~500 K msg/s            | ~40–50 K msg/s          |
+| Consumer throughput (batch=500)          | ~2 M msg/s              | ~80 K msg/s             |
+| End-to-end p99 latency (acks=1)          | 5–15 ms                 | 1–5 ms                  |
+| End-to-end p99 latency (acks=all)        | 20–60 ms                | 5–20 ms                 |
+
+**Key observations:**
+
+- Kafka’s throughput advantage grows with message volume because sequential disk writes batch well.
+- RabbitMQ achieves lower raw latency in small-scale, single-queue scenarios due to its push model and AMQP’s lightweight framing.
+- Kafka throughput degrades significantly at `acks=all` with large replication factors. Use `min.insync.replicas=2` with `acks=all` rather than full ISR for a reasonable durability/throughput trade-off.
+
+```mermaid
+graph LR
+    A[Message throughput comparison] --> B[Kafka - 1.5M msg per second per broker]
+    A --> C[RabbitMQ - 70K msg per second per node]
+    B --> D[Sequential disk IO - append-only]
+    C --> E[In-memory queue - heap-bound]
+    D --> F[Scales linearly with partitions]
+    E --> G[Scales with nodes but memory pressure rises]
+    F --> H[Kafka advantage for streaming workloads]
+    G --> I[RabbitMQ advantage for bursty low-latency tasks]
+```
+
+---
+
+## 9. Running Both Together
+
+Kafka and RabbitMQ are complementary, not mutually exclusive. Many production architectures use them together — Kafka as the event backbone and RabbitMQ as the task-dispatch layer.
+
+### Hybrid Architecture Pattern
+
+```mermaid
+graph TD
+    A[External Events - user clicks, transactions] --> B[Kafka - event backbone]
+    B --> C[Stream Processing - Flink or Kafka Streams]
+    C --> D[Enriched Events - with user context]
+    D --> E[Kafka Topic - enriched-events]
+    E --> F[Event Router Service]
+    F --> G{Event Type}
+    G -- email notification --> H[RabbitMQ - notifications exchange]
+    G -- inventory update --> I[RabbitMQ - inventory queue]
+    G -- analytics ingestion --> J[Kafka - analytics topic - direct]
+    H --> K[Email Worker Pool - 20 consumers]
+    I --> L[Inventory Service - single consumer]
+    J --> M[Data Warehouse Sink]
+```
+
+**When this pattern makes sense:**
+
+- Kafka handles the high-volume, durable, replayable event log (the "truth store").
+- RabbitMQ handles transient, work-queue-style tasks where TTL, priority queues, or dead-letter logic are needed — none of which Kafka handles natively.
+- The router service is a thin consumer of Kafka that publishes to the appropriate RabbitMQ exchange based on event type.
+
+---
+
+## 10. Migration Guide: RabbitMQ to Kafka (or vice-versa)
+
+Migration between the two platforms is a common operational challenge. The safest approach is a dual-write period followed by consumer cutover.
+
+### RabbitMQ to Kafka Migration
+
+```mermaid
+graph TD
+    A[Phase 1 - Dual Write] --> B[Publisher writes to both RabbitMQ and Kafka]
+    B --> C[Original consumers still read from RabbitMQ]
+    B --> D[New consumers read from Kafka - shadow mode]
+    D --> E[Compare outputs for correctness]
+    E --> F{Output matches?}
+    F -- No --> G[Debug consumer logic]
+    G --> D
+    F -- Yes --> H[Phase 2 - Consumer Cutover]
+    H --> I[Route all consumers to Kafka]
+    I --> J[Drain and disable RabbitMQ queues]
+    J --> K[Phase 3 - Remove RabbitMQ writer]
+    K --> L[Migration complete]
+```
+
+### Practical Migration Code: Kafka Consumer Matching RabbitMQ Semantics
+
+RabbitMQ consumers expect push delivery with per-message acks. When migrating to Kafka, replicate this with manual offset commits and a small `max.poll.records`:
+
+```python
+from kafka import KafkaConsumer
+import json
+
+consumer = KafkaConsumer(
+    ‘orders’,
+    bootstrap_servers=[‘kafka:9092’],
+    group_id=’order-processor’,
+    auto_offset_reset=’earliest’,
+    enable_auto_commit=False,           # manual commit = explicit ack
+    max_poll_records=10,                # small batch = RabbitMQ-like behavior
+    value_deserializer=lambda b: json.loads(b.decode()),
+)
+
+for message in consumer:
+    try:
+        process_order(message.value)
+        # Only commit after successful processing
+        consumer.commit({
+            message.partition: message.offset + 1,
+        })  # type: ignore[call-arg]
+    except Exception as exc:
+        # Do NOT commit — message will be redelivered
+        log_dead_letter(message, exc)
+```
+
+For the reverse migration (Kafka to RabbitMQ) the main consideration is **offset semantics**: RabbitMQ has no native concept of message replay. Store the Kafka offset externally (e.g. in Redis or a DB) so you can resume from a known position if needed.
+
+---
+
+## 11. Operational Complexity Comparison
+
+| Concern                   | Kafka                                             | RabbitMQ                            |
+| ------------------------- | ------------------------------------------------- | ----------------------------------- |
+| Initial setup             | Moderate (ZooKeeper or KRaft mode)                | Simple (single binary or Docker)    |
+| Cluster management        | Manual partition reassignment (or Cruise Control) | Automatic via mnesia distributed DB |
+| Schema management         | External (Confluent Schema Registry)              | Built-in content-type headers       |
+| Consumer group management | Consumer group coordinator in broker              | Server-side queue ownership         |
+| Dead letter handling      | Manual (separate DLQ topic + consumer)            | Built-in x-dead-letter-exchange     |
+| Message TTL               | Retention period (topic-level)                    | Per-message or per-queue TTL        |
+| Priority queues           | Not natively supported                            | Supported (x-max-priority)          |
+| Geo-replication           | MirrorMaker 2 / Confluent Replicator              | Shovel and Federation plugins       |
+| Observability             | JMX, Kafka Exporter, Confluent Control Center     | Management UI, prometheus exporter  |
+
+---
+
+## 12. Monitoring Setup for Each Platform
+
+### Kafka Monitoring with Prometheus and Grafana
+
+```yaml
+# docker-compose.yml excerpt
+services:
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command:
+      - "--kafka.server=kafka:9092"
+      - "--topic.filter=.*"
+    ports:
+      - "9308:9308"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+```
+
+Key Kafka metrics to alert on:
+
+```yaml
+# prometheus_alert_rules.yml
+groups:
+  - name: kafka
+    rules:
+      - alert: KafkaConsumerLagHigh
+        expr: kafka_consumergroup_lag > 100000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Consumer group {{ $labels.consumergroup }} lag is {{ $value }}"
+
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_server_replicamanager_underreplicatedpartitions > 0
+        for: 2m
+        labels:
+          severity: critical
+```
+
+### RabbitMQ Monitoring with Prometheus Plugin
+
+```bash
+# Enable the built-in Prometheus plugin
+rabbitmq-plugins enable rabbitmq_prometheus
+
+# RabbitMQ now exposes /metrics on port 15692
+```
+
+```mermaid
+graph LR
+    A[Kafka Broker JMX] --> B[JMX Exporter - Java agent]
+    B --> C[Prometheus - scrape every 15s]
+    D[RabbitMQ - /metrics endpoint] --> C
+    C --> E[Grafana Dashboards]
+    E --> F[Consumer Lag Panel - Kafka]
+    E --> G[Queue Depth Panel - RabbitMQ]
+    E --> H[Throughput msg per second - both]
+    C --> I[AlertManager]
+    I --> J[PagerDuty or Slack - on threshold breach]
+```
+
+---
+
+## 13. Conclusion
 
 Both Apache Kafka and RabbitMQ are powerful messaging systems tailored to different scenarios in modern distributed architectures. Kafka’s design makes it ideal for high-throughput, real-time streaming and event-driven applications, while RabbitMQ offers flexible routing and reliable message delivery, particularly suitable for complex workflows and task distribution.
+
+The choice between them is not always binary. Many mature architectures run both: Kafka as the durable, replayable event backbone and RabbitMQ as the task-dispatch layer for time-sensitive, routable work. When migrating between them, a dual-write shadow period is the safest path. And whichever system you choose, investing in monitoring — consumer lag for Kafka, queue depth for RabbitMQ — pays dividends far beyond initial deployment.
 
 Choosing the right solution depends on your application’s requirements - consider factors such as data volume, latency needs, routing complexity, and integration with existing systems. By understanding the architectural nuances, performance characteristics, and best practices associated with each platform, you can build robust, scalable, and resilient distributed systems.
 
@@ -257,7 +633,7 @@ For further insights, consult the official documentation for [Apache Kafka](http
 
 ---
 
-## VIII. Further Reading and Resources
+## 14. Further Reading and Resources
 
 - **Books & Guides:**
   - _"Kafka: The Definitive Guide"_ – Comprehensive resource on building streaming applications with Kafka.

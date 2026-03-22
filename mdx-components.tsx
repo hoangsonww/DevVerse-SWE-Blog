@@ -3,6 +3,7 @@ import Image from "next/image";
 import CodeBlock from "@/ui/CodeBlock";
 import PreBlock from "@/ui/PreBlock";
 import InlineCode from "@/ui/InlineCode";
+import MermaidChart from "@/ui/MermaidChart";
 
 /**
  * Define how MDX components should be rendered. This is a custom hook
@@ -79,6 +80,14 @@ export function useMDXComponents(
     pre: (props) => {
       const child = props.children;
       if (child && child.props && child.props.className) {
+        // Mermaid diagrams: render with MermaidChart instead of CodeBlock
+        if (child.props.className === "language-mermaid") {
+          const code =
+            typeof child.props.children === "string"
+              ? child.props.children
+              : "";
+          return <MermaidChart chart={code} />;
+        }
         // If a language/className is detected, use CodeBlock
         return <CodeBlock {...child.props} />;
       }

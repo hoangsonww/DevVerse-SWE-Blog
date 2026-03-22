@@ -17,163 +17,490 @@ export default function DatabaseIndexDesignArticle({ children }) {
 
 > Date: 2024-12-05
 
-Indexes are the main lever for speeding up database queries, but they also add write overhead, storage cost, and operational complexity. This article explains how to choose and maintain indexes based on real production workloads.
+Indexes are the main lever for speeding up database queries, but they also add write overhead, storage cost, and operational complexity. Getting index design right requires understanding how queries access data, how the database planner makes decisions, and how indexes behave under production workloads. This article covers everything from foundational theory to advanced PostgreSQL techniques with real optimization case studies.
 
 ---
 
-## 1. Start with access patterns
+## 1. Foundations: Access Patterns and Selectivity
 
-Indexes should be derived from how the application actually queries data:
+### 1.1. Start with Access Patterns
 
-- Identify the top queries by latency and frequency.
-- Map filtering predicates, join keys, and sort clauses.
-- Separate read-heavy endpoints from write-heavy workflows.
+Indexes should be derived from how the application actually queries data, not from the schema alone:
+
+- Identify the top queries by latency and frequency from your slow query log.
+- Map filtering predicates, join keys, and sort clauses for each query.
+- Separate read-heavy endpoints from write-heavy workflows — indexes help reads but hurt writes.
+- Profile under realistic concurrency, not just single-query benchmarks.
 
 Treat indexes as an optimization for specific queries, not a general-purpose boost.
 
----
-
-## 2. Cardinality, selectivity, and data distribution
+### 1.2. Cardinality, Selectivity, and Data Distribution
 
 Index effectiveness depends on data distribution:
 
-- **High cardinality** columns (user IDs) are great index keys.
-- **Low cardinality** columns (boolean flags) often do not help.
-- **Skewed distributions** can make some indexes unreliable.
+- **High cardinality** columns (user IDs, UUIDs) are excellent index keys because each value maps to few rows.
+- **Low cardinality** columns (boolean flags, status enums with 3 values) rarely benefit from standalone indexes.
+- **Skewed distributions** can make indexes unreliable — if 90% of rows have `status = 'active'`, an index on `status` helps the 10% of queries for other values but not the majority.
 
-Use query plans and statistics to validate selectivity before adding indexes.
+Use `EXPLAIN ANALYZE` and column statistics (`pg_stats`) to validate selectivity before adding indexes. A good rule of thumb: an index is useful when the query touches less than 10-15% of the table rows.
+
+### 1.3. How the Query Planner Decides
+
+Understanding the planner's decision process is essential for predicting whether your index will actually be used:
+
+```mermaid
+graph TD
+    Query[Incoming Query] --> HasIndex{Index exists for predicate?}
+    HasIndex -->|No| FullScan[Full Table Scan]
+    HasIndex -->|Yes| Selective{Is index selective enough?}
+    Selective -->|No - too many rows match| FullScan
+    Selective -->|Yes| IndexScan[B-tree Index Scan]
+    IndexScan --> LeafNode[Traverse to Leaf Node]
+    LeafNode --> RowPointer[Follow Row Pointer]
+    RowPointer --> Covering{Covering index?}
+    Covering -->|Yes| ReturnData[Return Data from Index Only]
+    Covering -->|No| TableFetch[Fetch Row from Heap]
+    TableFetch --> ReturnData
+    FullScan --> ReturnData
+```
+
+The planner estimates the cost of each access path (sequential scan, index scan, bitmap scan) and picks the cheapest one. Even if an index exists, the planner may ignore it if the estimated selectivity is too low.
 
 ---
 
-## 3. B-tree indexes and when they shine
+## 2. B-tree Indexes
 
-B-trees are the default for most relational databases because they support:
+### 2.1. When B-trees Shine
 
-- Equality lookups (`WHERE id = ...`).
-- Range scans (`WHERE created_at >= ...`).
-- Ordered results (`ORDER BY created_at DESC`).
+B-trees are the default index type in PostgreSQL, MySQL, and most relational databases because they support the broadest range of operations:
 
-B-trees work best when queries align with the index order and avoid skipping large ranges.
+- **Equality lookups:** `WHERE id = 42`
+- **Range scans:** `WHERE created_at >= '2025-01-01'`
+- **Prefix matching:** `WHERE name LIKE 'Alice%'` (but not `LIKE '%Alice'`)
+- **Ordered results:** `ORDER BY created_at DESC` without an explicit sort step
+- **MIN/MAX aggregations:** The planner can jump directly to the first or last leaf node
 
----
+B-trees work best when queries align with the index order and the predicate is selective. They struggle with pattern matching in the middle of strings and with low-cardinality equality checks where a bitmap scan is cheaper.
 
-## 4. Composite indexes: order matters
+### 2.2. Composite Indexes and Column Ordering
 
-Composite indexes are powerful but easy to misuse. The left-most prefix rule means:
+Composite indexes are powerful but easy to misuse. The **leftmost prefix rule** means the index is useful only when the query includes the leading columns:
 
-- `INDEX (account_id, created_at)` helps queries that filter by `account_id`.
+- `INDEX (account_id, created_at)` helps queries that filter by `account_id` alone or by `account_id + created_at`.
 - It does **not** help queries that only filter by `created_at`.
-- Ordering can support `ORDER BY` if it matches the index direction.
+- Column order should match: equality predicates first, then range predicates, then sort columns.
 
-Design composite indexes around the most selective predicates first, then the sort key.
+The following diagram shows the decision process for ordering columns in a composite index:
+
+```mermaid
+graph TD
+    Q[Query to optimize] --> EqPred{Equality predicates?}
+    EqPred -->|Yes| PutEqFirst[Put equality columns first]
+    EqPred -->|No| RangePred{Range predicate?}
+    PutEqFirst --> RangePred
+    RangePred -->|Yes| PutRangeNext[Put range column next]
+    RangePred -->|No| SortKey{ORDER BY clause?}
+    PutRangeNext --> SortKey
+    SortKey -->|Yes| MatchSort[Append sort columns]
+    SortKey -->|No| CoverageCheck{Add SELECT columns for covering?}
+    MatchSort --> CoverageCheck
+    CoverageCheck -->|Yes| CoveringIdx[Create covering composite index]
+    CoverageCheck -->|No| FinalIdx[Create targeted composite index]
+```
+
+### 2.3. Covering Indexes and Index-Only Scans
+
+A covering index includes all columns a query needs, allowing the database to satisfy the query entirely from the index without accessing the heap table. This eliminates the most expensive part of a normal index scan: random I/O to fetch each matching row.
+
+```mermaid
+graph LR
+    Query[SELECT id, email, status FROM users WHERE account_id = 42] --> PlannerCheck{Planner analysis}
+    PlannerCheck --> IdxAvail{Index on account_id?}
+    IdxAvail -->|No| HeapScan[Full table scan]
+    IdxAvail -->|Yes| ColCheck{Index includes id, email, status?}
+    ColCheck -->|No| IndexThenFetch[Index scan plus heap fetch per row]
+    ColCheck -->|Yes| IndexOnly[Index-only scan - no heap access]
+    IndexOnly --> FastResult[Minimal IO - fast result]
+    IndexThenFetch --> SlowerResult[Higher IO at scale]
+    HeapScan --> SlowestResult[Maximum IO]
+```
+
+In PostgreSQL, index-only scans depend on the **visibility map**. The visibility map tracks which heap pages contain only tuples visible to all transactions. If VACUUM has not run recently, the visibility map is stale and the planner falls back to heap fetches even when a covering index exists.
+
+```sql
+-- Check whether a query is actually getting IOS or falling back to heap fetches
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+SELECT id, status, amount
+FROM orders
+WHERE account_id = 42;
+
+-- Index Only Scan using idx_orders_covering on orders
+--   Heap Fetches: 0          <- Zero is ideal
+--   Heap Fetches: 8412       <- High value means VACUUM hasn't run
+
+-- Fix: run targeted VACUUM and check autovacuum settings
+VACUUM (ANALYZE) orders;
+```
 
 ---
 
-## 5. Covering indexes and index-only scans
+## 3. Specialized Index Types
 
-A covering index stores all columns needed by a query, allowing the database to avoid reading the base table. This can reduce IO dramatically.
+### 3.1. Partial and Filtered Indexes
 
-Use covering indexes when:
+Partial indexes target only a subset of rows, reducing index size and write overhead:
 
-- The query is read-heavy and latency-sensitive.
-- The result set is narrow (few columns).
-- You can afford additional index storage.
+```mermaid
+graph TD
+    Table[Full Table - orders] --> AllRows[All rows: active and archived]
+    AllRows --> Decision{What does the query target?}
+    Decision -->|Only active orders| PartialIdx[Partial Index WHERE status is active]
+    Decision -->|All statuses| FullIdx[Full B-tree Index on status + created_at]
+    Decision -->|Archived rows only| ArchiveIdx[Partial Index WHERE archived is true]
+    PartialIdx --> SmallSize[Smaller index - faster scans]
+    PartialIdx --> FasterWrites[Fewer index updates per write]
+    FullIdx --> LargeSize[Larger index - covers all queries]
+    ArchiveIdx --> SmallSize
+```
 
-Be cautious of over-indexing columns that change frequently.
+Partial indexes are powerful when access patterns focus on a small slice of data. For example, if 95% of queries filter by `status = 'active'` and only 5% of rows are active, a partial index is dramatically smaller and faster than a full index.
+
+### 3.2. Expression Indexes
+
+Standard B-tree indexes store raw column values. Expression indexes store the result of an arbitrary expression, enabling the planner to use an index when queries filter on derived values:
+
+```sql
+-- Without expression index: full table scan even though email is indexed
+EXPLAIN SELECT * FROM users WHERE lower(email) = 'alice@example.com';
+-- Seq Scan on users (cost=0.00..3240.00 rows=100 width=200)
+
+-- Create an expression index on the lowercased email
+CREATE INDEX idx_users_email_lower ON users (lower(email));
+
+-- Now the planner uses the index
+EXPLAIN SELECT * FROM users WHERE lower(email) = 'alice@example.com';
+-- Index Scan using idx_users_email_lower (cost=0.43..8.45 rows=1 width=200)
+
+-- Expression index on a JSONB field
+CREATE INDEX idx_events_user_id ON events ((payload->>'user_id'));
+
+-- Expression index for date truncation in reporting queries
+CREATE INDEX idx_orders_year_month ON orders (date_trunc('month', created_at));
+```
+
+The key constraint: the query predicate must exactly match the index expression. The planner will not canonicalize expressions for you.
+
+### 3.3. Hash, GIN, GiST, and Bitmap Indexes
+
+Different workloads benefit from specialized index types:
+
+```mermaid
+graph TD
+    QueryType[Query pattern] --> EqualityOnly{Equality lookups only?}
+    EqualityOnly -->|Yes| HashOrBtree{Range or sort needed?}
+    HashOrBtree -->|No| HashIdx[Hash index - fastest equality]
+    HashOrBtree -->|Yes| BTreeIdx[B-tree - equality plus range]
+    EqualityOnly -->|No| FullText{Full-text search?}
+    FullText -->|Yes| GINIdx[GIN index - inverted index]
+    FullText -->|No| Spatial{Geospatial or JSONB?}
+    Spatial -->|Yes| GiSTIdx[GiST index - spatial and structured]
+    Spatial -->|No| LowCard{Low cardinality column?}
+    LowCard -->|Yes| BitmapIdx[Bitmap index - analytics only]
+    LowCard -->|No| BTreeIdx
+```
+
+- **Hash indexes:** O(1) equality lookups, but no range or sort support and limited WAL replication in older PostgreSQL versions.
+- **GIN (Generalized Inverted Index):** Ideal for full-text search (`tsvector`), JSONB containment (`@>`), and array overlap (`&&`).
+- **GiST (Generalized Search Tree):** Spatial queries (PostGIS), range types, and nearest-neighbor searches.
+- **Bitmap indexes:** Common in analytical databases (not PostgreSQL natively, but PostgreSQL uses bitmap scans internally when combining multiple indexes).
 
 ---
 
-## 6. Partial and filtered indexes
+## 4. Indexes for Joins and Foreign Keys
 
-Partial indexes target only a subset of rows:
+### 4.1. Why Join Indexes Matter
 
-- Index only `status = 'active'` to reduce size.
-- Use filtered indexes for archival tables.
-- Combine with partitioning for large datasets.
+Join performance depends heavily on index alignment. The planner chooses between nested loop, hash join, and merge join strategies based on table sizes and available indexes:
 
-Partial indexes are powerful when access patterns focus on a small slice of data.
+```mermaid
+graph TD
+    JoinQuery[SELECT users.name, orders.total FROM orders JOIN users] --> PlannerDecide{Planner join strategy}
+    PlannerDecide --> NestedLoop[Nested Loop Join]
+    PlannerDecide --> HashJoin[Hash Join]
+    PlannerDecide --> MergeJoin[Merge Join]
+    NestedLoop --> FKIndexed{Foreign key indexed?}
+    FKIndexed -->|Yes| IndexLookup[Index seek per outer row - fast]
+    FKIndexed -->|No| InnerScan[Full scan of inner table per row - slow]
+    HashJoin --> BuildPhase[Build hash table on smaller table]
+    BuildPhase --> ProbePhase[Probe with larger table rows]
+    MergeJoin --> BothSorted{Both sides sorted on join key?}
+    BothSorted -->|Yes| LinearMerge[Linear merge pass - very fast]
+    BothSorted -->|No| SortFirst[Sort both sides first - adds cost]
+    IndexLookup --> ResultSet[Return joined rows]
+    ProbePhase --> ResultSet
+    LinearMerge --> ResultSet
+```
 
----
+### 4.2. Practical Guidelines
 
-## 7. Specialized index types
-
-Different workloads benefit from specialized indexes:
-
-- **Hash indexes:** fast equality lookups, weak for ranges.
-- **GIN/GiST (Postgres):** full-text search, JSONB, and spatial data.
-- **Bitmap indexes:** common in analytical systems for low-cardinality columns.
-
-Choose a specialized index only when the query planner is consistently bottlenecked.
-
----
-
-## 8. Indexes for joins and foreign keys
-
-Join performance depends on index alignment:
-
-- Index foreign keys used in joins.
+- **Always index foreign keys** used in joins — PostgreSQL does not create these automatically.
 - Match index order to the join predicate.
-- Avoid unnecessary composite indexes when a single-column index is enough.
-
-Join-related indexes often provide the biggest wins for relational workloads.
-
----
-
-## 9. Write amplification and maintenance
-
-Every index adds work on inserts, updates, and deletes:
-
-- High-cardinality indexes slow down bulk writes.
-- Hot tables with many indexes can become write-bound.
-- Autovacuum and index reindexing matter for long-lived tables.
-
-Use write-heavy benchmarks to validate index impact before deploying to production.
+- For many-to-many relationships, index both sides of the junction table.
+- Avoid unnecessary composite indexes when a single-column index on the FK is sufficient.
 
 ---
 
-## 10. Measuring effectiveness
+## 5. Write Amplification and Maintenance
 
-Index performance should be validated using:
+### 5.1. The Cost of Every Index
 
-- Query plans (`EXPLAIN`, `EXPLAIN ANALYZE`).
-- Index hit ratios and buffer cache stats.
-- Slow query logs and p95 latency tracking.
+Every index adds work on inserts, updates, and deletes. A single write operation must update the base table row plus every index that references the modified columns:
 
-If the planner ignores an index, it is likely not selective enough or the query shape is wrong.
+```mermaid
+graph LR
+    Write[Write Operation] --> TableRow[Update Base Table Row]
+    Write --> Idx1[Update Index 1]
+    Write --> Idx2[Update Index 2]
+    Write --> Idx3[Update Index 3]
+    Idx1 --> WAL[Write-Ahead Log]
+    Idx2 --> WAL
+    Idx3 --> WAL
+    TableRow --> WAL
+    WAL --> Disk[Persist to Disk]
+    MoreIndexes[More Indexes] -->|Higher write cost| Write
+```
+
+On write-heavy tables, each additional index can degrade insert throughput by 5-15%. Validate with write-heavy benchmarks before deploying new indexes to production.
+
+### 5.2. Index Bloat and VACUUM
+
+PostgreSQL's MVCC model means deleted or updated rows leave dead tuples in the index. Over time, index bloat increases the index size on disk and degrades scan performance. VACUUM and autovacuum reclaim this space, but misconfigured autovacuum settings can let bloat grow unchecked.
+
+```sql
+-- Check index bloat using pgstattuple
+SELECT
+  indexrelname,
+  pg_size_pretty(pg_relation_size(indexrelid)) AS index_size,
+  100 - (avg_leaf_density) AS bloat_pct
+FROM pgstattuple_index('idx_orders_account')
+JOIN pg_stat_user_indexes USING (indexrelid);
+
+-- If bloat exceeds 30%, schedule a rebuild
+REINDEX CONCURRENTLY idx_orders_account;
+```
 
 ---
 
-## 11. Index lifecycle and governance
+## 6. Index Lifecycle and Governance
 
-Indexes require lifecycle management:
+### 6.1. From Proposal to Retirement
+
+Managing indexes as production assets means tracking them from initial planning through eventual removal:
+
+```mermaid
+graph TD
+    START([Start]) --> Proposed[Index proposed based on slow query]
+    Proposed --> PlanValidated[Query plan and selectivity verified]
+    PlanValidated --> StagingTest[Deploy to staging for benchmarks]
+    StagingTest --> WriteCheck{Write overhead acceptable?}
+    WriteCheck -->|No| Proposed
+    WriteCheck -->|Yes| Migration[Add to migration backlog]
+    Migration --> Build[CREATE INDEX CONCURRENTLY]
+    Build --> Monitor[Monitor usage via pg_stat_user_indexes]
+    Monitor --> UsageCheck{Used in past 30 days?}
+    UsageCheck -->|Yes| Monitor
+    UsageCheck -->|No| DropCandidate[Flag for removal]
+    DropCandidate --> Drop[DROP INDEX CONCURRENTLY]
+    Drop --> END([Done])
+```
+
+### 6.2. Governance Practices
 
 - Add indexes via controlled migrations with backfill windows.
-- Monitor index usage; drop unused indexes after verification.
-- Document index intent so future teams understand why it exists.
-
-Treat indexes as product assets with owners and SLOs.
-
----
-
-## 12. Common pitfalls
-
-Avoid common mistakes:
-
-- Indexing low-selectivity columns (status flags, booleans).
-- Creating redundant indexes that overlap or compete.
-- Ignoring index bloat and fragmentation.
-- Using indexes to mask inefficient query patterns.
-
-Indexes should reinforce good query design, not hide bad queries.
+- Always use `CREATE INDEX CONCURRENTLY` to avoid locking the table.
+- Monitor index usage with `pg_stat_user_indexes`; drop unused indexes after a verification period.
+- Document index intent so future teams understand why each index exists.
+- Treat indexes as product assets with owners and SLOs, just like APIs.
 
 ---
 
-## 13. Practical checklist
+## 7. Monitoring Index Health
 
-- Build indexes from the highest-cost queries.
-- Use composite indexes for multi-column predicates.
-- Avoid indexing columns with low selectivity.
-- Validate with real data and realistic concurrency.
-- Revisit index strategy after product or traffic shifts.
+### 7.1. Key Metrics to Track
 
-Thoughtful index design turns database performance from guesswork into a measurable, repeatable process.
+Effective index governance requires tracking these metrics in production:
+
+```mermaid
+graph LR
+    Metrics[Index Health Metrics] --> Usage[Usage Metrics]
+    Metrics --> Size[Size Metrics]
+    Metrics --> Perf[Performance Metrics]
+    Usage --> Scans[Index scans per day]
+    Usage --> TupRead[Tuples read via index]
+    Usage --> TupFetch[Heap fetches triggered]
+    Size --> IndexSize[Index size on disk]
+    Size --> Bloat[Index bloat percentage]
+    Size --> FragRatio[Page fill ratio]
+    Perf --> AvgScanTime[Average scan time]
+    Perf --> CacheHitRate[Buffer cache hit rate]
+    Perf --> SeqScans[Seq scans on indexed table]
+    Bloat --> ReindexNeeded{Bloat over 30 pct?}
+    ReindexNeeded -->|Yes| Reindex[Schedule REINDEX CONCURRENTLY]
+    SeqScans --> MissingIndex{Many seq scans on large table?}
+    MissingIndex -->|Yes| AddIndex[Investigate missing index]
+```
+
+### 7.2. Production SQL Queries for Index Health
+
+These queries should run nightly and feed a health dashboard:
+
+```sql
+-- 1. Find unused indexes (candidates for removal)
+SELECT
+  schemaname, tablename, indexname,
+  pg_size_pretty(pg_relation_size(indexrelid)) AS index_size,
+  idx_scan
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+ORDER BY pg_relation_size(indexrelid) DESC;
+
+-- 2. Find indexes with high heap fetch ratios (need INCLUDE columns)
+SELECT
+  indexrelname, idx_scan, idx_tup_read, idx_tup_fetch,
+  round(100.0 * idx_tup_fetch / nullif(idx_tup_read, 0), 2) AS heap_fetch_pct
+FROM pg_stat_user_indexes
+WHERE idx_scan > 100
+ORDER BY heap_fetch_pct DESC NULLS LAST
+LIMIT 20;
+
+-- 3. Find tables where sequential scans dominate (potential missing index)
+SELECT
+  relname AS tablename, seq_scan, idx_scan, n_live_tup,
+  round(seq_scan * 100.0 / nullif(seq_scan + idx_scan, 0), 2) AS seq_scan_pct
+FROM pg_stat_user_tables
+WHERE seq_scan > 0 AND n_live_tup > 10000
+ORDER BY seq_scan DESC
+LIMIT 20;
+```
+
+---
+
+## 8. Real-World Optimization Case Study
+
+### 8.1. The Problem
+
+An e-commerce platform has a `line_items` table with 200 million rows. A reporting query aggregating revenue by product is taking 12 seconds. The target is under 100ms.
+
+```sql
+-- Problematic query: 12 seconds
+SELECT
+  product_id,
+  sum(quantity)                  AS units_sold,
+  sum(unit_price * quantity)     AS revenue
+FROM line_items
+WHERE
+  account_id = $1
+  AND status = 'completed'
+  AND created_at >= $2
+  AND created_at < $3
+GROUP BY product_id
+ORDER BY revenue DESC
+LIMIT 20;
+```
+
+### 8.2. Diagnosing with EXPLAIN ANALYZE
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT product_id, sum(quantity), sum(unit_price * quantity)
+FROM line_items
+WHERE account_id = 123 AND status = 'completed'
+  AND created_at BETWEEN '2025-01-01' AND '2025-02-01'
+GROUP BY product_id ORDER BY 3 DESC LIMIT 20;
+
+-- Seq Scan on line_items
+-- (actual time=11432.000..11897.000 rows=19200 loops=1)
+-- Buffers: shared read=1208000
+```
+
+The planner is doing a full sequential scan on 200M rows — no usable index exists.
+
+### 8.3. Designing the Solution
+
+The fix combines three indexing techniques:
+
+1. **Composite column order:** Equality columns (`account_id`, `status`) first, range column (`created_at`) next.
+2. **Partial index:** `WHERE status = 'completed'` excludes non-completed rows from the index entirely.
+3. **Covering index with INCLUDE:** Add `product_id`, `quantity`, and `unit_price` to enable an index-only scan.
+
+```sql
+CREATE INDEX CONCURRENTLY idx_lineitems_account_revenue
+  ON line_items (account_id, status, created_at)
+  INCLUDE (product_id, quantity, unit_price)
+  WHERE status = 'completed';
+```
+
+### 8.4. The Result
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+-- same query as above
+-- Index Only Scan using idx_lineitems_account_revenue on line_items
+-- (actual time=0.412..72.000 rows=19200 loops=1)
+-- Heap Fetches: 0
+-- Buffers: shared hit=412
+```
+
+**12,000ms reduced to 72ms — a 166x improvement.** The key decisions: composite column order matching equality and range predicates, a partial index to reduce index size, and `INCLUDE` columns to enable an index-only scan.
+
+```mermaid
+graph TD
+    BEFORE[Before: 12000ms seq scan] --> ANALYSIS[EXPLAIN ANALYZE reveals seq scan on 200M rows]
+    ANALYSIS --> PATTERNS[Predicates: equality on account_id and status, range on created_at]
+    PATTERNS --> DESIGN[Composite partial covering index with INCLUDE]
+    DESIGN --> CREATE[CREATE INDEX CONCURRENTLY]
+    CREATE --> VACUUM[VACUUM ANALYZE]
+    VACUUM --> AFTER[After: 72ms index-only scan - 166x improvement]
+```
+
+---
+
+## 9. Common Pitfalls and Checklist
+
+### 9.1. Pitfalls to Avoid
+
+- **Indexing low-selectivity columns** (status flags, booleans) as standalone indexes.
+- **Creating redundant indexes** that overlap — `(a, b)` already covers queries on `(a)`.
+- **Ignoring index bloat** and fragmentation on high-write tables.
+- **Using indexes to mask bad queries** — indexes should reinforce good query design, not hide inefficient patterns.
+- **Not testing under write load** — an index that helps reads may tank write throughput.
+- **Forgetting to VACUUM** after bulk loads, causing index-only scans to degrade.
+
+### 9.2. Production Checklist
+
+- Build indexes from the highest-cost queries in your slow query log.
+- Use composite indexes for multi-column predicates, following equality-range-sort order.
+- Consider partial indexes when queries consistently filter to a small subset of rows.
+- Use `INCLUDE` columns for high-frequency queries to enable index-only scans.
+- Validate with `EXPLAIN ANALYZE` on realistic data volumes and concurrency.
+- Monitor with `pg_stat_user_indexes` — drop unused indexes after a 30-day observation window.
+- Schedule `REINDEX CONCURRENTLY` when bloat exceeds 30%.
+- Revisit index strategy after product changes, traffic shifts, or major data growth.
+
+---
+
+## 10. Conclusion
+
+Database index design is an empirical discipline. The right index for a workload cannot be determined from schema diagrams alone — it emerges from query execution plans, real data distributions, and production traffic patterns. Start by identifying the highest-cost queries, design indexes that match their exact predicate and sort structure, validate with `EXPLAIN ANALYZE` on representative data, and govern the index set as a production asset.
+
+The PostgreSQL-specific features covered here — expression indexes, covering indexes with `INCLUDE`, partial index filters, and `pg_stat_user_indexes` queries — give teams the instruments to diagnose, improve, and maintain query performance at scale. The monitoring queries in section 7 should run nightly and feed a health dashboard that flags bloat, unused indexes, and tables with missing indexes before they become incidents.
+
+---
+
+## 11. Further Reading
+
+- [PostgreSQL Index Types Documentation](https://www.postgresql.org/docs/current/indexes-types.html)
+- [Use The Index, Luke — A Guide to Database Indexing](https://use-the-index-luke.com/)
+- [pgMustard — EXPLAIN ANALYZE Visualization](https://www.pgmustard.com/)
+- [Citus Blog — Index Maintenance and Bloat](https://www.citusdata.com/blog/)
+- [Markus Winand — SQL Performance Explained](https://sql-performance-explained.com/)

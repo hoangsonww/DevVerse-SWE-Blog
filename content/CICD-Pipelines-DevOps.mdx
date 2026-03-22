@@ -1,0 +1,1562 @@
+import MdxLayout from "@/components/MdxLayout";
+
+export const metadata = {
+  title: "CI/CD Pipelines and DevOps Automation: A Complete Engineering Guide",
+  description:
+    "A comprehensive guide to CI/CD pipelines and DevOps automation, covering pipeline design, deployment strategies, Infrastructure as Code, GitOps, containerization, monitoring, and real-world tooling comparisons.",
+  topics: [
+    "DevOps",
+    "CI/CD",
+    "Automation",
+    "Kubernetes",
+    "Infrastructure as Code",
+  ],
+};
+
+export default function CICDPipelinesDevOpsArticle({ children }) {
+  return <MdxLayout>{children}</MdxLayout>;
+}
+
+# CI/CD Pipelines and DevOps Automation: A Complete Engineering Guide
+
+### Author: Son Nguyen
+
+> Date: 2026-03-22
+
+Modern software teams ship code dozens or hundreds of times per day. That velocity is not possible with manual build, test, and deployment processes. Continuous Integration and Continuous Delivery — CI/CD — is the engineering discipline that automates the journey from a developer's local commit to a running production workload. Combined with DevOps culture and tooling, CI/CD pipelines reduce lead time, catch defects early, and give teams the confidence to release at any time.
+
+This guide covers every major layer of a modern CI/CD system: pipeline architecture, branching strategies, build and test automation, deployment patterns, Infrastructure as Code, containerization, GitOps, observability, and the tools that power each stage. Each section includes working code examples and Mermaid diagrams to make the concepts concrete.
+
+---
+
+## 1. What Is CI/CD and Why Does It Matter
+
+### 1.1. Continuous Integration
+
+Continuous Integration is the practice of merging every developer's working copy back to the shared main branch several times a day. Each merge triggers an automated pipeline that compiles the code, runs the test suite, enforces style rules, and reports the result. The goal is to detect integration conflicts and regressions within minutes rather than discovering them days later at release time.
+
+### 1.2. Continuous Delivery vs. Continuous Deployment
+
+These two terms are often used interchangeably but they describe distinct maturity levels:
+
+- **Continuous Delivery** means every passing pipeline build produces an artifact that _could_ be deployed to production. A human approval gate is still in place before the actual deployment.
+- **Continuous Deployment** removes the human gate entirely. Every green build is automatically promoted all the way to production.
+
+Most organizations begin with Continuous Delivery and evolve toward Continuous Deployment as their test coverage and deployment automation matures.
+
+### 1.3. The Business Case
+
+The DORA (DevOps Research and Assessment) research program has identified four key metrics that distinguish elite engineering teams from low performers:
+
+| Metric                | Elite                  | Low                      |
+| --------------------- | ---------------------- | ------------------------ |
+| Deployment Frequency  | Multiple times per day | Less than once per month |
+| Lead Time for Changes | Less than one hour     | One to six months        |
+| Mean Time to Restore  | Less than one hour     | One to six months        |
+| Change Failure Rate   | 0–5%                   | 46–60%                   |
+
+The common denominator across elite performers is mature CI/CD automation. Teams that invest in pipelines ship faster, recover faster, and break less.
+
+---
+
+## 2. CI/CD Pipeline Overview
+
+A pipeline is a directed acyclic graph of stages. Each stage consumes the artifact produced by the previous stage and either passes it forward or fails fast. The canonical pipeline stages are: Source, Build, Test, Scan, Package, Deploy to Staging, Integration Test, and Deploy to Production.
+
+```mermaid
+graph TD
+    A[Developer Push] --> B[Source Control Trigger]
+    B --> C[Checkout Code]
+    C --> D[Install Dependencies]
+    D --> E[Static Analysis and Linting]
+    E --> F[Unit Tests]
+    F --> G[Build Artifact]
+    G --> H[Security Scan]
+    H --> I[Package as Container Image]
+    I --> J[Push to Registry]
+    J --> K[Deploy to Staging]
+    K --> L[Integration and E2E Tests]
+    L --> M{All Tests Pass}
+    M -->|Yes| N[Approval Gate]
+    M -->|No| O[Notify Team and Halt]
+    N -->|Approved| P[Deploy to Production]
+    N -->|Rejected| O
+    P --> Q[Smoke Tests in Production]
+    Q --> R[Monitor and Alert]
+```
+
+Every stage is a quality gate. A failure at any stage stops the pipeline and notifies the team immediately. Nothing advances until the current stage is green. This fail-fast property is what makes CI/CD economically valuable: the earlier a defect is caught, the cheaper it is to fix.
+
+### 2.1. Stage Responsibilities
+
+**Source stage** — code checkout, dependency lock file validation, secret scanning to ensure no credentials were accidentally committed.
+
+**Build stage** — compilation, transpilation, static analysis, linting. The build stage produces a deterministic artifact: a compiled binary, a JAR file, or a container image layer cache.
+
+**Test stage** — unit tests (fast, no external dependencies), integration tests (slower, may use Docker Compose or test containers), and end-to-end tests (slow, run against a full environment).
+
+**Package stage** — produce an immutable, versioned artifact. Container images are tagged with the git commit SHA so that every running workload is traceable back to an exact source revision.
+
+**Deploy stage** — push the artifact into an environment. Staging first, then production after validation.
+
+---
+
+## 3. Git Branching Strategies
+
+A healthy CI/CD pipeline requires a disciplined branching strategy. The branching model determines which pipeline runs are triggered and when code becomes eligible for production deployment.
+
+```mermaid
+gitGraph
+    commit id: "initial commit"
+    branch develop
+    checkout develop
+    commit id: "dev baseline"
+    branch feature/auth-service
+    checkout feature/auth-service
+    commit id: "add JWT handler"
+    commit id: "add refresh token"
+    checkout develop
+    merge feature/auth-service id: "merge auth"
+    branch feature/rate-limiter
+    checkout feature/rate-limiter
+    commit id: "add redis rate limit"
+    checkout develop
+    merge feature/rate-limiter id: "merge rate limiter"
+    branch release/1.2.0
+    checkout release/1.2.0
+    commit id: "bump version"
+    commit id: "update changelog"
+    checkout main
+    merge release/1.2.0 id: "release 1.2.0" tag: "v1.2.0"
+    checkout develop
+    merge main id: "back-merge"
+    branch hotfix/login-bug
+    checkout hotfix/login-bug
+    commit id: "fix null session"
+    checkout main
+    merge hotfix/login-bug id: "hotfix" tag: "v1.2.1"
+    checkout develop
+    merge main id: "hotfix back-merge"
+```
+
+### 3.1. Gitflow
+
+Gitflow is the most structured branching model. It defines long-lived `main` and `develop` branches. Features branch off `develop`, releases branch off `develop` when stabilized, and hotfixes branch off `main`. This model suits teams with scheduled release cadences and multiple supported versions.
+
+### 3.2. GitHub Flow
+
+GitHub Flow simplifies Gitflow by eliminating the `develop` and `release` branches. All feature branches cut from `main` and merge back to `main` after review. Main is always deployable. This model suits teams that deploy continuously.
+
+### 3.3. Trunk-Based Development
+
+In trunk-based development there is a single shared branch — `main` or `trunk`. Developers commit directly or through very short-lived feature branches that live for less than a day. Feature flags control which code paths are visible to end users. This is the branching model that enables multiple deployments per day.
+
+---
+
+## 4. Build and Test Pipeline Deep Dive
+
+The build and test stages contain the most logic in any pipeline. A well-structured build stage parallelizes tasks aggressively to minimize wall-clock time.
+
+```mermaid
+graph LR
+    A[Git Checkout] --> B[Restore Cache]
+    B --> C[Install Dependencies]
+    C --> D{Parallel Execution}
+    D --> E[Lint and Format Check]
+    D --> F[Type Check]
+    D --> G[Unit Tests with Coverage]
+    E --> H[Combine Results]
+    F --> H
+    G --> H
+    H --> I{Coverage Threshold Met}
+    I -->|Yes| J[Build Production Bundle]
+    I -->|No| K[Fail - Coverage Too Low]
+    J --> L[Run Integration Tests]
+    L --> M[Upload Artifacts]
+    M --> N[Save Cache]
+```
+
+### 4.1. Test Pyramid
+
+The test pyramid is a mental model for how to balance test types:
+
+- **Unit tests** sit at the base. They are numerous, fast, and cheap to run. They test individual functions or classes in isolation with mocked dependencies.
+- **Integration tests** sit in the middle. They test how components interact: a service calling a database, a handler parsing a request, an event consumer reading from a queue.
+- **End-to-end tests** sit at the top. They are few, slow, and expensive to maintain. They simulate real user journeys through the full system.
+
+A pipeline that runs only E2E tests is slow and fragile. A pipeline with a healthy test pyramid completes unit tests in under two minutes, integration tests in under ten minutes, and E2E tests in under thirty minutes.
+
+### 4.2. GitHub Actions Workflow Example
+
+```yaml
+# .github/workflows/ci.yml
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  lint-and-typecheck:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        run: npx tsc --noEmit
+
+  test:
+    name: Unit and Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --runInBand
+        env:
+          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  build-and-push:
+    name: Build and Push Container Image
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, test]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Deploy to staging cluster
+        run: |
+          kubectl set image deployment/app \
+            app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }} \
+            --namespace staging
+```
+
+---
+
+## 5. Deployment Strategies
+
+How you deploy is as important as what you deploy. Different deployment strategies offer different trade-offs between risk, downtime, and rollback speed.
+
+```mermaid
+graph TD
+    A[New Version Ready] --> B{Choose Strategy}
+
+    B --> C[Recreate]
+    C --> C1[Terminate All Old Pods]
+    C1 --> C2[Start All New Pods]
+    C2 --> C3[Downtime During Switch]
+
+    B --> D[Rolling Update]
+    D --> D1[Replace One Pod at a Time]
+    D1 --> D2[Health Check Each New Pod]
+    D2 --> D3[Continue Until All Replaced]
+    D3 --> D4[No Downtime - Gradual]
+
+    B --> E[Blue-Green]
+    E --> E1[Blue Env Running Current Version]
+    E1 --> E2[Deploy New Version to Green Env]
+    E2 --> E3[Run Smoke Tests on Green]
+    E3 --> E4[Switch Load Balancer to Green]
+    E4 --> E5[Blue Becomes Standby for Rollback]
+
+    B --> F[Canary]
+    F --> F1[Route 5 Percent Traffic to New Version]
+    F1 --> F2[Monitor Error Rate and Latency]
+    F2 --> F3{Metrics Healthy}
+    F3 -->|Yes| F4[Increase to 25 Percent]
+    F4 --> F5[Increase to 50 Percent]
+    F5 --> F6[Increase to 100 Percent]
+    F3 -->|No| F7[Rollback to Old Version]
+```
+
+### 5.1. Recreate
+
+The simplest strategy: shut down all instances of the old version, then start all instances of the new version. This causes downtime. Acceptable only for non-critical services or maintenance windows.
+
+### 5.2. Rolling Update
+
+Kubernetes uses rolling updates by default. The scheduler replaces old pods one at a time (or in configurable batches). At any moment during the rollout, both old and new versions handle traffic. This requires that the two versions be compatible at the API and database schema level.
+
+```yaml
+# kubernetes/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-service
+  namespace: production
+  labels:
+    app: api-service
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: api-service
+  template:
+    metadata:
+      labels:
+        app: api-service
+        version: "1.2.0"
+    spec:
+      containers:
+        - name: api-service
+          image: ghcr.io/myorg/api-service:sha-abc1234
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-secrets
+                  key: database-url
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+```
+
+### 5.3. Blue-Green Deployment
+
+Blue-green maintains two identical production environments. Only one (blue) serves live traffic at a time. The new release is deployed to the idle environment (green) and tested in isolation. A load balancer or DNS switch routes traffic from blue to green in a single atomic operation. If something is wrong, flipping back to blue restores the previous version in seconds.
+
+The main cost is that you need double the infrastructure capacity at all times.
+
+### 5.4. Canary Deployment
+
+A canary release routes a small fraction of production traffic — typically 1–5% — to the new version. Real user traffic validates the release under production conditions before the rollout completes. Metrics like error rate, p99 latency, and business KPIs are monitored during the canary phase. If thresholds are breached, the pipeline automatically rolls back. If metrics look healthy, the traffic percentage is progressively increased until the new version handles 100%.
+
+Tools like Argo Rollouts, Flagger, and Istio provide automated canary management with metric-based progression gates.
+
+---
+
+## 6. Container Build Pipeline
+
+Containers are the universal packaging format for modern applications. The container build pipeline converts source code into an immutable, signed, and scanned image that can run identically in any environment.
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub
+    participant CI as CI Runner
+    participant Scan as Security Scanner
+    participant Reg as Container Registry
+    participant K8s as Kubernetes Cluster
+
+    Dev->>GH: git push to develop
+    GH->>CI: Webhook trigger
+    CI->>CI: Checkout source code
+    CI->>CI: Restore Docker layer cache
+    CI->>CI: docker build multi-stage
+    CI->>Scan: Push image for vulnerability scan
+    Scan-->>CI: CVE report - no critical issues
+    CI->>CI: docker tag with git SHA
+    CI->>Reg: docker push tagged image
+    Reg-->>CI: Push confirmed with digest
+    CI->>K8s: kubectl set image deployment
+    K8s->>Reg: Pull new image by digest
+    Reg-->>K8s: Image layers delivered
+    K8s->>K8s: Rolling update begins
+    K8s-->>CI: Rollout status - success
+    CI-->>Dev: Pipeline complete - notify
+```
+
+### 6.1. Multi-Stage Dockerfile
+
+Multi-stage builds are the standard pattern for producing minimal production images. The build stage installs all development tooling, compiles the application, and runs tests. The final production stage copies only the compiled output, discarding hundreds of megabytes of build tools.
+
+```dockerfile
+# Dockerfile
+# -------- Stage 1: Dependencies --------
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+# Copy lock files first to maximize cache hits
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
+
+# -------- Stage 2: Build --------
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source and build
+COPY . .
+RUN npm run build
+
+# Run tests inside the build stage
+RUN npm test -- --runInBand --passWithNoTests
+
+# -------- Stage 3: Production Image --------
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Create a non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy production dependencies
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy compiled output
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+
+# Switch to non-root user
+USER nextjs
+
+EXPOSE 3000
+ENV PORT=3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+
+CMD ["node_modules/.bin/next", "start"]
+```
+
+### 6.2. Docker Compose for Local Development
+
+Local development environments should mirror production as closely as possible. Docker Compose orchestrates all the services a developer needs — database, cache, message broker — with a single command.
+
+```yaml
+# docker-compose.yml
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://devuser:devpassword@postgres:5432/devdb
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: devdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser -d devdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+---
+
+## 7. Infrastructure as Code
+
+Infrastructure as Code is the practice of managing servers, networks, databases, and cloud resources through version-controlled configuration files rather than manual console operations. IaC brings the same benefits to infrastructure that source control brings to software: repeatability, auditability, and collaboration.
+
+```mermaid
+graph TD
+    A[Engineer Writes Terraform Config] --> B[Git Commit and Pull Request]
+    B --> C[Automated Plan in CI]
+    C --> D[terraform plan Output Posted to PR]
+    D --> E{Peer Review}
+    E -->|Approved| F[Merge to Main]
+    E -->|Changes Requested| A
+    F --> G[CI Runs terraform apply]
+    G --> H[State Written to Remote Backend]
+    H --> I[Infrastructure Updated in Cloud]
+    I --> J[Drift Detection Scheduled Job]
+    J --> K{State Matches Reality}
+    K -->|Yes| L[No Action Required]
+    K -->|No| M[Alert - Manual Drift Detected]
+    M --> N[Review and Reconcile]
+```
+
+### 7.1. Terraform Example
+
+```hcl
+# terraform/main.tf
+
+terraform {
+  required_version = ">= 1.7.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "myorg-terraform-state"
+    key            = "production/api-service/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-state-lock"
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = {
+      Environment = var.environment
+      ManagedBy   = "terraform"
+      Project     = "api-service"
+    }
+  }
+}
+
+# ---- ECS Cluster ----
+resource "aws_ecs_cluster" "main" {
+  name = "${var.project_name}-${var.environment}"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+}
+
+# ---- ECS Task Definition ----
+resource "aws_ecs_task_definition" "api" {
+  family                   = "${var.project_name}-api"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = 512
+  memory                   = 1024
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([{
+    name  = "api"
+    image = "${var.ecr_repository_url}:${var.image_tag}"
+    portMappings = [{
+      containerPort = 3000
+      protocol      = "tcp"
+    }]
+    environment = [
+      { name = "NODE_ENV", value = var.environment }
+    ]
+    secrets = [
+      { name = "DATABASE_URL", valueFrom = aws_ssm_parameter.database_url.arn }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.api.name
+        awslogs-region        = var.aws_region
+        awslogs-stream-prefix = "api"
+      }
+    }
+    healthCheck = {
+      command     = ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval    = 30
+      timeout     = 5
+      retries     = 3
+      startPeriod = 30
+    }
+  }])
+}
+
+# ---- Application Load Balancer ----
+resource "aws_lb" "main" {
+  name               = "${var.project_name}-${var.environment}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = var.public_subnet_ids
+
+  enable_deletion_protection = var.environment == "production"
+}
+
+# ---- Auto Scaling ----
+resource "aws_appautoscaling_target" "api" {
+  max_capacity       = 20
+  min_capacity       = 2
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.api.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "api_cpu" {
+  name               = "${var.project_name}-api-cpu-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.api.resource_id
+  scalable_dimension = aws_appautoscaling_target.api.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.api.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}
+```
+
+### 7.2. Why IaC Belongs in the Pipeline
+
+When Terraform or Pulumi configurations live in version control, the same PR workflow that governs application code also governs infrastructure changes. A `terraform plan` runs automatically on every pull request, posting the change diff as a PR comment. Infrastructure changes are reviewed, discussed, and approved before they are applied — exactly like code changes. The `terraform apply` runs automatically after merge, using a CI service account with scoped permissions.
+
+---
+
+## 8. GitOps Workflow
+
+GitOps extends the IaC principle to application deployment: the desired state of every Kubernetes workload is declared in a Git repository. A reconciliation controller running inside the cluster continuously compares desired state (Git) with actual state (cluster) and corrects any divergence.
+
+```mermaid
+graph TD
+    A[Developer Merges PR] --> B[CI Pipeline Builds Image]
+    B --> C[CI Updates Image Tag in Config Repo]
+    C --> D[Config Repo PR Created Automatically]
+    D --> E{Automated Checks Pass}
+    E -->|Yes| F[Config PR Auto-Merged or Approved]
+    E -->|No| G[Block and Notify]
+    F --> H[GitOps Controller Detects Change]
+    H --> I[ArgoCD or Flux Reads New Desired State]
+    I --> J{Actual State Matches Desired State}
+    J -->|No| K[Apply Diff to Cluster]
+    K --> L[Kubernetes Executes Rolling Update]
+    L --> M[Health Checks Verified]
+    M --> J
+    J -->|Yes| N[Steady State - No Action]
+
+    O[Someone Manually Changes Cluster] --> P[Drift Detected by Controller]
+    P --> Q[Revert to Git State Automatically]
+```
+
+### 8.1. GitOps vs. Traditional Push-Based Deployment
+
+In a traditional pipeline, the CI runner holds credentials to the cluster and pushes changes directly via `kubectl` or `helm`. This means:
+
+- CI runners need cluster credentials
+- Deployments are only triggered by pipeline runs, not by config changes
+- Drift from manual changes is invisible until the next deployment
+
+In a GitOps model, the cluster pulls its configuration from Git. The CI runner only needs to update a configuration file — it never touches the cluster directly. This separation of concerns has significant security and auditability benefits:
+
+| Property                  | Push-Based              | GitOps Pull-Based          |
+| ------------------------- | ----------------------- | -------------------------- |
+| Cluster credentials in CI | Yes                     | No                         |
+| Audit trail               | CI logs                 | Git history                |
+| Self-healing after drift  | No                      | Yes                        |
+| Rollback mechanism        | Re-run pipeline         | Revert Git commit          |
+| Multi-cluster support     | Per-cluster credentials | One controller per cluster |
+
+### 8.2. Argo CD Application Manifest
+
+```yaml
+# argocd/application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: api-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/k8s-config.git
+    targetRevision: main
+    path: apps/api-service/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
+```
+
+---
+
+## 9. CI/CD Tool Landscape
+
+The CI/CD tool ecosystem is rich and continues to evolve. Tools fall into several categories: hosted CI services, self-hosted runners, artifact registries, deployment orchestrators, and progressive delivery controllers.
+
+```mermaid
+graph LR
+    subgraph SourceControl["Source Control"]
+        GH[GitHub]
+        GL[GitLab]
+        BB[Bitbucket]
+    end
+
+    subgraph CIRunners["CI and CD Runners"]
+        GHA[GitHub Actions]
+        GLC[GitLab CI]
+        JK[Jenkins]
+        TC[TeamCity]
+        CC[CircleCI]
+    end
+
+    subgraph Artifacts["Artifact Registries"]
+        GHCR[GitHub Container Registry]
+        ECR[AWS ECR]
+        ACR[Azure Container Registry]
+        DOCK[Docker Hub]
+    end
+
+    subgraph Orchestration["Orchestration and Delivery"]
+        ARGO[Argo CD]
+        FLUX[Flux CD]
+        SPINN[Spinnaker]
+        HELM[Helm]
+    end
+
+    subgraph IaC["Infrastructure as Code"]
+        TF[Terraform]
+        PUL[Pulumi]
+        CDK[AWS CDK]
+        ANS[Ansible]
+    end
+
+    SourceControl --> CIRunners
+    CIRunners --> Artifacts
+    Artifacts --> Orchestration
+    CIRunners --> IaC
+    IaC --> Orchestration
+```
+
+### 9.1. Tool Comparison Summary
+
+**GitHub Actions** is the natural choice for repositories hosted on GitHub. It has a large marketplace of community actions, generous free tier for public repos, and deep integration with GitHub security features like Dependabot and code scanning.
+
+**GitLab CI** offers a tightly integrated experience when using GitLab for source control, with built-in container registry, security scanning, and environment management. The `.gitlab-ci.yml` pipeline syntax is clean and readable.
+
+**Jenkins** is the most flexible and battle-tested option. It runs on any infrastructure, supports virtually any integration via plugins, and has the largest existing install base in enterprises. The downside is significant operational overhead — Jenkins clusters require maintenance and the plugin ecosystem has inconsistent quality.
+
+**CircleCI** and **Travis CI** are hosted services with fast startup times. They excel at parallelism and caching, making them attractive for large test suites.
+
+**Argo CD** is the leading GitOps controller for Kubernetes, offering a rich UI, multi-cluster management, and progressive delivery support via Argo Rollouts.
+
+**Flux CD** is the CNCF-graduated GitOps controller, notable for its lightweight footprint and first-class support for Helm and Kustomize.
+
+---
+
+## 10. Monitoring and Observability in the Delivery Pipeline
+
+A pipeline does not end at deployment. The final stage is verification that the new version is behaving correctly in production. Observability closes the loop between deployment and developer feedback.
+
+```mermaid
+graph TD
+    A[Deployment Completes] --> B[Smoke Test Suite Runs]
+    B --> C{Smoke Tests Pass}
+    C -->|No| D[Automatic Rollback Triggered]
+    D --> E[On-Call Paged]
+    C -->|Yes| F[Metrics Collection Begins]
+    F --> G[Prometheus Scrapes New Pods]
+    G --> H{SLO Breached in First 10 Minutes}
+    H -->|Yes| D
+    H -->|No| I[Structured Logs to Loki or Splunk]
+    I --> J[Distributed Traces to Jaeger or Tempo]
+    J --> K[Grafana Dashboard Updated]
+    K --> L[Error Budget Recalculated]
+    L --> M{Error Budget Healthy}
+    M -->|Yes| N[Deployment Declared Stable]
+    M -->|No| O[Freeze Deployments - Alert Engineering]
+    N --> P[Synthetic Monitor Runs Every 5 Minutes]
+    P --> Q[Alerting Rules Evaluated]
+    Q --> R{Alert Condition Met}
+    R -->|Yes| E
+    R -->|No| P
+```
+
+### 10.1. The Four Golden Signals
+
+Google SRE defined four golden signals that provide a compact and sufficient view of any service's health:
+
+1. **Latency** — the time it takes to service a request. Track both successful and failed request latency separately. A spike in error latency often indicates a backend dependency problem.
+
+2. **Traffic** — the demand on the system, measured in requests per second, active connections, or transactions per second.
+
+3. **Errors** — the rate of failed requests. Track both explicit errors (5xx status codes) and implicit errors (200 responses with invalid content).
+
+4. **Saturation** — how full the service is. CPU utilization, memory pressure, and queue depth are typical saturation metrics. Saturation predicts imminent problems before they manifest as errors.
+
+### 10.2. Prometheus and Grafana Stack
+
+The Prometheus-Grafana stack is the standard observability toolkit for Kubernetes environments. Prometheus scrapes metrics from application pods via HTTP endpoints exposed on a `/metrics` path. Grafana queries Prometheus and renders dashboards. Alertmanager routes alerts to PagerDuty, Slack, or email.
+
+```yaml
+# kubernetes/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-service
+  namespace: production
+  labels:
+    app: api-service
+spec:
+  selector:
+    matchLabels:
+      app: api-service
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+      scrapeTimeout: 10s
+```
+
+```yaml
+# kubernetes/prometheusrule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-service-alerts
+  namespace: production
+spec:
+  groups:
+    - name: api-service.rules
+      interval: 30s
+      rules:
+        - alert: HighErrorRate
+          expr: |
+            sum(rate(http_requests_total{job="api-service",status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{job="api-service"}[5m]))
+            > 0.05
+          for: 2m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "High HTTP error rate on api-service"
+            description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+        - alert: HighLatency
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(http_request_duration_seconds_bucket{job="api-service"}[5m]))
+              by (le)
+            ) > 1.0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "p99 latency exceeds 1 second on api-service"
+```
+
+---
+
+## 11. Security in CI/CD Pipelines
+
+Security must be embedded throughout the pipeline, not bolted on at the end. The concept of DevSecOps treats security as a shared responsibility distributed across development, operations, and security teams.
+
+```mermaid
+graph LR
+    A[Developer Commits Code] --> B[Pre-commit Hooks]
+    B --> B1[Secret Scanning - Gitleaks]
+    B --> B2[Lint Security Rules]
+
+    B1 --> C[CI Pipeline]
+    B2 --> C
+
+    C --> D[SAST - Static Analysis]
+    D --> D1[Semgrep or SonarQube]
+
+    C --> E[Dependency Scanning]
+    E --> E1[npm audit or Snyk]
+    E1 --> E2[Dependabot Auto PRs]
+
+    C --> F[Container Image Scan]
+    F --> F1[Trivy or Grype]
+    F1 --> F2{Critical CVEs Found}
+    F2 -->|Yes| F3[Block Pipeline]
+    F2 -->|No| G[Sign Image with Cosign]
+
+    G --> H[Deploy to Staging]
+    H --> I[DAST - Dynamic Analysis]
+    I --> I1[OWASP ZAP Scan]
+    I1 --> J[Deploy to Production]
+
+    J --> K[Runtime Security - Falco]
+    K --> L[Anomaly Alerts to SOC]
+```
+
+### 11.1. Shift-Left Security Practices
+
+**Pre-commit hooks** run before code leaves the developer's machine. Tools like `gitleaks`, `detect-secrets`, and `pre-commit` catch secrets, large binary files, and linting violations before they enter the repository history.
+
+**SAST (Static Application Security Testing)** analyzes source code for security vulnerabilities without executing it. Semgrep and SonarQube can detect SQL injection, XSS, insecure deserialization, and hundreds of other patterns.
+
+**Dependency scanning** identifies known vulnerabilities in third-party packages. GitHub's Dependabot automatically opens pull requests to update vulnerable dependencies. `npm audit`, `pip-audit`, and Snyk provide similar capabilities for different ecosystems.
+
+**Container image scanning** inspects every layer of a container image for known CVEs. Trivy and Grype are fast, accurate, and integrate cleanly into CI pipelines. A severity threshold policy blocks images with critical vulnerabilities from being pushed to the registry.
+
+**Image signing** with Cosign and the Sigstore ecosystem provides cryptographic proof that an image was produced by a trusted pipeline and has not been tampered with. Kubernetes admission controllers like Kyverno or OPA Gatekeeper can reject unsigned images.
+
+---
+
+## 12. Complete DevOps Lifecycle
+
+The individual practices covered in this guide — CI, CD, IaC, GitOps, and observability — are not independent modules. They form a continuous feedback loop where every stage informs the next.
+
+```mermaid
+graph TD
+    A[Plan - Jira or Linear] --> B[Code - Feature Branch]
+    B --> C[Commit - Pre-commit Hooks]
+    C --> D[Pull Request - Peer Review]
+    D --> E[CI Pipeline - Build Test Scan]
+    E --> F{Pipeline Green}
+    F -->|No| B
+    F -->|Yes| G[Merge to Main Branch]
+    G --> H[CD Pipeline - Package and Push Image]
+    H --> I[Deploy to Staging via GitOps]
+    I --> J[Automated Integration Tests]
+    J --> K{Tests Pass}
+    K -->|No| L[Rollback Staging]
+    L --> B
+    K -->|Yes| M[Approval Gate or Auto-Promote]
+    M --> N[Deploy to Production - Canary or Rolling]
+    N --> O[Smoke Tests and SLO Check]
+    O --> P{Production Healthy}
+    P -->|No| Q[Automatic Rollback]
+    Q --> R[Incident Created and Paged]
+    R --> S[Postmortem and Action Items]
+    S --> A
+    P -->|Yes| T[Monitor - Prometheus and Grafana]
+    T --> U[Collect User Feedback and Metrics]
+    U --> V[Inform Next Sprint Planning]
+    V --> A
+```
+
+The loop is intentionally circular. Monitoring data and user feedback flow back into the planning stage. Postmortems from incidents generate action items that become backlog tickets. The system is self-correcting when practiced consistently.
+
+---
+
+## 13. Pipeline Performance and Caching
+
+A slow pipeline erodes the benefits of CI/CD. When a pipeline takes 45 minutes to complete, developers stop waiting for it and start working on the next task. Context switching between tasks increases integration risk. Keeping pipelines fast is an engineering discipline in its own right.
+
+### 13.1. Caching Strategies
+
+**Dependency caching** stores the `node_modules`, `.venv`, or `.m2` directory between runs. GitHub Actions, GitLab CI, and CircleCI all provide cache primitives keyed on the lock file hash. A cache hit on dependency installation saves 1–3 minutes per run.
+
+**Docker layer caching** stores intermediate image layers. When the `Dockerfile` is structured so that infrequently changed instructions appear first (base image, system packages, dependency installation) and frequently changed instructions appear last (application source), most layers hit the cache on every build.
+
+**Build artifact caching** stores compiled outputs like TypeScript `.js` files, webpack bundles, or compiled Go binaries. When only a subset of source files change, incremental compilation can skip unchanged modules.
+
+### 13.2. Parallelism
+
+Most modern CI systems allow jobs to run in parallel across multiple runners. A pipeline that runs lint, unit tests, type checks, and build steps sequentially might take 12 minutes. The same pipeline structured as a parallel DAG with a final aggregation job might complete in 4 minutes.
+
+Splitting a large test suite across multiple runners with `--shard` (Vitest, Playwright) or `split_tests` (CircleCI) provides near-linear speedup. A 20-minute test suite split across 4 runners completes in roughly 5 minutes.
+
+### 13.3. Pipeline as Code Best Practices
+
+- Pin all action versions to a specific SHA, not a floating tag. Floating tags like `@v3` are mutable and can introduce supply chain vulnerabilities.
+- Use composite actions or reusable workflows to eliminate duplication across repositories.
+- Keep secrets in environment-scoped secret stores. Never interpolate secrets into log output.
+- Set job-level permissions to the minimum required. Use `permissions: contents: read` rather than the default broad token.
+- Run dependency installs with `npm ci` rather than `npm install`. `ci` is deterministic and uses the lock file exactly.
+
+---
+
+## 14. Multi-Environment Pipeline Patterns
+
+Most production systems require at least three environments: development, staging, and production. Each environment serves a distinct verification purpose, and the pipeline must enforce the promotion order.
+
+```mermaid
+graph LR
+    A[Feature Branch] --> B[Dev Environment - Auto-Deploy]
+    B --> C{Dev Tests Pass}
+    C -->|No| D[Fix and Re-push]
+    D --> A
+    C -->|Yes| E[Merge to Main]
+    E --> F[Staging Environment - Auto-Deploy]
+    F --> G{Staging Tests and Load Tests Pass}
+    G -->|No| H[Rollback Staging]
+    H --> D
+    G -->|Yes| I{Manual Approval Required}
+    I -->|Approved| J[Production - Canary Deployment]
+    I -->|Rejected| D
+    J --> K{Canary Metrics Healthy}
+    K -->|No| L[Rollback to Previous Version]
+    K -->|Yes| M[Full Production Rollout]
+    M --> N[Notify Stakeholders]
+```
+
+### 14.1. Environment Configuration Management
+
+Configuration that varies between environments — database URLs, API keys, feature flags, log levels — must never be baked into the container image. The image should be environment-agnostic. Configuration is injected at runtime via:
+
+- **Kubernetes Secrets** — base64-encoded values mounted as environment variables or file volumes.
+- **HashiCorp Vault** — dynamic secrets issued per-workload with short TTLs. The Vault agent sidecar handles renewal.
+- **AWS Systems Manager Parameter Store** — hierarchical key-value store with IAM-based access control. ECS task definitions reference SSM parameters by ARN.
+- **Kubernetes ConfigMaps** — non-sensitive configuration like feature flags, log levels, and tuning parameters.
+
+---
+
+## 15. Key Takeaways
+
+CI/CD pipelines and DevOps automation are force multipliers. They do not just speed up deployments — they change the engineering culture. When deployment is automated, boring, and reliable, teams ship smaller changes more frequently, which reduces risk per deployment, which builds confidence, which enables even faster shipping. The feedback loop is virtuous.
+
+The most important principles to carry forward:
+
+- **Fail fast**: pipeline stages are quality gates. A failure should stop the pipeline immediately and notify the team.
+- **Immutable artifacts**: build once, promote the same artifact through every environment. Never rebuild.
+- **Everything as code**: pipelines, infrastructure, Kubernetes manifests, and alerting rules all belong in version control.
+- **Security is a pipeline concern**: shift security left. Scan dependencies, images, and code on every build.
+- **Observe, measure, improve**: pipelines and production systems are only useful if you can see what they are doing. Metrics, logs, and traces close the feedback loop.
+- **Keep pipelines fast**: slow pipelines are abandoned pipelines. Invest in caching and parallelism.
+
+A mature CI/CD system is never finished. As the codebase grows, the test suite expands, new deployment targets emerge, and security standards evolve, the pipeline must evolve with it. Treat the pipeline as a product, assign it an owner, and review its health regularly.
+
+---
+
+## 16. Feature Flags in CI/CD
+
+Feature flags decouple deployment from release. Code ships to production continuously, but features are gated behind flag evaluations. This enables gradual rollout, A/B testing, instant kill switches, and dark launching without requiring a new deployment.
+
+```mermaid
+graph TD
+    CODE[Feature Code - merged to main] --> DEPLOY[Deploy to Production]
+    DEPLOY --> FLAG{Feature Flag Enabled?}
+    FLAG -->|Off - default| OLD[Old Code Path]
+    FLAG -->|On - 10 pct of users| NEW[New Code Path]
+    FLAG -->|On - 100 pct| FULL[Full Rollout]
+    OLD --> USER[User Experience]
+    NEW --> USER
+    FULL --> USER
+    NEW --> METRICS[Collect Metrics]
+    METRICS --> DECIDE{Metrics Good?}
+    DECIDE -->|Yes| FULL
+    DECIDE -->|No| ROLLBACK[Turn Flag Off - instant rollback]
+```
+
+### 16.1 Integrating LaunchDarkly in a Next.js App
+
+```typescript
+// lib/flags.ts - server-side flag evaluation
+import * as ld from "@launchdarkly/node-server-sdk";
+
+let ldClient: ld.LDClient;
+
+export async function getLDClient(): Promise<ld.LDClient> {
+  if (!ldClient) {
+    ldClient = ld.init(process.env.LAUNCHDARKLY_SDK_KEY!);
+    await ldClient.waitForInitialization();
+  }
+  return ldClient;
+}
+
+export async function isFeatureEnabled(
+  flagKey: string,
+  userId: string,
+  defaultValue = false,
+): Promise<boolean> {
+  const client = await getLDClient();
+  return client.variation(flagKey, { kind: "user", key: userId }, defaultValue);
+}
+
+// app/api/checkout/route.ts - gated behind a flag
+export async function POST(req: Request) {
+  const { userId } = await req.json();
+  const newCheckoutEnabled = await isFeatureEnabled(
+    "new-checkout-flow",
+    userId,
+  );
+
+  if (newCheckoutEnabled) {
+    return handleNewCheckout(req);
+  }
+  return handleLegacyCheckout(req);
+}
+```
+
+### 16.2 Feature Flag Lifecycle in CI/CD
+
+```yaml
+# .github/workflows/feature-flag-cleanup.yml
+# Remind engineers to remove stale flags older than 30 days
+name: Feature Flag Audit
+
+on:
+  schedule:
+    - cron: "0 9 * * MON" # Every Monday at 9am
+
+jobs:
+  audit-flags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find stale feature flags
+        run: |
+          # Find all flag keys referenced in code
+          grep -r "isFeatureEnabled\|variation(" src/ --include="*.ts" \
+            | grep -oP '["'"'"']\K[a-z-]+(?=["'"'"'])' \
+            | sort -u > used_flags.txt
+
+          # Compare against flags older than 30 days in LaunchDarkly
+          python scripts/audit_stale_flags.py used_flags.txt
+      - name: Create issue for stale flags
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const stale = fs.readFileSync('stale_flags.txt', 'utf8');
+            if (stale.trim()) {
+              github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Stale feature flags to clean up',
+                body: `The following flags have been in production for 30+ days:\n\n${stale}`,
+                labels: ['tech-debt'],
+              });
+            }
+```
+
+---
+
+## 17. Database Migrations in CI/CD
+
+Database schema changes are the riskiest part of most deployment pipelines. A missing column migration deployed after the application code that references it causes an immediate production outage. A backwards-incompatible migration deployed before the old application is drained causes an equally bad outage. The solution is a disciplined migration strategy built into the pipeline.
+
+### 17.1 The Expand-Contract Pattern
+
+The expand-contract (or parallel-change) pattern makes every database schema change backwards-compatible across at least one deployment cycle.
+
+```mermaid
+graph LR
+    subgraph Step 1 - Expand
+        E1[Deploy migration: add new column nullable]
+        E2[Old app: ignores new column]
+        E3[New app: writes to both old and new columns]
+    end
+    subgraph Step 2 - Migrate Data
+        M1[Backfill: populate new column from old column]
+        M2[Both app versions function correctly]
+    end
+    subgraph Step 3 - Contract
+        C1[Deploy migration: drop old column]
+        C2[New app: reads from new column only]
+    end
+    E1 --> E2
+    E2 --> E3
+    E3 --> M1
+    M1 --> M2
+    M2 --> C1
+    C1 --> C2
+```
+
+### 17.2 Flyway in a GitHub Actions Pipeline
+
+```yaml
+# jobs/migrate section of your deploy workflow
+migrate-database:
+  runs-on: ubuntu-latest
+  needs: [build, test]
+  environment: production
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Flyway migrations
+      uses: flyway/flyway-github-action@v1
+      with:
+        url: ${{ secrets.DATABASE_URL }}
+        user: ${{ secrets.DATABASE_USER }}
+        password: ${{ secrets.DATABASE_PASSWORD }}
+        command: migrate
+        options: >
+          -validateOnMigrate=true
+          -outOfOrder=false
+          -baselineOnMigrate=false
+
+    - name: Verify migration health
+      run: |
+        flyway -url="${{ secrets.DATABASE_URL }}" \
+               -user="${{ secrets.DATABASE_USER }}" \
+               -password="${{ secrets.DATABASE_PASSWORD }}" \
+               info | grep -v "Success" && exit 1 || exit 0
+```
+
+### 17.3 Zero-Downtime Migration Checklist
+
+```mermaid
+graph TD
+    PR[PR with Schema Change] --> CHECK1{Column added as nullable?}
+    CHECK1 -->|No| BLOCK1[Block: Must be nullable for backwards compat]
+    CHECK1 -->|Yes| CHECK2{Old column dropped in same migration?}
+    CHECK2 -->|Yes| BLOCK2[Block: Use expand-contract across 2 deployments]
+    CHECK2 -->|No| CHECK3{Index created concurrently?}
+    CHECK3 -->|No| BLOCK3[Block: CREATE INDEX CONCURRENTLY to avoid table lock]
+    CHECK3 -->|Yes| CHECK4{Migration tested on prod-sized dataset?}
+    CHECK4 -->|No| WARN[Warning: Estimate runtime before merging]
+    CHECK4 -->|Yes| APPROVE[Approved for deployment]
+```
+
+---
+
+## 18. Secrets Management in the Pipeline
+
+Secrets scattered across environment variables, CI settings, and configuration files are a supply chain security risk. A mature pipeline treats secrets as infrastructure, not configuration.
+
+### 18.1 Secrets Hierarchy
+
+```mermaid
+graph TD
+    SECRETS[Secrets Sources] --> VAULT[HashiCorp Vault - dynamic secrets]
+    SECRETS --> AWS[AWS Secrets Manager - static secrets]
+    SECRETS --> GH[GitHub Encrypted Secrets - CI only]
+    VAULT --> |Dynamic DB creds - 1h TTL| DB[(Database)]
+    VAULT --> |Dynamic API keys| API[External APIs]
+    AWS --> |Rotated static keys| APP[Application Runtime]
+    GH --> |Deploy keys and tokens| CICD[CI/CD Runner]
+    APP --> |Never logs, never serializes| SAFE[Safe Handling]
+```
+
+### 18.2 Vault Dynamic Database Credentials
+
+```hcl
+# vault policy: app-db-policy.hcl
+path "database/creds/app-read-write" {
+  capabilities = ["read"]
+}
+
+# Vault database role configuration (Terraform)
+resource "vault_database_secret_backend_role" "app" {
+  backend = vault_database_secrets_engine.postgres.path
+  name    = "app-read-write"
+  db_name = vault_database_secret_backend_connection.postgres.name
+
+  creation_statements = [
+    "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
+    "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+  ]
+
+  default_ttl = "1h"
+  max_ttl     = "24h"
+}
+```
+
+```python
+# Application: request dynamic credentials at startup
+import hvac
+import os
+
+def get_db_credentials() -> dict:
+    """Fetch short-lived database credentials from Vault."""
+    client = hvac.Client(
+        url=os.environ["VAULT_ADDR"],
+        token=os.environ["VAULT_TOKEN"],  # injected by the Vault agent sidecar
+    )
+    secret = client.secrets.database.generate_credentials(name="app-read-write")
+    return {
+        "username": secret["data"]["username"],
+        "password": secret["data"]["password"],
+        "lease_duration": secret["lease_duration"],
+    }
+```
+
+### 18.3 Secret Scanning in the Pipeline
+
+```yaml
+# Add secret scanning to every PR
+- name: Run TruffleHog secret scan
+  uses: trufflesecurity/trufflehog@main
+  with:
+    path: ./
+    base: ${{ github.event.repository.default_branch }}
+    head: HEAD
+    extra_args: --only-verified --fail
+
+- name: Check for hardcoded secrets patterns
+  run: |
+    # Fail if any AWS key patterns detected in source
+    if grep -rE 'AKIA[0-9A-Z]{16}' src/ --include="*.{ts,js,py}"; then
+      echo "AWS access key pattern detected in source code"
+      exit 1
+    fi
+    if grep -rE 'sk-[a-zA-Z0-9]{32,}' src/ --include="*.{ts,js,py}"; then
+      echo "OpenAI API key pattern detected in source code"
+      exit 1
+    fi
+```
+
+---
+
+## 19. Multi-Cloud Deployment Patterns
+
+Organizations increasingly deploy across multiple cloud providers for resilience, cost optimization, or regulatory requirements. A well-designed CI/CD pipeline abstracts the target cloud behind consistent interfaces.
+
+```mermaid
+graph TD
+    PIPELINE[CI/CD Pipeline] --> ARTIFACT[Build Immutable Artifact]
+    ARTIFACT --> PROMOTE{Environment Promotion}
+    PROMOTE --> |Dev| AWS_DEV[AWS us-east-1 - EKS]
+    PROMOTE --> |Staging| GCP_STAGE[GCP us-central1 - GKE]
+    PROMOTE --> |Production Primary| AWS_PROD[AWS us-east-1 - EKS]
+    PROMOTE --> |Production DR| AZURE_DR[Azure eastus - AKS]
+    AWS_DEV --> HEALTH[Health Check]
+    GCP_STAGE --> HEALTH
+    AWS_PROD --> HEALTH
+    AZURE_DR --> HEALTH
+```
+
+### 19.1 Cloud-Agnostic Kubernetes Manifests
+
+The key to multi-cloud deployment is keeping manifests provider-agnostic. All cloud-specific configuration is injected via environment-specific values files.
+
+```yaml
+# helm/values-production-aws.yaml
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:...
+
+storage:
+  class: gp3
+
+secrets:
+  provider: aws-secrets-manager
+  region: us-east-1
+
+---
+# helm/values-production-gcp.yaml
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: my-app-ip
+
+storage:
+  class: premium-rwo
+
+secrets:
+  provider: gcp-secret-manager
+  project: my-project-id
+```
+
+```yaml
+# .github/workflows/deploy-multi-cloud.yml
+deploy:
+  strategy:
+    matrix:
+      cloud: [aws, gcp, azure]
+      include:
+        - cloud: aws
+          cluster: eks-prod-us-east-1
+          values_file: values-production-aws.yaml
+          kubeconfig_secret: KUBECONFIG_AWS_PROD
+        - cloud: gcp
+          cluster: gke-prod-us-central1
+          values_file: values-production-gcp.yaml
+          kubeconfig_secret: KUBECONFIG_GCP_PROD
+        - cloud: azure
+          cluster: aks-prod-eastus
+          values_file: values-production-azure.yaml
+          kubeconfig_secret: KUBECONFIG_AZURE_DR
+
+  steps:
+    - name: Deploy to ${{ matrix.cloud }}
+      run: |
+        helm upgrade --install my-app ./helm \
+          --namespace production \
+          --values helm/${{ matrix.values_file }} \
+          --set image.tag=${{ github.sha }} \
+          --wait --timeout 10m
+```
+
+### 19.2 Cross-Cloud Health Aggregation
+
+```mermaid
+sequenceDiagram
+    participant MON as Monitoring Service
+    participant AWS as AWS EKS
+    participant GCP as GCP GKE
+    participant AZURE as Azure AKS
+    participant ALERT as PagerDuty
+
+    loop Every 30 seconds
+        MON->>AWS: GET /healthz
+        MON->>GCP: GET /healthz
+        MON->>AZURE: GET /healthz
+        AWS-->>MON: 200 OK
+        GCP-->>MON: 200 OK
+        AZURE-->>MON: 503 Service Unavailable
+        MON->>MON: Aggregate health: 2/3 healthy
+        MON->>ALERT: Page on-call: Azure AKS degraded
+        MON->>MON: Traffic shifted to AWS and GCP
+    end
+```
+
+The aggregation layer monitors all clouds simultaneously, shifts traffic away from unhealthy regions, and pages the on-call engineer. Combined with DNS-based failover (Route 53 health checks or Azure Traffic Manager), this achieves sub-minute failover across cloud providers.

@@ -33,6 +33,22 @@ HTML has been the cornerstone of the World Wide Web since its inception. HTML5 b
 
 HTML6 is expected to refine and expand semantic markup to further clarify document structure. New elements may be introduced to better define regions of a page, offering clearer separation between content and layout. For example:
 
+```mermaid
+graph TD
+    A[html document root] --> B[head - metadata and resources]
+    A --> C[body - page content]
+    B --> D[meta - SEO and charset]
+    B --> E[link - stylesheets]
+    C --> F[headergroup - wraps multiple headers]
+    C --> G[main - primary content area]
+    C --> H[footergroup - wraps multiple footers]
+    G --> I[article - self-contained content]
+    G --> J[section - thematic grouping]
+    G --> K[aside - related sidebar content]
+    I --> L[Enhanced ARIA roles]
+    J --> L
+```
+
 - **\<headergroup\> and \<footergroup\>**: These hypothetical elements could wrap multiple header or footer sections, providing more granular control over complex page structures.
 - **Enhanced \<section\> and \<article\>**: With additional attributes or roles, these elements could better convey hierarchical relationships and content significance.
 
@@ -51,6 +67,22 @@ HTML6 is likely to introduce new form controls that go beyond the basic text, em
 - **Slider and Range Enhancements**: More intuitive and customizable range inputs with better touch support.
 - **Rich Date/Time Pickers**: Native support for more complex scheduling interfaces, allowing for multi-date selection and time zone adjustments.
 - **Improved File Inputs**: Enhanced file upload controls that provide progress feedback and better error handling.
+
+```mermaid
+graph TD
+    A[User Submits Form] --> B[Browser Runs HTML6 Native Validation]
+    B --> C{Required Fields Present?}
+    C -->|No| D[Show Required Field Error]
+    C -->|Yes| E{Pattern or Type Valid?}
+    E -->|No| F[Show Format Error with Hint]
+    E -->|Yes| G{Custom Constraint Met?}
+    G -->|No| H[Show Custom Validity Message]
+    G -->|Yes| I[Form Data Passes Validation]
+    I --> J[Submit to Server]
+    D --> K[Prevent Submission]
+    F --> K
+    H --> K
+```
 
 ### 3.2 Declarative Validation Improvements
 
@@ -97,6 +129,18 @@ The evolution of web components continues into HTML6, with anticipated improveme
 - **Simplified Custom Elements**: Reducing boilerplate code and streamlining the process of creating reusable components.
 - **Improved Shadow DOM**: Enhanced encapsulation mechanisms that offer better performance and style isolation.
 
+```mermaid
+stateDiagram-v2
+    [*] --> Defined : customElements.define called
+    Defined --> Upgraded : Element parsed in DOM
+    Upgraded --> Connected : Element inserted into document
+    Connected --> AttributeChanged : Observed attribute mutated
+    AttributeChanged --> Connected : Callback completes
+    Connected --> Disconnected : Element removed from document
+    Disconnected --> Connected : Element re-inserted
+    Disconnected --> [*] : Garbage collected
+```
+
 ### 6.2 Native Interactivity
 
 HTML6 may also introduce new APIs that allow for more sophisticated interactions without the need for heavy JavaScript frameworks. Imagine elements that handle animations, transitions, and even simple data binding natively, reducing the overall complexity of web apps.
@@ -104,6 +148,21 @@ HTML6 may also introduce new APIs that allow for more sophisticated interactions
 ---
 
 ## 7. Performance and Security Optimizations
+
+```mermaid
+graph TD
+    A[HTML6 Page Request] --> B[Smart Preloading - defer off-screen resources]
+    B --> C[Native Lazy Loading]
+    C --> D[Service Worker Cache Check]
+    D --> E{Cache Hit?}
+    E -- Yes --> F[Serve from Cache]
+    E -- No --> G[Fetch Resource with Adaptive Streaming]
+    G --> H[Codec Negotiation for optimal format]
+    H --> I[Render to Enhanced Canvas or WebGPU]
+    F --> I
+    I --> J[Content Security Policy enforced]
+    J --> K[Secure Context - HTTPS only]
+```
 
 ### 7.1 Resource Loading and Performance
 
@@ -118,6 +177,22 @@ Security is always a top priority, and HTML6 may offer:
 
 - **Refined Content Security Policies (CSP)**: More granular controls to protect against cross-site scripting (XSS) and other injection attacks.
 - **Secure Contexts by Default**: Stricter requirements for mixed content and enhanced encryption guidelines, making the web a safer place for both developers and users.
+
+```mermaid
+graph TD
+    A[Start with Semantic HTML6 Structure] --> B[Core Content Works Without CSS or JS]
+    B --> C[Add CSS Layer - visual enhancement]
+    C --> D{Browser Supports Feature?}
+    D -->|Yes| E[Apply Enhanced Styles]
+    D -->|No| F[Fallback to Basic Styles]
+    E --> G[Add JavaScript Layer]
+    F --> G
+    G --> H{JS Feature Supported?}
+    H -->|Yes| I[Enable Rich Interactivity]
+    H -->|No| J[Graceful Degradation - still functional]
+    I --> K[Full Enhanced Experience]
+    J --> L[Basic but Usable Experience]
+```
 
 ---
 
@@ -148,7 +223,93 @@ The success of HTML6 will also depend on clear, comprehensive documentation from
 
 ---
 
-## 10. Conclusion
+## 10. Native Date-Time Picker and Media Negotiation Internals
+
+The sequence diagram below illustrates how a native HTML6 date-time picker interacts with the browser and form before submission:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser as Browser UI
+    participant Picker as Native Date Picker
+    participant Form as Form Element
+    participant Server
+
+    User->>Browser: Click date input field
+    Browser->>Picker: Open native date picker widget
+    User->>Picker: Select date and time zone
+    Picker-->>Browser: Emit change event with value
+    Browser->>Form: Update input value
+    User->>Form: Click Submit
+    Form->>Browser: Run HTML6 native validation
+    Browser-->>Form: Validation passes
+    Form->>Server: POST form data with typed date field
+    Server-->>Browser: 200 OK response
+```
+
+The diagram below maps how the new HTML6 adaptive streaming attributes negotiate the best media format at load time:
+
+```mermaid
+graph TD
+    A[video element with HTML6 codec-hint attribute] --> B[Browser Detects Network Speed]
+    B --> C{Network Quality}
+    C -- High --> D[Request High Bitrate Stream - AV1]
+    C -- Medium --> E[Request Medium Bitrate Stream - H.265]
+    C -- Low --> F[Request Low Bitrate Stream - H.264]
+    D --> G[Check Codec Support via MediaCapabilities API]
+    E --> G
+    F --> G
+    G --> H{Codec Supported?}
+    H -- Yes --> I[Decode and Render Video]
+    H -- No --> J[Fall Back to Next Format in Source List]
+    J --> G
+```
+
+The class diagram models the expanded ARIA role hierarchy anticipated in HTML6 for richer accessibility semantics:
+
+```mermaid
+classDiagram
+    class ARIARole {
+        +String name
+        +List allowedStates
+        +List allowedProperties
+    }
+    class LandmarkRole {
+        +navigable Boolean
+    }
+    class WidgetRole {
+        +interactive Boolean
+        +focusable Boolean
+    }
+    class LiveRegionRole {
+        +ariaLive String
+        +ariaAtomic Boolean
+    }
+    class CompositeRole {
+        +List ownedRoles
+        +managesFocus()
+    }
+    ARIARole <|-- LandmarkRole
+    ARIARole <|-- WidgetRole
+    ARIARole <|-- LiveRegionRole
+    ARIARole <|-- CompositeRole
+    CompositeRole --> WidgetRole : owns
+```
+
+The following state diagram captures how a browser handles a Shadow DOM component across its full attach and update lifecycle:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Declared : Custom element tag parsed
+    Declared --> ShadowAttached : attachShadow called
+    ShadowAttached --> Rendering : Initial template stamped
+    Rendering --> Stable : Paint complete
+    Stable --> Updating : Attribute or property change
+    Updating --> Rendering : Re-render triggered
+    Stable --> Detached : Element removed from DOM
+    Detached --> ShadowAttached : Element re-inserted
+    Detached --> [*] : Element garbage collected
+```
 
 HTML6 represents a significant step forward in the evolution of web standards. By incorporating advanced semantic elements, enhanced multimedia support, richer form controls, and robust accessibility and performance features, HTML6 is set to empower developers to build more modern, efficient, and inclusive web applications.
 
@@ -156,7 +317,369 @@ While many of these features remain in the proposal or experimental stage, stayi
 
 ---
 
-## Further Reading & Resources
+## 11. Native Web Components Deep Dive
+
+Web components - built on Custom Elements v2, Shadow DOM, and HTML Templates - are the most significant shift in HTML toward a true component model that does not require a JavaScript framework. HTML6 is expected to refine and extend these APIs considerably.
+
+```mermaid
+graph TD
+    WC[Web Component] --> CE[Custom Elements API]
+    WC --> SD[Shadow DOM]
+    WC --> HT[HTML Templates]
+    CE --> LC[Lifecycle Callbacks]
+    LC --> L1[connectedCallback - mounted]
+    LC --> L2[disconnectedCallback - unmounted]
+    LC --> L3[attributeChangedCallback - attribute update]
+    LC --> L4[adoptedCallback - moved between documents]
+    SD --> ENCAP[Style and DOM Encapsulation]
+    SD --> SLOTS[Named and Default Slots]
+    HT --> CLONE[template.content.cloneNode deep copy]
+```
+
+### 11.1. Building a production-ready custom element
+
+```typescript
+// typed-card.ts - a fully typed, accessible custom element
+class TypedCard extends HTMLElement {
+  static get observedAttributes(): string[] {
+    return ["title", "variant", "loading"];
+  }
+
+  private shadow: ShadowRoot;
+
+  constructor() {
+    super();
+    this.shadow = this.attachShadow({ mode: "open" });
+  }
+
+  connectedCallback(): void {
+    this.setAttribute("role", "article");
+    this.render();
+    this.dispatchEvent(new CustomEvent("card-connected", { bubbles: true }));
+  }
+
+  disconnectedCallback(): void {
+    // Clean up event listeners, timers, or observers here
+    this.dispatchEvent(new CustomEvent("card-disconnected", { bubbles: true }));
+  }
+
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
+    if (oldValue !== newValue) {
+      this.render();
+    }
+  }
+
+  private render(): void {
+    const title = this.getAttribute("title") ?? "Untitled";
+    const variant = this.getAttribute("variant") ?? "default";
+    const loading = this.hasAttribute("loading");
+
+    this.shadow.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          border-radius: 8px;
+          padding: 16px;
+          font-family: system-ui, sans-serif;
+        }
+        :host([variant="primary"]) {
+          background: #3b82f6;
+          color: white;
+        }
+        :host([variant="danger"]) {
+          background: #ef4444;
+          color: white;
+        }
+        .title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        .loading-indicator {
+          display: ${loading ? "block" : "none"};
+          height: 4px;
+          background: rgba(255,255,255,0.4);
+          animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
+        }
+      </style>
+      <div class="loading-indicator" role="progressbar" aria-label="Loading"></div>
+      <div class="title">${title}</div>
+      <slot></slot>
+    `;
+  }
+}
+
+customElements.define("typed-card", TypedCard);
+```
+
+```html
+<!-- Usage -->
+<typed-card title="Revenue Report" variant="primary">
+  <p>Q1 results are now available for review.</p>
+</typed-card>
+```
+
+---
+
+## 12. Declarative Shadow DOM
+
+Until recently, Shadow DOM could only be created imperatively via JavaScript. Declarative Shadow DOM, already shipping in Chromium and expected to be standardized in HTML6, allows shadow roots to be declared directly in HTML markup. This is critical for server-side rendering and progressive enhancement.
+
+```html
+<!-- Declarative Shadow DOM: no JavaScript required to attach shadow root -->
+<my-profile-card>
+  <template shadowrootmode="open">
+    <style>
+      :host {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .name {
+        font-weight: bold;
+      }
+      .avatar {
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+      }
+    </style>
+    <img class="avatar" src="/avatars/default.png" alt="User avatar" />
+    <div>
+      <div class="name"><slot name="name">Anonymous</slot></div>
+      <div class="role"><slot name="role">Member</slot></div>
+    </div>
+  </template>
+  <span slot="name">Son Nguyen</span>
+  <span slot="role">Senior Engineer</span>
+</my-profile-card>
+```
+
+### 12.1. SSR + Declarative Shadow DOM pipeline
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Server as Node.js Server
+    participant Template as Component Template
+
+    Browser->>Server: GET /profile/123
+    Server->>Template: Render profile-card with user data
+    Template-->>Server: HTML with declarative shadow root inline
+    Server-->>Browser: Full HTML response including shadow DOM
+    Browser->>Browser: Parse HTML and attach shadow roots natively
+    Note over Browser: No JavaScript needed to hydrate shadow DOM
+    Browser->>Browser: Hydrate interactive JS behaviors separately
+```
+
+The benefit is a fully rendered component tree with encapsulated styles arriving in the initial HTML payload. Search engines and screen readers receive the structured content without waiting for JavaScript execution.
+
+---
+
+## 13. Import maps and built-in modules
+
+Import maps are a native browser mechanism for mapping bare module specifiers to URLs. They remove the need for a bundler in simple applications and give fine-grained control over module resolution in complex ones.
+
+```html
+<!-- index.html: define the import map in the document head -->
+<script type="importmap">
+  {
+    "imports": {
+      "lodash": "https://cdn.skypack.dev/lodash@4.17.21",
+      "preact": "https://esm.sh/preact@10",
+      "preact/hooks": "https://esm.sh/preact@10/hooks",
+      "@app/utils": "/src/utils/index.js",
+      "@app/components/": "/src/components/"
+    },
+    "scopes": {
+      "/legacy/": {
+        "lodash": "https://cdn.skypack.dev/lodash@3.10.1"
+      }
+    }
+  }
+</script>
+
+<!-- Now bare specifiers work natively -->
+<script type="module">
+  import _ from "lodash";
+  import { useState } from "preact/hooks";
+  import { formatDate } from "@app/utils";
+
+  console.log(_.chunk([1, 2, 3, 4, 5], 2));
+</script>
+```
+
+### 13.1. Import map scoping behavior
+
+```mermaid
+graph TD
+    IM[Import Map] --> GLOBAL[Global Imports - apply everywhere]
+    IM --> SCOPED[Scoped Imports - apply to specific path prefixes]
+    GLOBAL --> MOD1[lodash - maps to CDN v4]
+    SCOPED --> PATH[Scope: /legacy/]
+    PATH --> MOD2[lodash within /legacy/ maps to CDN v3]
+    RESOLVE[Module Resolution] --> CHECK1{Request from /legacy/}
+    CHECK1 -- Yes --> MOD2
+    CHECK1 -- No --> MOD1
+```
+
+HTML6 is expected to expand the built-in modules system, providing native implementations of common utilities (like observable data structures and template engines) that today require third-party libraries.
+
+---
+
+## 14. Pairing CSS features with HTML6
+
+HTML6 brings structural improvements that pair naturally with recent and upcoming CSS capabilities. The combination unlocks visual patterns that previously required JavaScript.
+
+### 14.1. CSS anchor positioning
+
+Anchor positioning solves the tooltip and popover positioning problem natively, without JavaScript coordinate calculations:
+
+```html
+<!-- HTML6 popover attribute: native popover behavior without JS -->
+<button popovertarget="settings-menu">Settings</button>
+
+<div id="settings-menu" popover anchor="settings-menu">
+  <ul>
+    <li><a href="/settings/profile">Profile</a></li>
+    <li><a href="/settings/security">Security</a></li>
+    <li><a href="/settings/billing">Billing</a></li>
+  </ul>
+</div>
+
+<style>
+  /* CSS anchor positioning: popover follows the button */
+  #settings-menu {
+    position: absolute;
+    position-anchor: --settings-button;
+    top: calc(anchor(bottom) + 8px);
+    left: anchor(left);
+  }
+</style>
+```
+
+### 14.2. The `@layer` cascade layer system
+
+`@layer` gives developers explicit control over the CSS cascade, removing the specificity wars that come with large stylesheets:
+
+```css
+/* Define layer order: lowest priority first */
+@layer reset, base, components, utilities, overrides;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+  }
+}
+
+@layer base {
+  body {
+    font-family: system-ui, sans-serif;
+    font-size: 16px;
+  }
+  a {
+    color: inherit;
+  }
+}
+
+@layer components {
+  .card {
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--surface);
+  }
+}
+
+/* Utilities always win over components, regardless of specificity */
+@layer utilities {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+}
+```
+
+### 14.3. CSS container queries with HTML6 structure
+
+Container queries allow components to respond to their container's size rather than the viewport, enabling truly portable components:
+
+```html
+<section class="content-grid">
+  <!-- This card responds to its container width, not viewport width -->
+  <article class="post-card">
+    <img src="cover.jpg" alt="Post cover" />
+    <h2>Building with HTML6</h2>
+    <p>Container queries make this layout adapt to any context.</p>
+  </article>
+</section>
+
+<style>
+  .content-grid {
+    container-type: inline-size;
+    container-name: content-grid;
+    display: grid;
+    gap: 16px;
+  }
+
+  /* Card is single column by default */
+  .post-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* When the grid container is at least 600px wide, go horizontal */
+  @container content-grid (min-width: 600px) {
+    .post-card {
+      flex-direction: row;
+      gap: 16px;
+    }
+
+    .post-card img {
+      width: 200px;
+      flex-shrink: 0;
+    }
+  }
+</style>
+```
+
+```mermaid
+graph TD
+    VIEWPORT[Viewport Size] --> OLD[Old approach: media query responds to viewport]
+    CONTAINER[Container Size] --> NEW[New approach: container query responds to parent]
+    OLD --> PROBLEM[Component only works correctly in specific viewport context]
+    NEW --> BENEFIT[Component adapts to any container - fully portable]
+    BENEFIT --> SIDEBAR[Works in narrow sidebar]
+    BENEFIT --> MAIN[Works in wide main column]
+    BENEFIT --> MODAL[Works in modal dialog]
+```
+
+---
+
+## 15. Conclusion
+
+HTML6 is not a single release with a hard boundary from HTML5 - it is a continuous evolution of the living standard, with individual features shipping in browsers as they are standardized. The most impactful capabilities - Declarative Shadow DOM, native popovers, import maps, container queries, and the popover API - are already available in modern browsers today.
+
+For developers, the practical path forward is to adopt these features incrementally, starting with progressive enhancement: ensure the baseline HTML works without CSS or JavaScript, layer enhancements using feature detection, and fall back gracefully in older environments. The web platform is moving toward less framework dependence, not more. Understanding the direction of HTML6 positions developers to write leaner, faster, and more accessible applications.
+
+---
+
+## 16. Further Reading & Resources
 
 - **W3C Specifications**:
   - [W3C HTML Living Standard](https://html.spec.whatwg.org/)

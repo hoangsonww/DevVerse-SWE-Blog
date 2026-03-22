@@ -19,6 +19,17 @@ export default function TechContent({ children }) {
 
 Redis is an open-source, in-memory data structure store that serves as a database, cache, and message broker. Celebrated for its exceptional speed and versatility, Redis supports a variety of data structures such as strings, hashes, lists, sets, and sorted sets. In this article, we explore Redis’ architecture, key features, persistence mechanisms, advanced capabilities, performance tuning, and real-world applications.
 
+```mermaid
+graph TD
+    A[Application] --> B{Cache Hit?}
+    B --> C[Yes - Return from Redis]
+    B --> D[No - Cache Miss]
+    D --> E[Query Primary Database]
+    E --> F[Store Result in Redis with TTL]
+    F --> G[Return to Application]
+    C --> G
+```
+
 ---
 
 ## 1. Introduction
@@ -57,6 +68,20 @@ Redis supports a range of data types beyond simple key-value pairs:
 
 ### 2.4 Pub/Sub Messaging
 
+The diagram below shows how a single publisher fans out messages to multiple subscribers through the Redis Pub/Sub engine:
+
+```mermaid
+graph LR
+    A[Publisher Service] --> B[PUBLISH channel message]
+    B --> C[Redis Pub/Sub Engine]
+    C --> D[Subscriber A - listening on channel]
+    C --> E[Subscriber B - listening on channel]
+    C --> F[Subscriber C - listening on wildcard]
+    D --> G[Handle Event - update UI]
+    E --> H[Handle Event - log analytics]
+    F --> I[Handle Event - audit trail]
+```
+
 Redis provides native support for publish/subscribe messaging, which enables real-time communication between services. This makes it ideal for building chat systems, live dashboards, and notifications.
 
 ### 2.5 High Availability and Scalability
@@ -74,11 +99,39 @@ With features like replication, Redis Sentinel, and Redis Cluster, Redis can be 
 - **AOF Logging:**
   Offers a more durable solution by logging every write. Although AOF may introduce additional latency, it can be fine-tuned with different fsync policies (every command, every second, or no fsync) to balance performance and durability.
 
+```mermaid
+graph LR
+    A[Write Request] --> B[Redis Primary]
+    B --> C[Redis Replica 1]
+    B --> D[Redis Replica 2]
+    E[Read Request] --> C
+    E --> D
+    F[Redis Sentinel] --> B
+    F --> C
+    F --> D
+    G[AOF Log] --> B
+    H[RDB Snapshot] --> B
+```
+
 ### 3.2 Replication and High Availability
 
 Redis replication allows you to create one or more replicas of a Redis instance. In a master-replica configuration, write operations are performed on the master and asynchronously propagated to replicas. Redis Sentinel provides automatic failover, monitoring, and notification features to ensure high availability.
 
 ### 3.3 Redis Cluster
+
+Redis Cluster partitions the 16,384 hash slots across nodes, routing each key deterministically by its CRC16 value:
+
+```mermaid
+graph TD
+    A[Redis Cluster - 16384 hash slots total] --> B[Node 1 - slots 0 to 5460]
+    A --> C[Node 2 - slots 5461 to 10922]
+    A --> D[Node 3 - slots 10923 to 16383]
+    B --> E[Node 1 Replica]
+    C --> F[Node 2 Replica]
+    D --> G[Node 3 Replica]
+    H[Client writes key foo] --> I[CRC16 of foo mod 16384 equals slot 7]
+    I --> C
+```
 
 For horizontal scaling, Redis Cluster partitions data across multiple nodes. This enables both high availability and improved performance for write-heavy workloads, as the data and load are distributed across the cluster.
 
@@ -184,6 +237,42 @@ Sorted sets are a powerful data structure in Redis that allow you to maintain a 
 
 ## 7. Performance Tuning and Best Practices
 
+When memory fills up, the `maxmemory-policy` setting determines which keys Redis evicts:
+
+```mermaid
+graph TD
+    A[Memory Limit Reached] --> B{maxmemory-policy setting}
+    B --> C[noeviction - return error on writes]
+    B --> D[allkeys-lru - evict least recently used from all keys]
+    B --> E[volatile-lru - evict LRU from keys with TTL]
+    B --> F[allkeys-lfu - evict least frequently used from all keys]
+    B --> G[volatile-ttl - evict keys with shortest TTL first]
+    B --> H[allkeys-random - evict random key from all keys]
+    D --> I[Good for cache-only workloads]
+    E --> J[Good for mixed persistent and cache workloads]
+    F --> K[Good for skewed access patterns]
+```
+
+Lua scripts run atomically inside Redis, making them the correct tool for compare-and-set and complex read-modify-write operations:
+
+```mermaid
+sequenceDiagram
+    participant Client as Client App
+    participant Redis as Redis Server
+    participant Script as Lua Interpreter
+
+    Client->>Redis: EVAL script 1 key arg1
+    Redis->>Script: Load and compile Lua script
+    Script->>Redis: GET key
+    Redis-->>Script: Current value
+    Script->>Script: Apply business logic
+    Script->>Redis: SET key new-value EX ttl
+    Redis-->>Script: OK
+    Script-->>Redis: Return result
+    Redis-->>Client: Script result - atomic guarantee
+    Note over Redis: No other command runs during script execution
+```
+
 To harness Redis' full potential, consider the following best practices:
 
 - **Set Time-To-Live (TTL):**
@@ -210,6 +299,22 @@ To harness Redis' full potential, consider the following best practices:
 ---
 
 ## 8. Real-World Applications
+
+Rate limiting is a canonical Redis pattern: atomic `INCR` plus `EXPIRE` enforces request windows without a database round-trip:
+
+```mermaid
+graph TD
+    A[Incoming API Request] --> B[Build Rate Limit Key - IP and endpoint]
+    B --> C[INCR key in Redis]
+    C --> D{First Request for Window?}
+    D -- Yes --> E[SET key with TTL - window duration]
+    D -- No --> F[Read current count]
+    E --> F
+    F --> G{Count exceeds limit?}
+    G -- Yes --> H[Return 429 Too Many Requests]
+    G -- No --> I[Forward Request to Handler]
+    I --> J[Return 200 Response]
+```
 
 Redis is used across various industries to solve real-world problems:
 
@@ -247,6 +352,22 @@ By leveraging Redis, Notion is able to support millions of concurrent users with
 
 ## 9. Redis Enterprise
 
+Redis Streams allow multiple independent consumer groups to process the same event log at their own pace, with each consumer acknowledging processed entries via `XACK`:
+
+```mermaid
+graph LR
+    P1[Producer A - order service] --> STREAM[Redis Stream - orders stream]
+    P2[Producer B - payment service] --> STREAM
+    STREAM --> CG1[Consumer Group - fulfillment]
+    STREAM --> CG2[Consumer Group - analytics]
+    CG1 --> C1[Consumer 1 - XREADGROUP]
+    CG1 --> C2[Consumer 2 - XREADGROUP]
+    CG2 --> C3[Analytics Consumer - XREADGROUP]
+    C1 --> ACK1[XACK on success]
+    C2 --> ACK1
+    C3 --> ACK2[XACK on processed]
+```
+
 Redis Enterprise is the commercial version of Redis, offering additional features and support for enterprise-level applications. Key features include:
 
 - **Active-Active Geo-Distribution:** Enables multi-region deployments with conflict-free replicated data types (CRDTs) for seamless data synchronization across regions.
@@ -260,6 +381,21 @@ Redis Enterprise is the commercial version of Redis, offering additional feature
 - **Enterprise Support:** Access to Redis Labs' support team for troubleshooting, performance tuning, and best practices.
 
 Redis Enterprise is designed for organizations that require the highest levels of performance, scalability, and reliability. It is particularly well-suited for mission-critical applications where downtime is not an option.
+
+Active-Active geo-distribution uses CRDTs to reconcile concurrent writes across regions without downtime:
+
+```mermaid
+graph TD
+    A[Write in Region US East] --> B[Local Redis Primary - US East]
+    C[Write in Region EU West] --> D[Local Redis Primary - EU West]
+    B --> E[CRDT Conflict-Free Replication]
+    D --> E
+    E --> F[Sync to EU West replica]
+    E --> G[Sync to US East replica]
+    F --> H[Reads served locally in EU West]
+    G --> I[Reads served locally in US East]
+    E --> J[Conflict Resolution via CRDT rules]
+```
 
 ---
 
@@ -278,9 +414,261 @@ However, Redis remains a popular choice due to its simplicity, rich feature set,
 
 ---
 
-## 11. Conclusion
+## 11. Redis Streams: Deep Dive
+
+Redis Streams (introduced in Redis 5.0) are a persistent, append-only log data structure. Unlike pub/sub — which is fire-and-forget — streams retain messages and support consumer groups that track which messages have been acknowledged.
+
+### 11.1. Core Stream Commands
+
+```bash
+# Append an entry (auto-generated ID based on timestamp + sequence)
+XADD orders * customer_id 42 item "laptop" price 1299.00
+
+# Append with an explicit ID (millisecond-timestamp-sequence)
+XADD orders 1700000000000-0 customer_id 43 item "mouse" price 29.99
+
+# Read the last 10 entries
+XRANGE orders - + COUNT 10
+
+# Read new entries since last read (blocking for 5 seconds if empty)
+XREAD COUNT 10 BLOCK 5000 STREAMS orders $
+
+# Consumer group: create and read
+XGROUP CREATE orders fulfillment $ MKSTREAM
+XREADGROUP GROUP fulfillment worker-1 COUNT 5 STREAMS orders >
+
+# Acknowledge processed messages
+XACK orders fulfillment 1700000000000-0
+
+# Check pending (unacknowledged) messages
+XPENDING orders fulfillment - + 10
+```
+
+### 11.2. Streams vs. Pub/Sub vs. Lists
+
+| Capability               | Pub/Sub              | List (LPUSH/BRPOP)   | Streams                      |
+| ------------------------ | -------------------- | -------------------- | ---------------------------- |
+| Message persistence      | No (fire-and-forget) | Yes (until consumed) | Yes (configurable retention) |
+| Multiple consumer groups | No                   | No                   | Yes                          |
+| Message replay           | No                   | No                   | Yes (rewind to any ID)       |
+| Pending message tracking | No                   | No                   | Yes (XPENDING)               |
+| Back-pressure            | No                   | Manual               | Built-in via XREADGROUP      |
+
+```mermaid
+graph TD
+    A[Redis Stream - append-only log] --> B[Entry 1 - 1700000000001-0]
+    A --> C[Entry 2 - 1700000000002-0]
+    A --> D[Entry 3 - 1700000000003-0]
+    B --> E[Consumer Group A - fulfillment]
+    B --> F[Consumer Group B - analytics]
+    E --> G[Worker 1 - XREADGROUP - processes entry 1]
+    E --> H[Worker 2 - XREADGROUP - processes entry 2]
+    G --> I[XACK - marks entry 1 as done]
+    H --> J[XACK - marks entry 2 as done]
+    F --> K[Analytics Worker - independent offset]
+    D --> L[Entry with no ACK goes to XPENDING]
+    L --> M[Idle consumer recovery with XCLAIM]
+```
+
+---
+
+## 12. Advanced Lua Scripting Patterns
+
+Lua scripts run atomically on the Redis server — no other command executes between the script’s first and last operation. This is the correct way to implement compare-and-set or complex read-modify-write operations.
+
+### 12.1. Atomic Inventory Decrement
+
+```lua
+-- scripts/decrement_inventory.lua
+-- KEYS[1]: inventory key (e.g. "inventory:product:42")
+-- ARGV[1]: requested quantity
+local current = tonumber(redis.call(‘GET’, KEYS[1]))
+if current == nil or current < tonumber(ARGV[1]) then
+  return redis.error_reply(‘INSUFFICIENT_STOCK’)
+end
+return redis.call(‘DECRBY’, KEYS[1], ARGV[1])
+```
+
+```python
+import redis
+
+r = redis.Redis()
+
+# Load script once, use SHA for subsequent calls (avoids re-sending script bytes)
+with open(‘scripts/decrement_inventory.lua’) as f:
+    script = r.register_script(f.read())
+
+try:
+    remaining = script(keys=[‘inventory:product:42’], args=[5])
+    print(f"Stock remaining: {remaining}")
+except redis.ResponseError as e:
+    if ‘INSUFFICIENT_STOCK’ in str(e):
+        print("Not enough stock available")
+```
+
+### 12.2. Sliding Window Rate Limiter
+
+```lua
+-- KEYS[1]: rate limit key (e.g. "ratelimit:user:99:POST:/api/orders")
+-- ARGV[1]: window size in milliseconds
+-- ARGV[2]: maximum allowed requests
+-- ARGV[3]: current timestamp in milliseconds
+local key      = KEYS[1]
+local window   = tonumber(ARGV[1])
+local limit    = tonumber(ARGV[2])
+local now      = tonumber(ARGV[3])
+local min_time = now - window
+
+redis.call(‘ZREMRANGEBYSCORE’, key, ‘-inf’, min_time)
+local count = redis.call(‘ZCARD’, key)
+
+if count >= limit then
+  return 0
+end
+
+redis.call(‘ZADD’,   key, now, now)
+redis.call(‘EXPIRE’, key, math.ceil(window / 1000))
+return limit - count - 1  -- remaining requests in window
+```
+
+---
+
+## 13. Memory Optimization Techniques
+
+Redis is an in-memory store, so memory efficiency directly controls your infrastructure costs and performance ceiling.
+
+### 13.1. Choosing the Right Encoding
+
+Redis uses compact internal encodings automatically, but you can tune thresholds:
+
+```bash
+# Default thresholds (check with CONFIG GET)
+CONFIG GET hash-max-listpack-entries   # 128: hashes <= 128 fields use listpack
+CONFIG GET hash-max-listpack-value     # 64:  fields up to 64 bytes use listpack
+CONFIG GET zset-max-listpack-entries   # 128
+CONFIG GET list-max-listpack-size      # 128
+
+# Increase limits for small objects to keep them in listpack (dense, CPU-cache-friendly)
+CONFIG SET hash-max-listpack-entries 256
+CONFIG SET hash-max-listpack-value   128
+```
+
+### 13.2. Memory Profiling Tools
+
+```bash
+# Total memory and fragmentation
+INFO memory
+
+# Sample memory usage of 100 random keys (shows per-key bytes)
+MEMORY DOCTOR
+MEMORY USAGE my:key          # exact bytes for a specific key
+
+# List keys sorted by size (use sparingly in production)
+redis-cli --bigkeys
+
+# Detailed object encoding for a key
+OBJECT ENCODING my:sorted:set
+OBJECT IDLETIME my:key        # seconds since last access
+OBJECT FREQ my:key            # LFU access frequency counter
+```
+
+### 13.3. Compression Strategy for Large String Values
+
+```python
+import redis
+import zstd  # pip install zstandard
+
+r = redis.Redis()
+
+def set_compressed(key: str, value: str, ex: int = 3600) -> None:
+    compressed = zstd.compress(value.encode())
+    r.set(key, compressed, ex=ex)
+
+def get_decompressed(key: str) -> str | None:
+    data = r.get(key)
+    if data is None:
+        return None
+    return zstd.decompress(data).decode()
+```
+
+```mermaid
+graph TD
+    A[Key-Value Stored in Redis] --> B{Value Size}
+    B -- Small object under threshold --> C[listpack encoding - compact array]
+    B -- Large object over threshold --> D[hash-table or skiplist encoding]
+    C --> E[Low memory, faster iteration]
+    D --> F[Flexible but higher overhead]
+    G[Memory Pressure] --> H{maxmemory reached}
+    H --> I[Eviction Policy Kicks In]
+    I --> J[allkeys-lfu for cache workloads]
+    I --> K[volatile-ttl for session stores]
+    J --> L[Hot keys remain in RAM]
+    K --> M[Soonest-expiring keys evicted first]
+    N[Large string values] --> O[Compress with zstd before SET]
+    O --> P[50-80% memory saving on JSON payloads]
+```
+
+---
+
+## 14. Redis Cluster Operations
+
+Running Redis in cluster mode partitions your keyspace across multiple primary nodes, each responsible for a range of the 16,384 hash slots. Understanding cluster internals prevents surprises in production.
+
+### 14.1. Setting Up a Minimal 3-Primary Cluster
+
+```bash
+# Start 6 Redis instances (3 primary + 3 replica) on ports 7000-7005
+for port in 7000 7001 7002 7003 7004 7005; do
+  redis-server \
+    --port $port \
+    --cluster-enabled yes \
+    --cluster-config-file nodes-$port.conf \
+    --cluster-node-timeout 5000 \
+    --appendonly yes \
+    --daemonize yes
+done
+
+# Create the cluster (--cluster-replicas 1 = one replica per primary)
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 \
+  127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 \
+  --cluster-replicas 1
+```
+
+### 14.2. Hash Tags for Multi-Key Operations
+
+Keys are hashed by their full name by default. If two keys must live on the same slot (e.g., for `MGET` or Lua scripts), use hash tags — the portion inside `{}` determines the slot:
+
+```python
+# These two keys hash to the same slot because both use {user:42}
+r.set(‘{user:42}.profile’,  ‘{"name":"Alice"}’)
+r.set(‘{user:42}.settings’, ‘{"theme":"dark"}’)
+
+# Safe to use in a pipeline or Lua script
+pipe = r.pipeline()
+pipe.get(‘{user:42}.profile’)
+pipe.get(‘{user:42}.settings’)
+profile, settings = pipe.execute()
+```
+
+### 14.3. Online Resharding
+
+```bash
+# Move 1000 slots from node A to node B without downtime
+redis-cli --cluster reshard 127.0.0.1:7000 \
+  --cluster-from <node-A-id> \
+  --cluster-to   <node-B-id> \
+  --cluster-slots 1000 \
+  --cluster-yes
+```
+
+---
+
+## 15. Conclusion
 
 Redis stands out as a high-performance, versatile solution for modern data processing needs. Its in-memory architecture, combined with advanced persistence, replication, and clustering capabilities, makes it a top choice for caching, real-time analytics, session management, and beyond. By leveraging Redis’ rich set of features - from Lua scripting and transactions to geospatial indexing and streams - developers can build robust, scalable applications that deliver rapid, reliable performance.
+
+Redis Streams bring durable, consumer-group-aware messaging that rivals purpose-built brokers for many use cases. Lua scripts provide atomic multi-step operations without sacrificing Redis’s single-threaded performance model. And careful memory management — through encoding tuning, compression, and eviction policies — keeps infrastructure costs predictable even at scale.
 
 As technology continues to evolve, Redis remains at the forefront of innovation in high-performance data management, empowering developers to solve complex problems with elegance and efficiency.
 

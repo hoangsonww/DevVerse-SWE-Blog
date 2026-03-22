@@ -5,6 +5,7 @@ import ArticlesList from "./ArticlesList";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaGithub, FaLinkedin, FaGlobe, FaEnvelope } from "react-icons/fa";
+import { FiBook, FiCode, FiRefreshCw } from "react-icons/fi";
 
 interface Article {
   slug: string;
@@ -17,6 +18,7 @@ interface Article {
 
 interface HomePageContentProps {
   articles: Article[];
+  viewCounts?: Record<string, number>;
 }
 
 const chatCtaVariants = {
@@ -28,7 +30,10 @@ const chatCtaVariants = {
   },
 };
 
-export default function HomePageContent({ articles }: HomePageContentProps) {
+export default function HomePageContent({
+  articles,
+  viewCounts,
+}: HomePageContentProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -48,64 +53,58 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
       <header className="page-header">
         <div className="page-hero">
           <div className="page-hero-copy">
-            <p className="page-kicker">Welcome to DevVerse Tech Blog ✨</p>
+            <p className="page-kicker">DevVerse Tech Blog</p>
             <h1 className="page-title">
-              Deep dives into computer science and modern engineering.
+              Deep dives into{" "}
+              <span className="page-title-accent">computer science</span> and
+              modern engineering.
             </h1>
             <p className="page-description">
-              DevVerse Tech Blog is your go-to source for deep dives into
-              computer science and technology. Explore{" "}
-              <strong>{articles.length}</strong> articles covering frameworks,
-              libraries, tools, and cutting-edge tech innovations. Stay
-              informed, inspired, and ready to tackle the latest trends in
-              computer science and software development.
+              Explore <strong>{articles.length}</strong> in-depth articles on
+              frameworks, distributed systems, AI, databases, and software
+              architecture. Written for engineers who want to understand the{" "}
+              <em>why</em>, not just the <em>how</em>.
             </p>
+            <div className="page-hero-actions">
+              <Link href="/chat" className="page-hero-btn primary">
+                Ask the AI chatbot
+              </Link>
+              <Link href="#all-articles" className="page-hero-btn secondary">
+                Browse articles
+              </Link>
+            </div>
           </div>
-          <div className="page-stats">
+          <div className="page-stats-col">
             <div className="stat-card">
-              <span className="stat-value">{articles.length}</span>
-              <span className="stat-label">Articles curated</span>
+              <div className="stat-icon">
+                <FiBook size={22} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">{articles.length}</span>
+                <span className="stat-label">Articles curated</span>
+              </div>
             </div>
             <div className="stat-card">
-              <span className="stat-value">CS + SWE</span>
-              <span className="stat-label">Core focus</span>
+              <div className="stat-icon">
+                <FiCode size={22} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">CS + SWE</span>
+                <span className="stat-label">Core focus</span>
+              </div>
             </div>
             <div className="stat-card">
-              <span className="stat-value">Weekly</span>
-              <span className="stat-label">Fresh insights</span>
+              <div className="stat-icon">
+                <FiRefreshCw size={22} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">Weekly</span>
+                <span className="stat-label">Fresh insights</span>
+              </div>
             </div>
           </div>
         </div>
       </header>
-
-      <motion.div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.75rem",
-          padding: "1rem 1.25rem",
-          borderRadius: "12px",
-          border: "1px solid var(--border-color)",
-          background:
-            "linear-gradient(135deg, rgba(0, 112, 243, 0.12), transparent 70%)",
-          marginBottom: "3.5rem",
-        }}
-        variants={chatCtaVariants}
-        initial="hidden"
-        animate={visible ? "show" : "hidden"}
-      >
-        <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
-          Explore the DevVerse RAG Chatbot
-        </div>
-        <div style={{ opacity: 0.8 }}>
-          Ask questions about any article and get answers with citations.
-        </div>
-        <div>
-          <Link href="/chat" className="chat-cta">
-            Open chat
-          </Link>
-        </div>
-      </motion.div>
 
       <div
         style={{
@@ -114,7 +113,7 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
           transition: "opacity 0.6s ease, transform 0.6s ease",
         }}
       >
-        <ArticlesList articles={articles} />
+        <ArticlesList articles={articles} viewCounts={viewCounts} />
         <p
           style={{
             textAlign: "center",
@@ -399,77 +398,183 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
 
         .page-hero {
           display: grid;
-          gap: 2rem;
-          padding: 2.5rem;
-          border-radius: 18px;
+          grid-template-columns: 1fr auto;
+          gap: 3rem;
+          align-items: center;
+          padding: 2.5rem 3rem;
+          border-radius: 20px;
           border: 1px solid var(--border-color);
+          background: var(--container-background);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .page-hero::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
           background: linear-gradient(
-            135deg,
-            rgba(15, 118, 110, 0.08),
-            rgba(0, 0, 0, 0)
+            90deg,
+            #6366f1,
+            #3b82f6,
+            #06b6d4,
+            #10b981
           );
-          box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
         }
 
         .page-hero-copy {
-          display: grid;
+          display: flex;
+          flex-direction: column;
           gap: 1rem;
         }
 
         .page-kicker {
           text-transform: uppercase;
-          letter-spacing: 0.18em;
-          font-size: 0.75rem;
+          letter-spacing: 0.2em;
+          font-size: 0.72rem;
           font-weight: 700;
           color: var(--link-color);
           margin: 0;
         }
 
         .page-title {
-          font-size: clamp(2.2rem, 3.5vw, 3rem);
+          font-size: clamp(1.8rem, 3vw, 2.6rem);
           margin: 0;
           color: var(--text-color);
-          line-height: 1.1;
+          line-height: 1.15;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+
+        .page-title-accent {
+          background: linear-gradient(135deg, #6366f1, #3b82f6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        :global(.dark) .page-title-accent {
+          background: linear-gradient(135deg, #818cf8, #60a5fa);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
         .page-description {
-          font-size: 1.1rem;
+          font-size: 1.05rem;
           color: var(--text-color);
-          max-width: 680px;
+          opacity: 0.8;
+          max-width: 560px;
           margin: 0;
           line-height: 1.7;
         }
 
-        .page-stats {
-          display: grid;
-          gap: 1rem;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+        .page-hero-actions {
+          display: flex;
+          gap: 0.75rem;
+          margin-top: 0.5rem;
+        }
+
+        .page-hero-btn {
+          padding: 0.6rem 1.3rem;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+        }
+
+        .page-hero-btn:hover {
+          transform: translateY(-1px);
+          text-decoration: none;
+        }
+
+        .page-hero-btn.primary {
+          background: var(--link-color);
+          color: #fff;
+          box-shadow: 0 4px 14px rgba(0, 112, 243, 0.3);
+        }
+
+        .page-hero-btn.primary:hover {
+          box-shadow: 0 6px 20px rgba(0, 112, 243, 0.4);
+          color: #fff;
+        }
+
+        .page-hero-btn.secondary {
+          background: transparent;
+          color: var(--text-color);
+          border: 1px solid var(--border-color);
+        }
+
+        .page-hero-btn.secondary:hover {
+          border-color: var(--link-color);
+          color: var(--link-color);
+        }
+
+        .page-stats-col {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          min-width: 220px;
         }
 
         .stat-card {
-          border-radius: 14px;
+          border-radius: 12px;
           border: 1px solid var(--border-color);
-          padding: 1rem 1.2rem;
-          background: rgba(255, 255, 255, 0.7);
-          display: grid;
-          gap: 0.35rem;
-          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+          padding: 0.9rem 1.1rem;
+          background: var(--background-color);
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          transition:
+            border-color 0.2s ease,
+            transform 0.15s ease;
         }
 
-        :global(.dark) .stat-card {
-          background: rgba(15, 23, 42, 0.6);
+        .stat-card:hover {
+          border-color: var(--link-color);
+          transform: translateX(4px);
+        }
+
+        .stat-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(99, 102, 241, 0.1);
+          color: #6366f1;
+          flex-shrink: 0;
+        }
+
+        :global(.dark) .stat-icon {
+          background: rgba(129, 140, 248, 0.15);
+          color: #818cf8;
+        }
+
+        .stat-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0.1rem;
         }
 
         .stat-value {
-          font-size: 1.35rem;
+          font-size: 1.15rem;
           font-weight: 700;
           color: var(--text-color);
+          line-height: 1.2;
         }
 
         .stat-label {
           color: var(--text-color);
-          opacity: 0.7;
-          font-size: 0.95rem;
+          opacity: 0.6;
+          font-size: 0.8rem;
         }
 
         @keyframes fadeSlideIn {
@@ -485,11 +590,32 @@ export default function HomePageContent({ articles }: HomePageContentProps) {
 
         @media (max-width: 900px) {
           .page-hero {
+            grid-template-columns: 1fr;
             padding: 2rem;
+            gap: 2rem;
           }
 
-          .page-stats {
-            grid-template-columns: 1fr;
+          .page-stats-col {
+            flex-direction: row;
+            min-width: 0;
+          }
+
+          .stat-card {
+            flex: 1;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .page-stats-col {
+            flex-direction: column;
+          }
+
+          .page-hero-actions {
+            flex-direction: column;
+          }
+
+          .page-hero-btn {
+            text-align: center;
           }
         }
       `}</style>

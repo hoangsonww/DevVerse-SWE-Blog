@@ -19,6 +19,20 @@ export default function MongoDBContent({ children }) {
 
 MongoDB has rapidly become one of the most popular NoSQL databases, redefining how developers store, manage, and retrieve data. Its innovative document-oriented model, flexible schema design, and state-of-the-art features have made it an indispensable tool for modern web applications. In this extensive guide, we dive deep into MongoDB’s unique capabilities, exploring everything from its core data model to advanced performance and scalability features. We’ll also take an in-depth look at BSON - the binary format that lies at the heart of MongoDB - and discuss why it makes MongoDB so powerful.
 
+```mermaid
+graph TD
+    A[Application] --> B[MongoDB Driver]
+    B --> C[Query Parser]
+    C --> D{Index Lookup}
+    D --> E[Collection Scan]
+    D --> F[Index Scan]
+    E --> G[BSON Documents]
+    F --> G
+    G --> H[Aggregation Pipeline]
+    H --> I[Result Set]
+    I --> B
+```
+
 ---
 
 ## 1. Introduction
@@ -152,6 +166,16 @@ In the BSON example, you can see how BSON types like `NumberInt` and `ISODate` a
 
 MongoDB’s aggregation framework is a powerful feature that enables developers to process data records and return computed results. Think of it as MongoDB’s version of SQL’s `GROUP BY`, but with far more flexibility.
 
+```mermaid
+graph TD
+    A[Input Collection] --> B[Stage 1 - match filter documents]
+    B --> C[Stage 2 - group aggregate values]
+    C --> D[Stage 3 - project reshape output]
+    D --> E[Stage 4 - sort order results]
+    E --> F[Stage 5 - limit cap result count]
+    F --> G[Output Result Set]
+```
+
 ### 5.1 Pipeline Operations
 
 The aggregation framework works by passing documents through a multi-stage pipeline. Each stage transforms the data in some way - filtering, grouping, sorting, or reshaping it. For example, you can use the aggregation framework to calculate total sales per region, average user activity, or to reshape documents for reporting purposes.
@@ -204,6 +228,32 @@ The aggregation framework is a powerful tool that allows developers to perform c
 ## 6. Scalability and High Availability
 
 Modern applications require databases that not only perform well under heavy loads but also remain highly available. MongoDB addresses these needs through sharding and replica sets.
+
+```mermaid
+graph TD
+    A[Client Application] --> B[mongos Router]
+    B --> C[Config Servers]
+    B --> D[Shard 1 Primary]
+    B --> E[Shard 2 Primary]
+    B --> F[Shard 3 Primary]
+    D --> G[Shard 1 Secondary]
+    E --> H[Shard 2 Secondary]
+    F --> I[Shard 3 Secondary]
+```
+
+### 6.0 Replica Set Election
+
+```mermaid
+graph TD
+    A[Primary Node Fails] --> B[Secondaries Detect Heartbeat Timeout]
+    B --> C[Eligible Secondaries Call Election]
+    C --> D[Candidate Requests Votes from Peers]
+    D --> E{Majority Votes Received?}
+    E -- Yes --> F[Candidate Becomes New Primary]
+    E -- No --> G[Election Timeout - Retry]
+    F --> H[Writes Resume on New Primary]
+    G --> C
+```
 
 ### 6.1 Horizontal Scalability with Sharding
 
@@ -259,6 +309,18 @@ Monitoring your MongoDB deployment is crucial for maintaining performance and av
 
 - **GUI Tools:**
   Tools like MongoDB Compass provide a graphical interface for monitoring and managing your MongoDB deployment, making it easier to visualize performance metrics and identify issues.
+
+The following diagram illustrates how document schemas evolve incrementally in MongoDB, using field additions, renames, and bulk `updateMany` migrations to keep all documents consistent:
+
+```mermaid
+graph LR
+    A[Version 1 Schema - name and email] --> B[Add Field - preferences object]
+    B --> C[Version 2 Schema - name email preferences]
+    C --> D[Rename Field - notifications to alerts]
+    D --> E[Version 3 Schema - name email preferences with alerts]
+    E --> F[Migrate with updateMany - backfill defaults]
+    F --> G[Version 4 Schema - all documents consistent]
+```
 
 ---
 
@@ -366,9 +428,469 @@ To get the most out of MongoDB, consider these best practices:
 - **Stay Updated:**
   MongoDB is continuously evolving. Keep an eye on new features and updates to ensure your application leverages the latest advancements.
 
+The diagram below shows how MongoDB selects between available indexes during query planning:
+
+```mermaid
+graph TD
+    A[Query Received by Query Planner] --> B[Identify Candidate Indexes]
+    B --> C{Covered Query Possible?}
+    C -- Yes --> D[Use Covering Index - no document fetch]
+    C -- No --> E[Evaluate Candidate Plans]
+    E --> F[Trial Period - run plans in parallel]
+    F --> G{Winning Plan Selected?}
+    G -- Yes --> H[Cache Winning Plan Shape]
+    G -- No --> I[Fall Back to Collection Scan]
+    D --> J[Return Results]
+    H --> J
+    I --> J
+    J --> K[Query Result to Application]
+```
+
+The sequence diagram shows how a write concern of majority is satisfied across a replica set before acknowledging the client:
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant Primary as Primary Node
+    participant Sec1 as Secondary 1
+    participant Sec2 as Secondary 2
+
+    App->>Primary: Write with w-majority
+    Primary->>Primary: Write to primary oplog
+    Primary->>Sec1: Replicate oplog entry
+    Primary->>Sec2: Replicate oplog entry
+    Sec1-->>Primary: Replication acknowledged
+    Sec2-->>Primary: Replication acknowledged
+    Primary->>Primary: Majority reached - 2 of 3 nodes
+    Primary-->>App: Write acknowledged
+```
+
+The class diagram models the core MongoDB driver abstractions used when connecting and querying from an application:
+
+```mermaid
+classDiagram
+    class MongoClient {
+        +String uri
+        +ClientOptions options
+        +connect()
+        +close()
+        +db()
+    }
+    class MongoDatabase {
+        +String name
+        +collection()
+        +createCollection()
+        +dropDatabase()
+    }
+    class MongoCollection {
+        +String name
+        +insertOne()
+        +insertMany()
+        +find()
+        +updateOne()
+        +deleteOne()
+        +aggregate()
+    }
+    class AggregationPipeline {
+        +List stages
+        +addStage()
+        +execute()
+    }
+    class IndexDefinition {
+        +Map keys
+        +IndexOptions options
+        +Boolean unique
+        +Boolean sparse
+    }
+    MongoClient --> MongoDatabase : getDatabase
+    MongoDatabase --> MongoCollection : getCollection
+    MongoCollection --> AggregationPipeline : runs
+    MongoCollection --> IndexDefinition : has
+```
+
+The state diagram captures how a MongoDB change stream cursor moves through its operational states when tailing a collection for real-time events:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Opened : watch called on collection
+    Opened --> Waiting : Cursor awaiting next event
+    Waiting --> EventReceived : Document inserted, updated, or deleted
+    EventReceived --> Processing : Application processes change event
+    Processing --> Waiting : Resume token stored and cursor advances
+    Waiting --> Resuming : Network interruption detected
+    Resuming --> Waiting : Cursor resumed from last resume token
+    Waiting --> Closed : Application calls close or stream ends
+    Closed --> [*]
+```
+
 ---
 
-## 12. Conclusion
+## 12. MongoDB Atlas Search
+
+Atlas Search integrates full-text search directly into MongoDB using Apache Lucene under the hood, eliminating the need for a separate Elasticsearch cluster.
+
+### 12.1 Creating an Atlas Search Index
+
+```javascript
+// Atlas Search index definition (configured via Atlas UI or Atlas CLI)
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "title": {
+        "type": "string",
+        "analyzer": "lucene.english"
+      },
+      "body": {
+        "type": "string",
+        "analyzer": "lucene.english"
+      },
+      "tags": {
+        "type": "string",
+        "analyzer": "lucene.keyword"
+      },
+      "publishedAt": {
+        "type": "date"
+      },
+      "score": {
+        "type": "number"
+      }
+    }
+  }
+}
+```
+
+### 12.2 Full-Text Search with Scoring and Facets
+
+```javascript
+db.articles.aggregate([
+  {
+    $search: {
+      index: "articles_search",
+      compound: {
+        must: [
+          {
+            text: {
+              query: "machine learning neural networks",
+              path: ["title", "body"],
+              fuzzy: { maxEdits: 1 },
+              score: { boost: { value: 2.0, path: "score" } },
+            },
+          },
+        ],
+        filter: [
+          {
+            range: {
+              path: "publishedAt",
+              gte: new Date("2024-01-01"),
+              lt: new Date("2025-01-01"),
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    $facet: {
+      results: [
+        { $project: { title: 1, body: 1, score: { $meta: "searchScore" } } },
+        { $sort: { score: -1 } },
+        { $limit: 10 },
+      ],
+      totalCount: [{ $count: "count" }],
+    },
+  },
+]);
+```
+
+### 12.3 Atlas Search Architecture
+
+```mermaid
+graph LR
+    APP[Application] --> MONGOD[mongod Query Router]
+    MONGOD --> SEARCH{$search stage in pipeline?}
+    SEARCH -->|No - standard query| STORAGE[WiredTiger Storage Engine]
+    SEARCH -->|Yes| ATLAS_SEARCH[mongot - Lucene Search Process]
+    ATLAS_SEARCH --> LUCENE[Apache Lucene Index on disk]
+    LUCENE --> DOCS[Ranked document IDs with scores]
+    DOCS --> MONGOD
+    MONGOD --> FETCH[Fetch full documents from storage]
+    FETCH --> PIPELINE[Continue aggregation pipeline]
+    STORAGE --> PIPELINE
+    PIPELINE --> RESULT[Result set to application]
+```
+
+---
+
+## 13. Time Series Collections
+
+MongoDB 5.0 introduced native time series collections optimized for storing and querying measurements, metrics, and events where the primary access pattern involves time ranges.
+
+### 13.1. Creating a Time Series Collection
+
+```javascript
+db.createCollection("sensor_readings", {
+  timeseries: {
+    timeField: "timestamp", // Required: the field containing the time value
+    metaField: "metadata", // Optional: grouping identifier (e.g., sensor ID)
+    granularity: "seconds", // Hint for the bucket size: "seconds", "minutes", or "hours"
+  },
+  expireAfterSeconds: 7776000, // Optional: TTL - delete documents after 90 days
+});
+```
+
+### 13.2. Inserting and Querying Measurements
+
+```javascript
+// Insert sensor readings
+db.sensor_readings.insertMany([
+  {
+    timestamp: new Date("2025-01-15T10:00:00Z"),
+    metadata: { sensorId: "sensor-42", location: "warehouse-A" },
+    temperature: 22.5,
+    humidity: 65.2,
+  },
+  {
+    timestamp: new Date("2025-01-15T10:00:30Z"),
+    metadata: { sensorId: "sensor-42", location: "warehouse-A" },
+    temperature: 22.7,
+    humidity: 65.0,
+  },
+]);
+
+// Downsample: calculate hourly averages using $densify and $setWindowFields
+db.sensor_readings.aggregate([
+  {
+    $match: {
+      "metadata.sensorId": "sensor-42",
+      timestamp: { $gte: new Date("2025-01-15T00:00:00Z") },
+    },
+  },
+  {
+    $group: {
+      _id: {
+        $dateTrunc: { date: "$timestamp", unit: "hour" },
+      },
+      avgTemperature: { $avg: "$temperature" },
+      avgHumidity: { $avg: "$humidity" },
+      readingCount: { $count: {} },
+    },
+  },
+  { $sort: { _id: 1 } },
+]);
+```
+
+The following diagram shows how MongoDB's time series storage model uses bucket documents and a column-store layout to support efficient time range queries:
+
+```mermaid
+graph TD
+    INSERT[New measurement inserted] --> BUCKET{Existing open bucket for this metaField?}
+    BUCKET -->|Yes - bucket not full| APPEND[Append to existing bucket document]
+    BUCKET -->|No or bucket full| NEWBUCKET[Create new bucket document]
+    APPEND --> COMPRESSED[Column-store compressed storage on disk]
+    NEWBUCKET --> COMPRESSED
+    COMPRESSED --> TSINDEX[Automatically maintained time index]
+    TSINDEX --> RANGEQUERY[Efficient range scans by time]
+    TSINDEX --> PARTITIONQUERY[Partition pruning by metaField]
+    RANGEQUERY --> APP[Application range query result]
+    PARTITIONQUERY --> APP
+```
+
+---
+
+## 14. Change Streams
+
+Change streams allow applications to subscribe to real-time notifications about data changes in a collection, database, or entire cluster without polling. They are built on the replication oplog and resume automatically after a network failure.
+
+### 14.1. Watching a Collection
+
+```javascript
+const { MongoClient } = require("mongodb");
+
+async function watchOrders() {
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  const db = client.db("ecommerce");
+  const collection = db.collection("orders");
+
+  // Only react to inserts and updates; ignore deletes
+  const pipeline = [
+    {
+      $match: {
+        operationType: { $in: ["insert", "update", "replace"] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        operationType: 1,
+        "fullDocument.orderId": 1,
+        "fullDocument.status": 1,
+        "fullDocument.total": 1,
+        "updateDescription.updatedFields": 1,
+      },
+    },
+  ];
+
+  const changeStream = collection.watch(pipeline, {
+    fullDocument: "updateLookup", // Include the post-update document
+  });
+
+  // Save the resume token to survive process restarts
+  let resumeToken = null;
+
+  changeStream.on("change", async (change) => {
+    resumeToken = change._id;
+    await saveResumeToken(resumeToken); // persist to Redis or a separate collection
+
+    console.log(
+      "Change detected:",
+      change.operationType,
+      change.fullDocument?.orderId,
+    );
+
+    if (change.operationType === "insert") {
+      await sendOrderConfirmationEmail(change.fullDocument);
+    }
+    if (change.updateDescription?.updatedFields?.status === "shipped") {
+      await sendShippingNotification(change.fullDocument);
+    }
+  });
+
+  changeStream.on("error", async (err) => {
+    console.error("Change stream error:", err);
+    // Resume from last known position after reconnect
+    const savedToken = await loadResumeToken();
+    if (savedToken) {
+      collection.watch(pipeline, {
+        resumeAfter: savedToken,
+        fullDocument: "updateLookup",
+      });
+    }
+  });
+}
+```
+
+The following sequence diagram shows the change stream event flow, including oplog tailing, pipeline filtering, resume token persistence, and automatic reconnection:
+
+```mermaid
+sequenceDiagram
+    participant APP as Application
+    participant CS as Change Stream Cursor
+    participant OPLOG as Replication Oplog
+    participant PRIMARY as Primary Node
+
+    APP->>CS: collection.watch(pipeline, options)
+    CS->>PRIMARY: Open tailable cursor on oplog
+    PRIMARY->>OPLOG: Document inserted - {_id, status: "placed"}
+    OPLOG->>CS: Oplog entry available
+    CS->>CS: Apply pipeline filter
+    CS->>APP: Emit change event with fullDocument
+    APP->>APP: Process event - send confirmation email
+    APP->>APP: Persist resumeToken to Redis
+    Note over PRIMARY,CS: Network interruption
+    CS->>CS: Detect disconnection
+    APP->>CS: Reconnect with resumeAfter token
+    CS->>PRIMARY: Resume from saved oplog position
+    PRIMARY->>CS: Replay missed events since token
+    CS->>APP: Continue delivering events without gaps
+```
+
+---
+
+## 15. Multi-Document ACID Transactions
+
+Although MongoDB is schema-flexible, many business workflows (e.g., transferring funds, placing orders that deduct inventory) require multi-document atomicity. Transactions in MongoDB work across collections and shards.
+
+### 15.1. Transaction Pattern with the Node.js Driver
+
+```javascript
+const { MongoClient } = require("mongodb");
+
+async function placeOrder(userId, cartItems) {
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  const session = client.startSession();
+
+  try {
+    await session.withTransaction(
+      async () => {
+        const db = client.db("ecommerce");
+        const orders = db.collection("orders");
+        const inventory = db.collection("inventory");
+        const users = db.collection("users");
+
+        // 1. Check and deduct inventory for each item
+        for (const item of cartItems) {
+          const result = await inventory.findOneAndUpdate(
+            { sku: item.sku, quantityAvailable: { $gte: item.quantity } },
+            { $inc: { quantityAvailable: -item.quantity } },
+            { session, returnDocument: "after" },
+          );
+
+          if (!result) {
+            throw new Error(`Insufficient stock for SKU: ${item.sku}`);
+          }
+        }
+
+        // 2. Create the order document
+        const total = cartItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0,
+        );
+        const order = await orders.insertOne(
+          {
+            userId,
+            items: cartItems,
+            total,
+            status: "placed",
+            createdAt: new Date(),
+          },
+          { session },
+        );
+
+        // 3. Update user's order history
+        await users.updateOne(
+          { _id: userId },
+          {
+            $push: { orderHistory: order.insertedId },
+            $inc: { totalSpent: total },
+          },
+          { session },
+        );
+      },
+      {
+        readConcern: { level: "snapshot" },
+        writeConcern: { w: "majority" },
+      },
+    );
+
+    console.log("Order placed successfully");
+  } catch (err) {
+    console.error("Transaction aborted:", err.message);
+    throw err;
+  } finally {
+    await session.endSession();
+    await client.close();
+  }
+}
+```
+
+The following state diagram captures the full lifecycle of a MongoDB multi-document transaction, including commit, abort, and automatic rollback on conflict:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active : session.startTransaction()
+    Active --> Active : Read and write operations
+    Active --> Committed : session.commitTransaction()
+    Active --> Aborted : session.abortTransaction() or error thrown
+    Committed --> [*] : Resources released
+    Aborted --> [*] : All writes rolled back
+    Active --> Aborted : Write-write conflict detected
+    Active --> Aborted : TransactionExceededLifetimeLimitSeconds
+```
+
+---
+
+## 16. Conclusion
 
 MongoDB represents a paradigm shift in how modern applications manage data. Its document-oriented data model, underpinned by the efficient and feature-rich BSON format, provides unmatched flexibility and performance. Whether you are building a dynamic web application, a real-time analytics platform, or an IoT solution, MongoDB offers the tools and scalability you need to succeed.
 
@@ -376,7 +898,7 @@ By embracing MongoDB’s unique features - its flexible schema, powerful aggrega
 
 ---
 
-## 13. Further Reading and Resources
+## 17. Further Reading and Resources
 
 - **Official Documentation:**
   - [MongoDB Documentation](https://docs.mongodb.com/)

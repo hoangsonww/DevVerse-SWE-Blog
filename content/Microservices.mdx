@@ -27,6 +27,24 @@ In today's rapidly evolving software landscape, monolithic applications are ofte
 
 By decoupling services, teams can work independently on different components, choose the best technology stack for each service, and deploy updates without affecting the entire system. However, with these benefits come new challenges, such as managing distributed systems and ensuring seamless inter-service communication.
 
+The following diagram contrasts a monolithic architecture with a microservices architecture:
+
+```mermaid
+graph LR
+    subgraph Monolith
+        A[Single Codebase] --> B[Single Database]
+        A --> C[Single Deployment]
+    end
+    subgraph Microservices
+        D[User Service] --> H[User DB]
+        E[Order Service] --> I[Order DB]
+        F[Payment Service] --> J[Payment DB]
+        G[API Gateway] --> D
+        G --> E
+        G --> F
+    end
+```
+
 ---
 
 ## 2. Key Concepts
@@ -47,6 +65,27 @@ Understanding the core principles of microservices is crucial for designing effe
 
 - **Domain-Driven Design (DDD):**
   Services are often aligned with business domains, making it easier to manage complexity and maintain clear boundaries.
+
+Here is how a typical request flows through a microservices system:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Gateway as API Gateway
+    participant Auth as Auth Service
+    participant Order as Order Service
+    participant Payment as Payment Service
+    participant Notify as Notification Service
+
+    Client->>Gateway: POST /orders
+    Gateway->>Auth: Validate token
+    Auth-->>Gateway: Token valid
+    Gateway->>Order: Create order
+    Order->>Payment: Process payment
+    Payment-->>Order: Payment confirmed
+    Order->>Notify: Send confirmation
+    Notify-->>Client: Order confirmed email
+```
 
 ---
 
@@ -69,6 +108,23 @@ Microservices offer several key advantages over traditional monolithic architect
 - **Easier Maintenance:**
   Smaller codebases are generally simpler to understand, test, and maintain, leading to reduced technical debt over time.
 
+The database-per-service pattern ensures each microservice owns its data, preventing tight coupling through shared databases:
+
+```mermaid
+graph TD
+    GW[API Gateway] --> US[User Service]
+    GW --> OS[Order Service]
+    GW --> PS[Payment Service]
+    GW --> NS[Notification Service]
+    US --> UDB[(User DB - PostgreSQL)]
+    OS --> ODB[(Order DB - MongoDB)]
+    PS --> PDB[(Payment DB - MySQL)]
+    NS --> NDB[(Notification DB - Redis)]
+    OS -. "Async event" .-> NS
+    PS -. "Async event" .-> NS
+    US -. "No direct DB access" .-> ODB
+```
+
 ---
 
 ## 4. Challenges of Microservices
@@ -90,13 +146,31 @@ While the benefits are significant, adopting a microservices architecture comes 
 - **Network Latency:**
   The communication between distributed services can introduce latency, affecting overall system performance if not carefully managed.
 
+Each microservice has its own independent CI/CD pipeline so that teams can release without coordinating with other service owners:
+
+```mermaid
+graph LR
+    CODE[Code Push] --> CI[CI Pipeline]
+    CI --> UNIT[Unit Tests]
+    CI --> CONTRACT[Contract Tests]
+    CI --> BUILD[Docker Build]
+    BUILD --> SCAN[Image Vulnerability Scan]
+    SCAN --> PUSH[Push to Registry]
+    PUSH --> DEPLOY[CD Pipeline]
+    DEPLOY --> STAGING[Deploy to Staging]
+    STAGING --> SMOKE[Smoke Tests]
+    SMOKE --> PROD[Deploy to Production]
+    PROD --> MONITOR[Health Monitoring]
+    MONITOR --> ROLLBACK[Auto Rollback on Error Budget Breach]
+```
+
 ---
 
 ## 5. Containerization with Docker
 
 Containerization is a fundamental pillar of microservices, enabling consistent deployment environments and isolation of dependencies. Docker has become the de facto standard for containerization.
 
-### Example: A Simple Dockerfile for a Node.js Microservice
+### 5.1. Example: A Simple Dockerfile for a Node.js Microservice
 
 ```dockerfile
 # Use an official Node.js runtime as a parent image
@@ -127,7 +201,7 @@ This Dockerfile packages your Node.js microservice, ensuring it runs consistentl
 
 As the number of microservices grows, managing them manually becomes impractical. Kubernetes is an orchestration platform that automates the deployment, scaling, and management of containerized applications.
 
-### Example: Kubernetes Deployment YAML
+### 6.1. Example: Kubernetes Deployment YAML
 
 ```yaml
 apiVersion: apps/v1
@@ -157,11 +231,11 @@ This YAML file demonstrates how to deploy multiple instances (replicas) of a mic
 
 ## 7. Service Discovery and API Gateway
 
-### Service Discovery
+### 7.1. Service Discovery
 
 In a dynamic microservices environment, services need a way to locate and communicate with each other. Service discovery mechanisms, such as DNS-based discovery or dedicated tools (e.g., Consul or Eureka), enable services to find one another automatically without hardcoding IP addresses.
 
-### API Gateway
+### 7.2. API Gateway
 
 An API Gateway acts as a single entry point for client requests. It handles tasks like routing, authentication, rate limiting, and protocol translation. By centralizing these concerns, the gateway simplifies the architecture of individual microservices.
 
@@ -183,6 +257,40 @@ server {
 
 In this configuration, NGINX routes requests to the appropriate backend services based on URL paths.
 
+The following diagram illustrates how an API Gateway routes traffic and handles cross-cutting concerns:
+
+```mermaid
+graph TD
+    Client[Client App] --> GW[API Gateway]
+    GW --> RL[Rate Limiter]
+    GW --> AUTH[Auth Middleware]
+    GW --> LB[Load Balancer]
+    LB --> S1[Service A - Instance 1]
+    LB --> S2[Service A - Instance 2]
+    LB --> S3[Service B - Instance 1]
+    GW --> SD[Service Discovery]
+    SD --> S1
+    SD --> S2
+    SD --> S3
+```
+
+Blue-green deployment keeps two identical production environments so traffic can be switched instantly with zero downtime and immediate rollback capability:
+
+```mermaid
+graph TD
+    LB[Load Balancer] -->|100 percent traffic| BLUE[Blue Environment - v1]
+    LB -.->|0 percent traffic| GREEN[Green Environment - v2]
+    BLUE --> B1[Service Instance 1 - v1]
+    BLUE --> B2[Service Instance 2 - v1]
+    GREEN --> G1[Service Instance 1 - v2]
+    GREEN --> G2[Service Instance 2 - v2]
+    DEP[Deployment Automation] --> GREEN
+    DEP --> SMOKE[Run smoke tests on Green]
+    SMOKE --> SWITCH[Switch LB to 100 percent Green]
+    SWITCH --> LB
+    SWITCH --> STANDBY[Blue becomes standby for rollback]
+```
+
 ---
 
 ## 8. Real-World Use Cases
@@ -200,6 +308,22 @@ Microservices architecture is widely adopted in various industries and applicati
 
 - **Healthcare Systems:**
   Microservices allow healthcare applications to manage patient records, appointment scheduling, and telemedicine services independently, ensuring compliance and data privacy.
+
+A service mesh uses a sidecar proxy injected alongside every service to manage all inter-service traffic transparently:
+
+```mermaid
+graph LR
+    SA[Service A] --> PA[Sidecar Proxy A - Envoy]
+    PA --> PB[Sidecar Proxy B - Envoy]
+    PB --> SB[Service B]
+    PA --> CP[Control Plane - Istiod]
+    PB --> CP
+    CP --> TLS[mTLS Certificate Manager]
+    CP --> POLICY[Traffic Policy and Retries]
+    CP --> TELEMETRY[Telemetry Collector]
+    TELEMETRY --> JAEGER[Jaeger Tracing]
+    TELEMETRY --> PROM[Prometheus Metrics]
+```
 
 ---
 
@@ -221,6 +345,305 @@ Successfully implementing a microservices architecture involves more than just t
 
 - **Resiliency Patterns:**
   Implement patterns like circuit breakers, retries, and bulkheads to improve fault tolerance and mitigate cascading failures.
+
+Kubernetes liveness, readiness, and startup probes serve distinct roles in managing container health and traffic routing:
+
+```mermaid
+graph TD
+    PROBES[Kubernetes Health Probes] --> LIVENESS[Liveness Probe]
+    PROBES --> READINESS[Readiness Probe]
+    PROBES --> STARTUP[Startup Probe]
+    LIVENESS --> L1[Detects deadlocked or stuck container]
+    LIVENESS --> L2[Failure triggers container restart]
+    READINESS --> R1[Detects container not ready to serve traffic]
+    READINESS --> R2[Failure removes Pod from Service endpoints]
+    STARTUP --> S1[Gives slow-starting containers time to initialize]
+    STARTUP --> S2[Disables liveness probe until startup succeeds]
+    LIVENESS --> METHODS[HTTP GET or TCP socket or exec command]
+    READINESS --> METHODS
+    STARTUP --> METHODS
+```
+
+The circuit breaker pattern is especially important for preventing cascading failures:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Closed
+    Closed --> Open: Failure threshold reached
+    Open --> HalfOpen: Timeout expires
+    HalfOpen --> Closed: Probe request succeeds
+    HalfOpen --> Open: Probe request fails
+```
+
+Distributed tracing propagates a trace ID through every service hop so a single request can be reconstructed end to end:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant GW as API Gateway
+    participant Auth as Auth Service
+    participant Order as Order Service
+    participant Pay as Payment Service
+    participant Trace as Tracing Backend - Jaeger
+
+    Client->>GW: Request - generate trace-id T1
+    GW->>Trace: Start span S1 - trace T1
+    GW->>Auth: Validate - trace-id T1 span S2
+    Auth-->>GW: OK
+    GW->>Order: Create order - trace-id T1 span S3
+    Order->>Pay: Charge - trace-id T1 span S4
+    Pay-->>Order: Confirmed
+    Order-->>GW: Order created
+    GW-->>Client: 201 Created
+    GW->>Trace: Report spans S1 S2 S3 S4
+    Trace-->>Trace: Assemble full trace waterfall
+```
+
+The bulkhead pattern isolates resource pools so that a surge in one service cannot exhaust the thread pool or connection pool shared by other services:
+
+```mermaid
+graph TD
+    CLIENT[Client Requests] --> GW[API Gateway]
+    GW --> POOL_A[Thread Pool - Service A - max 20]
+    GW --> POOL_B[Thread Pool - Service B - max 20]
+    GW --> POOL_C[Thread Pool - Service C - max 20]
+    POOL_A --> SA[Service A]
+    POOL_B --> SB[Service B]
+    POOL_C --> SC[Service C]
+    SA --> SLOW[Service A becomes slow]
+    SLOW --> EXHAUST[Pool A exhausted - queue full]
+    EXHAUST --> REJECT[Requests to A rejected fast]
+    REJECT --> NOTE[Pool B and C unaffected - bulkhead holds]
+    NOTE --> SB
+    NOTE --> SC
+```
+
+### 9.1. Distributed Transactions and the Saga Pattern
+
+Microservices each own their own database, which means there is no single transaction coordinator. When a business operation spans multiple services — for example, placing an order requires debiting inventory, charging a payment, and sending a confirmation — you need a pattern that coordinates these steps without a distributed lock.
+
+### 9.2. The Saga Pattern
+
+A saga breaks a long-running transaction into a sequence of local transactions, each publishing an event or message that triggers the next step. If any step fails, compensating transactions undo the earlier steps.
+
+**Choreography-based Saga** (event-driven, no central coordinator):
+
+```yaml
+# Step 1: Order Service creates order in PENDING state and publishes OrderCreated
+# Step 2: Inventory Service receives OrderCreated, reserves stock, publishes StockReserved
+# Step 3: Payment Service receives StockReserved, charges card, publishes PaymentProcessed
+# Step 4: Order Service receives PaymentProcessed, marks order CONFIRMED
+
+# Compensation (failure) path:
+# Payment fails → publishes PaymentFailed
+# Inventory Service receives PaymentFailed → releases reserved stock, publishes StockReleased
+# Order Service receives StockReleased → marks order FAILED
+```
+
+**Orchestration-based Saga** (central saga orchestrator):
+
+```javascript
+// saga-orchestrator/order-saga.js
+class OrderSaga {
+  async execute(orderId) {
+    try {
+      await this.inventoryService.reserveStock(orderId);
+      await this.paymentService.chargeCard(orderId);
+      await this.orderService.confirm(orderId);
+    } catch (err) {
+      // Run compensations in reverse order
+      await this.paymentService.refund(orderId).catch(() => {});
+      await this.inventoryService.releaseStock(orderId).catch(() => {});
+      await this.orderService.fail(orderId);
+      throw err;
+    }
+  }
+}
+```
+
+```mermaid
+sequenceDiagram
+    participant OS as Order Service
+    participant SAGA as Saga Orchestrator
+    participant IS as Inventory Service
+    participant PS as Payment Service
+    participant NS as Notification Service
+
+    OS->>SAGA: StartOrderSaga(orderId)
+    SAGA->>IS: ReserveStock(orderId)
+    IS-->>SAGA: StockReserved
+    SAGA->>PS: ChargeCard(orderId)
+    PS-->>SAGA: PaymentFailed
+    Note over SAGA: Begin compensations
+    SAGA->>IS: ReleaseStock(orderId)
+    IS-->>SAGA: StockReleased
+    SAGA->>OS: MarkOrderFailed(orderId)
+    OS-->>SAGA: OrderFailed
+    SAGA->>NS: SendFailureEmail(orderId)
+```
+
+### 9.3. Idempotency Keys
+
+Because messages can be delivered more than once in distributed systems, every service operation should be idempotent. Use a client-supplied idempotency key stored in the database to detect and deduplicate duplicate requests.
+
+```javascript
+// payment-service/routes/charge.js
+router.post("/charge", async (req, res) => {
+  const { orderId, amount, idempotencyKey } = req.body;
+
+  // Check if we already processed this key
+  const existing = await db.query(
+    "SELECT * FROM payments WHERE idempotency_key = $1",
+    [idempotencyKey],
+  );
+
+  if (existing.rows.length > 0) {
+    // Return the same response as the original request
+    return res.status(200).json(existing.rows[0]);
+  }
+
+  const payment = await chargeCard(orderId, amount);
+  await db.query(
+    "INSERT INTO payments (order_id, idempotency_key, status) VALUES ($1, $2, $3)",
+    [orderId, idempotencyKey, payment.status],
+  );
+
+  res.status(201).json(payment);
+});
+```
+
+---
+
+### 9.2. Testing Microservices
+
+Testing distributed systems requires multiple complementary strategies. Unit tests alone give false confidence because integration points between services are where most production bugs occur.
+
+```mermaid
+graph TD
+    PYRAMID[Testing Pyramid for Microservices] --> UNIT[Unit Tests - 70 percent]
+    PYRAMID --> CONTRACT[Consumer-Driven Contract Tests - 20 percent]
+    PYRAMID --> INTEGRATION[Integration Tests - 7 percent]
+    PYRAMID --> E2E[End-to-End Tests - 3 percent]
+    UNIT --> FAST[Fast and isolated - no I/O]
+    CONTRACT --> PACT[Pact framework - verify provider meets consumer expectations]
+    INTEGRATION --> DOCKER[Run real dependencies via Docker Compose]
+    E2E --> STAGING[Run against staging environment]
+```
+
+### 9.3. Consumer-Driven Contract Testing with Pact
+
+```javascript
+// consumer/order-service.pact.test.js
+const { PactV3, MatchersV3 } = require("@pact-foundation/pact");
+
+const provider = new PactV3({
+  consumer: "OrderService",
+  provider: "PaymentService",
+});
+
+describe("Payment Service contract", () => {
+  it("charges a card successfully", async () => {
+    await provider
+      .given("a valid card on file for order 42")
+      .uponReceiving("a charge request")
+      .withRequest({
+        method: "POST",
+        path: "/charge",
+        body: { orderId: "42", amount: 9999 },
+      })
+      .willRespondWith({
+        status: 201,
+        body: {
+          paymentId: MatchersV3.uuid(),
+          status: "succeeded",
+        },
+      });
+
+    await provider.executeTest(async (mockPaymentService) => {
+      const client = new PaymentClient(mockPaymentService.url);
+      const result = await client.charge("42", 9999);
+      expect(result.status).toBe("succeeded");
+    });
+  });
+});
+```
+
+### 9.4. Observability Stack Setup
+
+The three pillars of observability are logs, metrics, and traces. The following Docker Compose snippet provisions a local observability stack:
+
+```yaml
+# docker-compose.observability.yml
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317" # OTLP gRPC receiver
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./otel-config.yml:/etc/otelcol/config.yaml
+    ports:
+      - "4318:4318" # OTLP HTTP receiver
+
+volumes:
+  grafana_data:
+```
+
+Instrument a Node.js service with OpenTelemetry:
+
+```javascript
+// tracing.js — import this at the very top of your entry point
+const { NodeSDK } = require("@opentelemetry/sdk-node");
+const {
+  OTLPTraceExporter,
+} = require("@opentelemetry/exporter-trace-otlp-http");
+const {
+  getNodeAutoInstrumentations,
+} = require("@opentelemetry/auto-instrumentations-node");
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({
+    url:
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
+      "http://localhost:4318/v1/traces",
+  }),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
+```
+
+```mermaid
+graph LR
+    SVC[Microservice] --> OTEL[OpenTelemetry SDK]
+    OTEL --> COLLECTOR[OTel Collector]
+    COLLECTOR --> JAEGER[Jaeger - traces]
+    COLLECTOR --> PROM[Prometheus - metrics]
+    COLLECTOR --> LOKI[Loki - logs]
+    JAEGER --> GRAFANA[Grafana dashboards]
+    PROM --> GRAFANA
+    LOKI --> GRAFANA
+    GRAFANA --> ALERT[Alertmanager - PagerDuty or Slack]
+```
 
 ---
 
@@ -249,6 +672,15 @@ Microservices Architecture offers a transformative approach to building scalable
 By leveraging containerization, orchestration tools like Kubernetes, and modern service discovery and API gateway solutions, developers can harness the full potential of microservices. Adopting best practices in CI/CD, security, and monitoring further ensures the stability and scalability of your applications.
 
 As the landscape evolves, emerging trends like serverless computing, service meshes, and edge integration promise to further refine microservices architecture, paving the way for even more innovative and efficient systems.
+
+**Key Takeaways:**
+
+- The database-per-service pattern is non-negotiable for true independence. Never share a database between services.
+- Use the Saga pattern (choreography for simple flows, orchestration for complex ones) to handle distributed transactions without two-phase commit.
+- Implement idempotency keys on all mutation endpoints — at-least-once delivery is the default in most message brokers.
+- Consumer-driven contract tests (Pact) catch breaking API changes before they reach production, without needing a full integration environment.
+- The observability stack (Prometheus + Grafana + Jaeger) is not optional — diagnosing production incidents in a distributed system without traces and metrics is nearly impossible.
+- Introduce microservices incrementally using the Strangler Fig pattern: extract services from a monolith one at a time rather than doing a big-bang rewrite.
 
 Explore additional resources and experiment with these technologies to build your own robust microservices-based solutions.
 

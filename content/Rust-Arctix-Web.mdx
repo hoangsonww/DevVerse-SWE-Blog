@@ -27,6 +27,20 @@ export default function RustApiExtendedArticle({ children }) {
 
 Rust has rapidly become one of the most popular programming languages for building safe, concurrent, and high-performance backend systems. Actix Web leverages Rust’s strong type system and its fearless concurrency guarantees to deliver APIs with exceptional speed and safety. This extended guide builds upon our previous introduction to Actix Web by diving deeper into advanced middleware configurations, detailed error handling, integration with persistent storage (using PostgreSQL), automated testing practices, and production deployment strategies. Whether you are enhancing an existing project or starting from scratch, this guide provides comprehensive insights and complete code examples to build scalable and robust web services with Rust.
 
+```mermaid
+graph LR
+    A[HTTP Request] --> B[Actix Web Router]
+    B --> C[Middleware Chain]
+    C --> D[Logger Middleware]
+    D --> E[Auth Middleware]
+    E --> F[Route Guard]
+    F --> G[Request Handler]
+    G --> H[AppState / DB Pool]
+    H --> I[PostgreSQL]
+    G --> J[Serialize Response]
+    J --> K[HTTP Response]
+```
+
 ---
 
 ## 1. Introduction
@@ -58,9 +72,60 @@ In addition to the fundamentals, we now extend our exploration to include:
 
 Rust’s unique ownership model, combined with borrowing and lifetime checks, ensures that data races and memory issues are caught at compile time. The language’s async/await feature, powered by the Tokio runtime, allows efficient handling of I/O-bound tasks, making it ideal for web APIs which require handling many concurrent requests.
 
+```mermaid
+graph TD
+    A[Variable Created] --> B{Who Owns It?}
+    B --> C[Owner Has Exclusive Write Access]
+    C --> D{Borrow Needed?}
+    D --> E[Immutable Borrow - Multiple Allowed]
+    D --> F[Mutable Borrow - Only One at a Time]
+    E --> G[Read-Only Access]
+    F --> H[Read and Write Access]
+    G --> I[Borrow Ends - Ownership Returns]
+    H --> I
+    I --> J[Owner Goes Out of Scope]
+    J --> K[Memory Freed - No GC Needed]
+```
+
 ### 2.2. Persistent Storage Integration
 
 While an in-memory store is perfect for demonstration and prototyping, production applications benefit from persistent storage. PostgreSQL, coupled with libraries like SQLx or Diesel, provides a powerful relational backend where data consistency and safety are paramount.
+
+```mermaid
+graph LR
+    A[Tokio Runtime Starts] --> B[Spawns Async Tasks]
+    B --> C[Task 1 - HTTP Handler]
+    B --> D[Task 2 - DB Query]
+    B --> E[Task 3 - File I/O]
+    C --> F{Awaits I/O?}
+    D --> F
+    E --> F
+    F --> G[Yield to Executor]
+    G --> H[Executor Polls Ready Tasks]
+    H --> I[Resume Completed Task]
+    I --> J[Return Response]
+```
+
+The following sequence diagram shows the full request handler lifecycle, from the initial HTTP request through async database interaction to the final HTTP response:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant ActixSys as Actix System
+    participant Worker as Worker Thread
+    participant Handler as Route Handler
+    participant DB as PostgreSQL
+
+    Client->>ActixSys: HTTP Request
+    ActixSys->>Worker: Dispatch to available worker
+    Worker->>Handler: Invoke async handler
+    Handler->>DB: SQLx async query
+    DB-->>Handler: Query result
+    Handler->>Handler: Serialize to JSON via Serde
+    Handler-->>Worker: HttpResponse built
+    Worker-->>ActixSys: Response ready
+    ActixSys-->>Client: HTTP Response
+```
 
 ---
 
@@ -218,6 +283,22 @@ async fn delete_post(
 }
 ```
 
+### 4.3. Database Connection Pool Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Uninitialized
+    Uninitialized --> Initializing: PgPoolOptions created
+    Initializing --> Idle: Connection established
+    Idle --> Acquired: Handler requests connection
+    Acquired --> QueryRunning: SQL query submitted
+    QueryRunning --> Idle: Query completes and connection returned
+    Acquired --> Error: Query fails or timeout
+    Error --> Idle: Connection reset and returned to pool
+    Idle --> Closed: Pool dropped or max idle exceeded
+    Closed --> [*]
+```
+
 ### 4.3. Configuring Routes and Starting the Server
 
 Wire the endpoints together and initialize the database pool:
@@ -251,6 +332,25 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+```
+
+The following diagram shows the complete data flow from an HTTP client through the Actix router and SQLx connection pool to PostgreSQL and back:
+
+```mermaid
+graph LR
+    CLIENT[HTTP Client] --> ROUTER[Actix Router]
+    ROUTER --> GET[GET /posts - get_posts handler]
+    ROUTER --> POST[POST /posts - create_post handler]
+    ROUTER --> PUT[PUT /posts/id - update_post handler]
+    ROUTER --> DELETE[DELETE /posts/id - delete_post handler]
+    GET --> POOL[SQLx PgPool]
+    POST --> POOL
+    PUT --> POOL
+    DELETE --> POOL
+    POOL --> PG[PostgreSQL Database]
+    PG --> POOL
+    POOL --> SER[Serde JSON serialization]
+    SER --> RESP[HttpResponse]
 ```
 
 ---
@@ -332,9 +432,43 @@ mod tests {
 }
 ```
 
+The following diagram shows how the custom `ApiError` type hierarchy maps error variants to HTTP status codes through the `ResponseError` trait:
+
+```mermaid
+graph TD
+    A[Request Handler Returns Result] --> B{Error Variant}
+    B --> C[ApiError::DbError - from sqlx::Error]
+    B --> D[ApiError::NotFound]
+    B --> E[ApiError::Unauthorized]
+    C --> F[ResponseError trait impl]
+    D --> F
+    E --> F
+    F --> G{status_code match}
+    G --> H[500 Internal Server Error]
+    G --> I[404 Not Found]
+    G --> J[401 Unauthorized]
+    H --> K[JSON error body returned to client]
+    I --> K
+    J --> K
+```
+
 ---
 
 ## 6. Deployment and Performance Tuning
+
+```mermaid
+graph TD
+    A[Rust Source Code] --> B[cargo build - release]
+    B --> C[Release Binary]
+    C --> D[Docker Multi-Stage Build]
+    D --> E[Minimal Runtime Image]
+    E --> F[Container Registry]
+    F --> G[Kubernetes Cluster]
+    G --> H[Pod - Actix Web Instance 1]
+    G --> I[Pod - Actix Web Instance 2]
+    H --> J[PostgreSQL]
+    I --> J
+```
 
 ### 6.1. Building for Production
 
@@ -369,15 +503,310 @@ CMD ["rust_api"]
 - **Benchmarking:** Use tools such as `wrk` or `Apache JMeter` to load test your API under concurrent user conditions.
 - **Monitoring:** Integrate Prometheus exporters (e.g., `actix-web-prom`) and visualize metrics in Grafana.
 
+The following diagram shows how Kubernetes scales multiple Actix Web pods behind a load balancer, each sharing a PostgreSQL connection pool with read replica support driven by Prometheus metrics:
+
+```mermaid
+graph LR
+    LB[Load Balancer] --> P1[Pod - Actix Instance 1]
+    LB --> P2[Pod - Actix Instance 2]
+    LB --> P3[Pod - Actix Instance 3]
+    P1 --> PGPOOL[PostgreSQL Connection Pool]
+    P2 --> PGPOOL
+    P3 --> PGPOOL
+    PGPOOL --> PG[PostgreSQL Primary]
+    PG --> PGREP[PostgreSQL Read Replica]
+    HPA[Horizontal Pod Autoscaler] --> P1
+    HPA --> P2
+    HPA --> P3
+    PROM[Prometheus Metrics] --> HPA
+```
+
 ---
 
-## 7. Conclusion
+## 7. Async Middleware Patterns and WebSocket Support
+
+### 7.1 Writing Custom Async Middleware
+
+Actix Web's `wrap_fn` and the `Transform` trait allow you to write stateful async middleware that can short-circuit requests, inject headers, or enforce custom policies:
+
+```rust
+use actix_web::{
+    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    Error, HttpResponse,
+};
+use futures_util::future::LocalBoxFuture;
+use std::{future::{ready, Ready}, rc::Rc};
+
+pub struct ApiKeyMiddleware;
+
+impl<S, B> Transform<S, ServiceRequest> for ApiKeyMiddleware
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Transform = ApiKeyMiddlewareService<S>;
+    type InitError = ();
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        ready(Ok(ApiKeyMiddlewareService { service: Rc::new(service) }))
+    }
+}
+
+pub struct ApiKeyMiddlewareService<S> {
+    service: Rc<S>,
+}
+
+impl<S, B> Service<ServiceRequest> for ApiKeyMiddlewareService<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let srv = self.service.clone();
+        Box::pin(async move {
+            let api_key = req.headers().get("X-API-Key")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("");
+
+            if api_key != "secret-key-123" {
+                let (request, _payload) = req.into_parts();
+                let response = HttpResponse::Unauthorized()
+                    .body("Invalid API key")
+                    .map_into_right_body();
+                return Ok(ServiceResponse::new(request, response));
+            }
+            srv.call(req).await
+        })
+    }
+}
+```
+
+Apply the middleware to specific scopes only:
+
+```rust
+use actix_web::web;
+
+// Only protect /api/* routes; public routes remain open
+App::new()
+    .service(
+        web::scope("/api")
+            .wrap(ApiKeyMiddleware)
+            .route("/posts", web::get().to(get_posts))
+            .route("/posts", web::post().to(create_post))
+    )
+    .route("/health", web::get().to(health_check))
+```
+
+### 7.2 Middleware Execution Order
+
+```mermaid
+graph LR
+    REQ[Incoming Request] --> MW1[Logger Middleware - outermost]
+    MW1 --> MW2[Auth Middleware]
+    MW2 --> MW3[Rate Limiter Middleware]
+    MW3 --> HANDLER[Route Handler]
+    HANDLER --> RESP_MW3[Rate Limiter - on response path]
+    RESP_MW3 --> RESP_MW2[Auth - on response path - e.g., add headers]
+    RESP_MW2 --> RESP_MW1[Logger - record response status and duration]
+    RESP_MW1 --> CLIENT[HTTP Response to client]
+```
+
+### 7.3 WebSocket Support with Actix Web
+
+Actix Web has first-class WebSocket support through the `actix-web-actors` crate, enabling bidirectional streaming over the same server process. Add the following dependencies to your `Cargo.toml`:
+
+```toml
+[dependencies]
+actix-web = "4"
+actix-web-actors = "4"
+actix = "0.13"
+```
+
+The following actor implementation handles heartbeats, text echoing, and binary frames:
+
+```rust
+use actix::{Actor, AsyncContext, Handler, Message, StreamHandler};
+use actix_web_actors::ws;
+use std::time::{Duration, Instant};
+
+const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(30);
+
+pub struct WsSession {
+    pub last_heartbeat: Instant,
+}
+
+impl Actor for WsSession {
+    type Context = ws::WebsocketContext<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        // Start periodic heartbeat
+        ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
+            if Instant::now().duration_since(act.last_heartbeat) > CLIENT_TIMEOUT {
+                ctx.stop();
+                return;
+            }
+            ctx.ping(b"");
+        });
+    }
+}
+
+impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
+    fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
+        match msg {
+            Ok(ws::Message::Ping(bytes)) => {
+                self.last_heartbeat = Instant::now();
+                ctx.pong(&bytes);
+            }
+            Ok(ws::Message::Pong(_)) => {
+                self.last_heartbeat = Instant::now();
+            }
+            Ok(ws::Message::Text(text)) => {
+                // Echo text with server timestamp
+                let reply = format!(r#"{{"echo":"{}","ts":"{}"}}"#, text, chrono::Utc::now());
+                ctx.text(reply);
+            }
+            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
+            Ok(ws::Message::Close(reason)) => {
+                ctx.close(reason);
+                ctx.stop();
+            }
+            _ => ctx.stop(),
+        }
+    }
+}
+
+// HTTP upgrade handler
+async fn ws_index(req: actix_web::HttpRequest, stream: actix_web::web::Payload) -> actix_web::Result<actix_web::HttpResponse> {
+    ws::start(WsSession { last_heartbeat: Instant::now() }, &req, stream)
+}
+```
+
+The WebSocket actor lifecycle below shows all the state transitions from actor spawn through heartbeat tracking to final shutdown:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Starting : Actor spawned on HTTP Upgrade
+    Starting --> Running : started() called - heartbeat timer set
+    Running --> Heartbeat : Interval fires every 5 seconds
+    Heartbeat --> Running : Client pong received in time
+    Heartbeat --> Stopping : Client timeout exceeded
+    Running --> Processing : Text or binary frame received
+    Processing --> Running : Response sent
+    Running --> Stopping : Client sends Close frame or error
+    Stopping --> Stopped : Actor drops and connection closes
+    Stopped --> [*]
+```
+
+### 7.4 Database Migrations with SQLx
+
+Manual schema changes in production are error-prone. SQLx provides a built-in migrations system that tracks and applies schema changes in order.
+
+#### Setting Up Migrations
+
+```bash
+# Install SQLx CLI
+cargo install sqlx-cli --no-default-features --features rustls,postgres
+
+# Create the migrations directory and a new migration file
+sqlx migrate add create_posts_table
+```
+
+This creates `migrations/20250101000000_create_posts_table.sql`:
+
+```sql
+-- migrations/20250101000000_create_posts_table.sql
+CREATE TABLE IF NOT EXISTS posts (
+    id BIGSERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    author_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    published BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_posts_author_id ON posts(author_id);
+CREATE INDEX idx_posts_published ON posts(published) WHERE published = TRUE;
+```
+
+#### Running Migrations at Application Startup
+
+```rust
+use sqlx::postgres::PgPoolOptions;
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+    let pool = PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&database_url)
+        .await
+        .expect("Failed to connect to Postgres");
+
+    // Run pending migrations automatically at startup
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Failed to run database migrations");
+
+    println!("Migrations applied successfully");
+
+    let app_state = actix_web::web::Data::new(AppState { db_pool: pool });
+
+    actix_web::HttpServer::new(move || {
+        actix_web::App::new()
+            .app_data(app_state.clone())
+            .route("/posts", actix_web::web::get().to(get_posts))
+    })
+    .bind("0.0.0.0:8080")?
+    .run()
+    .await
+}
+```
+
+The following sequence diagram shows the full migration lifecycle, including how SQLx tracks applied checksums and runs pending migrations inside a transaction:
+
+```mermaid
+sequenceDiagram
+    participant APP as Actix Application
+    participant MIGR as SQLx Migrate
+    participant DB as PostgreSQL
+    participant TABLE as _sqlx_migrations table
+
+    APP->>MIGR: sqlx::migrate!("./migrations").run(&pool)
+    MIGR->>DB: CREATE TABLE IF NOT EXISTS _sqlx_migrations
+    MIGR->>TABLE: SELECT applied migrations
+    TABLE-->>MIGR: [list of applied checksums]
+    MIGR->>MIGR: Diff against files on disk
+    MIGR->>DB: BEGIN TRANSACTION
+    MIGR->>DB: Execute pending migration SQL
+    DB-->>MIGR: Success
+    MIGR->>TABLE: INSERT migration record with checksum and timestamp
+    MIGR->>DB: COMMIT
+    MIGR-->>APP: All migrations applied
+```
+
+---
+
+## 8. Conclusion
 
 This extended guide has built upon our initial introduction to building APIs in Rust with Actix Web, providing a comprehensive deep dive into advanced features, including persistent storage integration with PostgreSQL, detailed error handling, middleware usage, asynchronous programming, and robust testing practices. With the complete CRUD example application, you have a solid foundation to develop high-performance, secure, and scalable APIs using Rust and Actix Web. As you continue to experiment and optimize your backend systems, the techniques and best practices outlined here will help you push the boundaries of what’s possible in modern web development.
 
 ---
 
-## 8. Further Resources
+## 9. Further Resources
 
 - **Actix Web Documentation:** [https://actix.rs/](https://actix.rs/)
 - **Rust Programming Language Book:** [https://doc.rust-lang.org/book/](https://doc.rust-lang.org/book/)

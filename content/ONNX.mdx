@@ -19,6 +19,18 @@ export default function ONNXContent({ children }) {
 
 ONNX, the Open Neural Network Exchange, has emerged as a game-changing standard in the AI community. It provides a universal framework to represent deep learning models, enabling seamless interoperability between diverse frameworks and hardware platforms. This guide takes you on a detailed journey through ONNX - from its architecture and conversion process to runtime optimizations and deployment strategies - ensuring you gain a robust understanding of how to leverage ONNX for your AI projects.
 
+```mermaid
+graph LR
+    A[PyTorch Model] --> C[Export to ONNX]
+    B[TensorFlow Model] --> C
+    C --> D[ONNX Format .onnx]
+    D --> E[ONNX Optimizer]
+    E --> F[ONNX Runtime]
+    F --> G[Cloud Deployment]
+    F --> H[Edge Device]
+    F --> I[Mobile App]
+```
+
 ![ONNX Logo](https://miro.medium.com/v2/resize:fit:1400/1*B2T8bycSeIhPFooIwGf8fw.png)
 
 ---
@@ -37,11 +49,11 @@ This guide covers every aspect of ONNX, providing in-depth insights and practica
 
 ## 2. Understanding ONNX
 
-### What is ONNX?
+### 2.1. What is ONNX?
 
 ONNX is an open-source standard for representing machine learning models. Developed collaboratively by industry leaders like Microsoft and Facebook, ONNX defines a common file format and set of operators that allow models to be shared and deployed across different AI frameworks.
 
-### Key Benefits of ONNX
+### 2.2. Key Benefits of ONNX
 
 - **Model Interoperability:** Convert and run models across various platforms.
 - **Unified Optimization:** Use ONNX Runtime to optimize inference performance.
@@ -52,7 +64,7 @@ ONNX is an open-source standard for representing machine learning models. Develo
 
 ## 3. Architecture of ONNX
 
-### ONNX Model Format
+### 3.1. ONNX Model Format
 
 The ONNX model is represented as a computation graph stored in a protocol buffer (protobuf) format. Key components include:
 
@@ -63,7 +75,7 @@ The ONNX model is represented as a computation graph stored in a protocol buffer
 
 This intermediate representation (IR) makes it possible for models to be easily transferred, optimized, and executed across different platforms.
 
-### ONNX Operators and Schemas
+### 3.2. ONNX Operators and Schemas
 
 Operators are the building blocks of an ONNX model. Each operator adheres to a strict schema that ensures consistency:
 
@@ -131,22 +143,39 @@ This command converts your saved TensorFlow model into an ONNX file, ready for d
 - **Version Compatibility:** Ensure that the versions of your frameworks and ONNX libraries are compatible.
 - **Debugging Conversions:** Use tools like Netron (a model visualization tool) to inspect the ONNX graph and verify correct conversion.
 
+When conversion challenges arise, quantization is often the next step. The pipeline below shows the decision points for choosing dynamic versus static quantization:
+
+```mermaid
+graph TD
+    A[Trained Model - float32 weights] --> B{Quantization Mode?}
+    B -- Dynamic --> C[Convert Activations at Runtime]
+    B -- Static --> D[Calibrate with Representative Dataset]
+    D --> E[Compute Activation Ranges]
+    C --> F[int8 Weights - smaller model size]
+    E --> F
+    F --> G[ONNX Runtime int8 Inference]
+    G --> H[Measure Accuracy Delta vs float32]
+    H --> I{Acceptable Accuracy?}
+    I -- Yes --> J[Deploy Quantized Model]
+    I -- No --> K[Tune Calibration or Use QAT]
+```
+
 ---
 
 ## 5. ONNX Runtime: Optimizing and Executing Models
 
-### Overview of ONNX Runtime
+### 5.1. Overview of ONNX Runtime
 
 ONNX Runtime is a high-performance inference engine that executes ONNX models. It is optimized for speed and supports various hardware accelerations.
 
-### Key Features
+### 5.2. Key Features
 
 - **Graph Optimizations:** Automatically optimizes the computational graph by removing redundant operations and fusing compatible nodes.
 - **Hardware Acceleration:** Integrates with CUDA, DirectML, and other libraries to leverage GPU and specialized accelerators.
 - **Cross-Platform Support:** Runs on multiple operating systems including Windows, Linux, and macOS.
 - **Quantization Support:** Reduce model size and improve latency by converting models to lower precision (e.g., from float32 to int8).
 
-### Example: Running an ONNX Model with ONNX Runtime
+### 5.3. Example: Running an ONNX Model with ONNX Runtime
 
 ```python
 import onnxruntime as ort
@@ -194,6 +223,24 @@ Expose your ONNX models via APIs to power web applications:
 
 ## 7. Advanced Optimization Techniques
 
+```mermaid
+graph TD
+    A[ONNX Model] --> B[Graph Optimizer]
+    B --> C[Operator Fusion]
+    B --> D[Constant Folding]
+    B --> E[Redundancy Elimination]
+    C --> F[Optimized Graph]
+    D --> F
+    E --> F
+    F --> G{Execution Provider}
+    G --> H[CPU Provider]
+    G --> I[CUDA Provider]
+    G --> J[DirectML Provider]
+    H --> K[Inference Output]
+    I --> K
+    J --> K
+```
+
 ### 7.1 Graph Optimizations
 
 ONNX Runtime applies several graph-level optimizations:
@@ -216,77 +263,360 @@ Techniques such as pruning remove redundant neurons and connections:
 - **Pruning:** Eliminates weights with little contribution to the output.
 - **Compression:** Reduces model storage requirements, enabling faster loading times.
 
+Profiling identifies hot operators that benefit most from fusion or custom kernel replacement:
+
+```mermaid
+graph LR
+    A[ONNX Model Loaded] --> B[Enable Profiling in Session Options]
+    B --> C[Run Inference Pass]
+    C --> D[Collect Per-Operator Timing]
+    D --> E[Identify Bottleneck Operators]
+    E --> F{Hot Operator Identified?}
+    F -- Yes --> G[Apply Operator Fusion or Custom Kernel]
+    F -- No --> H[Profile Memory Allocations]
+    G --> I[Re-Profile to Confirm Improvement]
+    H --> I
+```
+
+Each execution provider targets a different hardware tier, and ONNX Runtime selects the best available provider at session creation:
+
+```mermaid
+graph TD
+    A[ONNX Model] --> B[ONNX Runtime]
+    B --> C[CPU Provider - all platforms]
+    B --> D[CUDA Provider - NVIDIA GPU]
+    B --> E[TensorRT Provider - NVIDIA edge]
+    B --> F[CoreML Provider - Apple devices]
+    B --> G[DirectML Provider - Windows GPU]
+    B --> H[NNAPI Provider - Android]
+    C --> I[Linux and Windows and macOS servers]
+    D --> J[Cloud GPU inference]
+    F --> K[iOS and macOS apps]
+    H --> L[Android mobile apps]
+```
+
+The conversion process itself follows a well-defined state machine — unsupported operators trigger a custom op registration step before the export is retried:
+
+```mermaid
+stateDiagram-v2
+    [*] --> FrameworkModel
+    FrameworkModel --> ExportAttempt: torch.onnx.export or tf2onnx
+    ExportAttempt --> OperatorCheck: Export succeeds
+    ExportAttempt --> ConversionError: Unsupported operator found
+    ConversionError --> CustomOpRegistration: Add custom op handler
+    CustomOpRegistration --> ExportAttempt: Retry export
+    OperatorCheck --> GraphValidation: All ops supported
+    GraphValidation --> OptimizationPass: Graph is valid
+    OptimizationPass --> ReadyForRuntime: Optimizations applied
+    ReadyForRuntime --> [*]
+```
+
 ---
 
 ## 8. Real-World Use Cases and Case Studies
 
-### Cross-Framework Model Deployment
+### 8.1. Cross-Framework Model Deployment
 
 Companies often train models in one framework (e.g., PyTorch for research) and deploy them in another environment (e.g., TensorFlow-based production pipelines) using ONNX to bridge the gap.
 
-### Performance-Driven Inference
+### 8.2. Performance-Driven Inference
 
 Industries such as healthcare, finance, and autonomous vehicles rely on ONNX Runtime to deliver real-time inference with low latency and high throughput.
 
-### Edge and Mobile Applications
+### 8.3. Edge and Mobile Applications
 
 From smart cameras to mobile apps, ONNX enables sophisticated AI capabilities on devices with limited computational resources.
 
-### Case Study: Accelerating Inference in a Production Environment
+### 8.4. Case Study: Accelerating Inference in a Production Environment
 
 A leading technology firm converted its PyTorch models to ONNX and deployed them using ONNX Runtime on GPU clusters. The result was a significant reduction in latency and an improvement in throughput, enabling real-time analysis of large-scale data streams.
+
+The following sequence shows the internal request path through ONNX Runtime from session creation to inference output:
+
+```mermaid
+sequenceDiagram
+    participant App as Application Code
+    participant ORT as ONNX Runtime
+    participant EP as Execution Provider
+    participant HW as Hardware
+
+    App->>ORT: InferenceSession created with model path
+    ORT->>ORT: Load and parse .onnx graph
+    ORT->>EP: Select best available provider
+    EP->>HW: Allocate device memory
+    App->>ORT: session.run with input tensors
+    ORT->>EP: Dispatch op kernels
+    EP->>HW: Execute on CPU or GPU
+    HW-->>EP: Compute results
+    EP-->>ORT: Return output tensors
+    ORT-->>App: Return inference results
+```
 
 ---
 
 ## 9. Future Directions in ONNX
 
-### Expanding Operator Support
+### 9.1. Expanding Operator Support
 
 The ONNX community continues to grow, with ongoing efforts to support new operators and custom extensions to keep up with the latest advances in AI research.
 
-### ONNX for Traditional Machine Learning
+### 9.2. ONNX for Traditional Machine Learning
 
 Beyond deep learning, ONNX is expanding to support classical machine learning models, further unifying the AI development ecosystem.
 
-### Enhanced Tools and Ecosystem
+### 9.3. Enhanced Tools and Ecosystem
 
 Tools like the ONNX Model Zoo, improved debugging utilities, and better integration with popular development environments promise to make ONNX even more accessible and powerful.
 
-### Collaboration and Community
+### 9.4. Collaboration and Community
 
 As more organizations adopt ONNX, the collaborative efforts between industry and academia will drive innovation and standardization in AI model deployment.
 
----
+ONNX's operator support extends to classical ML frameworks through dedicated conversion tools, giving all model types a unified prediction interface:
 
-## 10. Getting Started and Resources
-
-### Official Documentation and Tutorials
-
-- **ONNX Documentation:**
-  [ONNX Official Documentation](https://onnx.ai/)
-- **ONNX Runtime:**
-  [ONNX Runtime GitHub](https://github.com/microsoft/onnxruntime)
-- **Model Zoo:**
-  [ONNX Model Zoo](https://github.com/onnx/models)
-
-### Community and Learning
-
-- **Tutorials and Workshops:**
-  Explore video tutorials on YouTube, Coursera courses, and hands-on workshops that walk you through model conversion and deployment.
-- **Forums and Discussion Groups:**
-  Engage with the ONNX community on GitHub, Stack Overflow, and dedicated forums to exchange ideas and solve problems.
-
-### Tools for Conversion and Optimization
-
-- **tf2onnx:** Convert TensorFlow models to ONNX.
-- **torch.onnx:** Export PyTorch models to ONNX.
-- **ONNX Optimizer:** A tool to apply graph-level optimizations to ONNX models.
+```mermaid
+graph LR
+    SKL[scikit-learn Model] --> SKLONNX[sklearn-onnx converter]
+    XGB[XGBoost Model] --> XGBONNX[onnxmltools converter]
+    LGB[LightGBM Model] --> LGBONNX[onnxmltools converter]
+    SKLONNX --> ONNXFILE[.onnx File]
+    XGBONNX --> ONNXFILE
+    LGBONNX --> ONNXFILE
+    ONNXFILE --> ORT[ONNX Runtime]
+    ORT --> PRED[Unified Prediction Interface]
+    PRED --> CLOUD[Cloud Endpoint]
+    PRED --> EDGE[Edge Device]
+```
 
 ---
 
-## 11. Conclusion
+## 10. ONNX Model Zoo
+
+The ONNX Model Zoo is a community-maintained repository of pre-trained ONNX models covering computer vision, NLP, speech, and traditional machine learning. Using a zoo model as a starting point eliminates the need to convert a framework-specific checkpoint yourself.
+
+### 10.1. Using a Zoo Model End-to-End
+
+```python
+import urllib.request
+import onnxruntime as ort
+import numpy as np
+from PIL import Image
+
+# Download ResNet-50 from the ONNX Model Zoo
+MODEL_URL = (
+    "https://github.com/onnx/models/raw/main/vision/classification/"
+    "resnet/model/resnet50-v2-7.onnx"
+)
+urllib.request.urlretrieve(MODEL_URL, "resnet50.onnx")
+
+# Load the model
+session = ort.InferenceSession(
+    "resnet50.onnx",
+    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+)
+
+# Inspect expected inputs
+for inp in session.get_inputs():
+    print(f"Input: {inp.name}, shape: {inp.shape}, type: {inp.type}")
+# Output: Input: data, shape: ['N', 3, 224, 224], type: tensor(float)
+
+def preprocess(img_path: str) -> np.ndarray:
+    img = Image.open(img_path).convert("RGB").resize((224, 224))
+    arr = np.array(img).astype(np.float32)
+    # ImageNet normalization
+    mean = np.array([0.485, 0.456, 0.406])
+    std  = np.array([0.229, 0.224, 0.225])
+    arr  = (arr / 255.0 - mean) / std
+    return arr.transpose(2, 0, 1)[np.newaxis, ...]  # NCHW
+
+input_tensor = preprocess("cat.jpg")
+logits = session.run(None, {"data": input_tensor})[0]
+top5   = np.argsort(logits[0])[::-1][:5]
+print("Top-5 class indices:", top5)
+```
+
+### 10.2. Available Model Families
+
+| Domain               | Representative Models                       |
+| -------------------- | ------------------------------------------- |
+| Image classification | ResNet, EfficientNet, MobileNet, SqueezeNet |
+| Object detection     | YOLOv8, SSD, Faster R-CNN                   |
+| NLP                  | BERT, RoBERTa, GPT-2, T5-small              |
+| Image segmentation   | FCN, DeepLab                                |
+| Speech               | Wav2Vec, Whisper-tiny                       |
+| Traditional ML       | scikit-learn pipelines via sklearn-onnx     |
+
+---
+
+## 11. Custom Operators
+
+When a model uses an op that does not have an ONNX equivalent, you can register a custom operator kernel in ONNX Runtime rather than modifying the model architecture.
+
+### 11.1. Python Custom Op via OrtCustomOpDomain
+
+```python
+import onnxruntime as ort
+from onnxruntime import OrtValue
+import numpy as np
+
+class SiluOp:
+    """SiLU (Swish) activation: x * sigmoid(x) — missing from older ONNX opsets."""
+
+    @staticmethod
+    def compute(x: np.ndarray) -> np.ndarray:
+        return x * (1.0 / (1.0 + np.exp(-x)))
+
+# Register via a SessionOptions pre-pack hook (simplified pattern)
+so = ort.SessionOptions()
+so.register_custom_ops_library("./libmy_custom_ops.so")  # compiled C++ ops
+
+session = ort.InferenceSession("model_with_silu.onnx", sess_options=so)
+```
+
+For pure-Python ops during prototyping, `onnxruntime-extensions` provides a higher-level API:
+
+```python
+from onnxruntime_extensions import PyCustomOpDef, onnx_op
+
+@onnx_op(op_type="CustomSiLU",
+         inputs=[PyCustomOpDef.dt_float],
+         outputs=[PyCustomOpDef.dt_float])
+def custom_silu(x):
+    return (x * (1.0 / (1.0 + np.exp(-x)))).astype(np.float32)
+```
+
+---
+
+## 12. ONNX with TensorRT for Maximum GPU Throughput
+
+NVIDIA TensorRT is a GPU inference optimizer and runtime. The `TensorrtExecutionProvider` in ONNX Runtime compiles the ONNX graph through TensorRT, applying layer fusion, precision calibration, and kernel auto-tuning to reach peak GPU throughput.
+
+```python
+import onnxruntime as ort
+import numpy as np
+
+trt_options = {
+    "trt_max_workspace_size":      2 << 30,        # 2 GB workspace
+    "trt_fp16_enable":             True,            # FP16 precision
+    "trt_int8_enable":             False,
+    "trt_engine_cache_enable":     True,            # cache compiled engine
+    "trt_engine_cache_path":       "./trt_cache",
+    "trt_max_partition_iterations":1000,
+    "trt_min_subgraph_size":       5,
+}
+
+so = ort.SessionOptions()
+so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+
+session = ort.InferenceSession(
+    "resnet50.onnx",
+    sess_options=so,
+    providers=[("TensorrtExecutionProvider", trt_options), "CUDAExecutionProvider"],
+)
+
+dummy = np.random.randn(1, 3, 224, 224).astype(np.float32)
+
+# First call: TRT compiles and caches the engine (~15-60 s)
+_ = session.run(None, {"data": dummy})
+
+# Subsequent calls hit the compiled engine cache (<5 ms per inference on V100)
+import time
+t0 = time.perf_counter()
+for _ in range(1000):
+    session.run(None, {"data": dummy})
+print(f"Average latency: {(time.perf_counter()-t0)/1000*1000:.2f} ms")
+```
+
+```mermaid
+graph TD
+    A[ONNX Model .onnx] --> B[TensorRT Parser]
+    B --> C[Network Definition]
+    C --> D[Builder - layer fusion, kernel selection]
+    D --> E{Precision Mode}
+    E -- FP32 --> F[Full precision engine]
+    E -- FP16 --> G[Half precision engine - 2x throughput]
+    E -- INT8 --> H[Calibrate with dataset then INT8 engine]
+    F --> I[Serialized Engine - .plan file]
+    G --> I
+    H --> I
+    I --> J[TRT Runtime - deserialize engine]
+    J --> K[GPU Inference - sub-millisecond]
+    I --> L[Cache on disk - skip recompile next restart]
+```
+
+---
+
+## 13. Model A/B Testing with ONNX Runtime
+
+ONNX Runtime makes it straightforward to serve two model versions simultaneously and split traffic between them for canary or shadow deployments.
+
+```python
+import onnxruntime as ort
+import numpy as np
+import random
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class InferenceResult:
+    model_version: str
+    output: np.ndarray
+    latency_ms: float
+
+class ABTestingRouter:
+    def __init__(
+        self,
+        model_a_path: str,
+        model_b_path: str,
+        b_traffic_pct: float = 0.1,  # 10% to new model
+    ):
+        providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        self.session_a = ort.InferenceSession(model_a_path, providers=providers)
+        self.session_b = ort.InferenceSession(model_b_path, providers=providers)
+        self.b_pct     = b_traffic_pct
+        self.input_a   = self.session_a.get_inputs()[0].name
+        self.input_b   = self.session_b.get_inputs()[0].name
+
+    def predict(self, data: np.ndarray) -> InferenceResult:
+        import time
+        use_b = random.random() < self.b_pct
+        session = self.session_b if use_b else self.session_a
+        key     = self.input_b  if use_b else self.input_a
+        version = "B" if use_b else "A"
+
+        t0     = time.perf_counter()
+        output = session.run(None, {key: data})[0]
+        ms     = (time.perf_counter() - t0) * 1000
+
+        return InferenceResult(version, output, round(ms, 3))
+
+# Usage
+router = ABTestingRouter("model_v1.onnx", "model_v2.onnx", b_traffic_pct=0.2)
+result = router.predict(np.random.randn(1, 3, 224, 224).astype(np.float32))
+print(f"Served by model {result.model_version} in {result.latency_ms} ms")
+```
+
+```mermaid
+graph LR
+    A[Incoming Inference Request] --> B{Traffic Split - 80/20}
+    B -- 80 pct --> C[Model A - Stable Production]
+    B -- 20 pct --> D[Model B - Candidate]
+    C --> E[Metrics Collector - latency, accuracy]
+    D --> E
+    E --> F[Statistical Significance Test]
+    F --> G{B significantly better?}
+    G -- Yes --> H[Promote B to 100 pct traffic]
+    G -- No difference --> I[Keep A, retire B]
+    G -- B regresses --> J[Roll back to 0 pct on B]
+```
+
+---
+
+## 14. Conclusion
 
 ONNX represents a significant step forward in achieving true model interoperability in the AI landscape. By providing a universal model format, optimized runtimes, and a rich ecosystem of tools, ONNX enables seamless deployment across diverse platforms - from cloud servers to edge devices. Whether you are a researcher experimenting with new ideas or an engineer tasked with deploying high-performance models, ONNX offers the flexibility, efficiency, and community support to streamline your workflow.
+
+The ONNX Model Zoo accelerates time-to-production by providing ready-to-run baselines. Custom operators bridge the gap when a framework-specific op has no ONNX equivalent. The TensorRT execution provider squeezes maximum GPU throughput from compiled inference engines. And the uniform session API makes A/B testing between model versions a matter of traffic routing rather than framework re-integration.
 
 This guide has delved into the architecture, conversion processes, runtime optimizations, and deployment strategies associated with ONNX. With detailed examples, best practices, and real-world case studies, you now have the knowledge to leverage ONNX in your AI projects and overcome the challenges of model interoperability.
 
@@ -295,3 +625,29 @@ Stay engaged with the latest developments in the ONNX ecosystem, experiment with
 ---
 
 _This in-depth guide aims to serve as your comprehensive resource for understanding and working with ONNX. From foundational concepts and detailed conversion steps to advanced optimizations and real-world applications, we hope this article empowers you to harness the full potential of ONNX in your AI endeavors. Happy coding and best of luck on your journey towards efficient and scalable AI deployments!_
+
+---
+
+## 15. Getting Started and Resources
+
+### 15.1. Official Documentation and Tutorials
+
+- **ONNX Documentation:**
+  [ONNX Official Documentation](https://onnx.ai/)
+- **ONNX Runtime:**
+  [ONNX Runtime GitHub](https://github.com/microsoft/onnxruntime)
+- **Model Zoo:**
+  [ONNX Model Zoo](https://github.com/onnx/models)
+
+### 15.2. Community and Learning
+
+- **Tutorials and Workshops:**
+  Explore video tutorials on YouTube, Coursera courses, and hands-on workshops that walk you through model conversion and deployment.
+- **Forums and Discussion Groups:**
+  Engage with the ONNX community on GitHub, Stack Overflow, and dedicated forums to exchange ideas and solve problems.
+
+### 15.3. Tools for Conversion and Optimization
+
+- **tf2onnx:** Convert TensorFlow models to ONNX.
+- **torch.onnx:** Export PyTorch models to ONNX.
+- **ONNX Optimizer:** A tool to apply graph-level optimizations to ONNX models.

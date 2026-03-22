@@ -31,6 +31,20 @@ In machine learning, the choice of method depends largely on the type of data av
 
 Supervised learning involves training a model using data that includes both input features and known outcomes (labels). The goal is for the model to learn the relationship between inputs and outputs so that it can accurately predict outcomes for new, unseen data.
 
+```mermaid
+graph TD
+    A[Labeled Dataset] --> B[Feature Extraction]
+    B --> C[Train-Test Split]
+    C --> D[Model Training]
+    D --> E[Prediction on Test Set]
+    E --> F[Evaluate with Known Labels]
+    F --> G[Accuracy - Precision - Recall - F1]
+    G --> H{Performance Good?}
+    H -- No --> I[Tune Hyperparameters]
+    I --> D
+    H -- Yes --> J[Deploy Model]
+```
+
 ### 2.1 Core Concepts
 
 - **Labeled Data:**
@@ -170,6 +184,21 @@ This example shows how K-Means groups the data into clusters based on the inhere
 
 ## 4. Comparing Supervised and Unsupervised Learning
 
+```mermaid
+graph LR
+    A[Raw Data] --> B{Labels Available?}
+    B -- Yes --> C[Supervised Learning]
+    B -- No --> D[Unsupervised Learning]
+    C --> E[Classification]
+    C --> F[Regression]
+    D --> G[Clustering]
+    D --> H[Dimensionality Reduction]
+    E --> I[Predict Categories]
+    F --> J[Predict Values]
+    G --> K[Discover Groups]
+    H --> L[Simplify Data]
+```
+
 ### 4.1 Fundamental Differences
 
 - **Data Requirements:**
@@ -196,6 +225,21 @@ This example shows how K-Means groups the data into clusters based on the inhere
 
 ## 5. Advanced Topics and Hybrid Approaches
 
+```mermaid
+graph TD
+    A[Model Complexity] --> B{Underfitting Zone}
+    A --> C{Sweet Spot}
+    A --> D{Overfitting Zone}
+    B --> E[High Bias]
+    B --> F[Low Variance]
+    E --> G[Poor Training and Test Performance]
+    C --> H[Balanced Bias and Variance]
+    H --> I[Good Generalization]
+    D --> J[Low Bias]
+    D --> K[High Variance]
+    J --> L[Great Training - Poor Test Performance]
+```
+
 ### 5.1 Semi-Supervised Learning
 
 Semi-supervised learning takes advantage of a small amount of labeled data along with a larger pool of unlabeled data. This approach can improve model performance in situations where obtaining labels is expensive or time-consuming.
@@ -216,6 +260,21 @@ Transfer learning involves adapting a pre-trained model to a new but related tas
 
 ## 6. Challenges and Practical Considerations
 
+```mermaid
+graph LR
+    A[Full Dataset] --> B[Split into K Folds]
+    B --> C[Fold 1 - Validation Set]
+    B --> D[Folds 2 to K - Training Set]
+    D --> E[Train Model on Training Folds]
+    E --> F[Evaluate on Fold 1]
+    F --> G[Record Score]
+    G --> H[Rotate Validation Fold]
+    H --> I{All Folds Tested?}
+    I -- No --> E
+    I -- Yes --> J[Average All Scores]
+    J --> K[Final Cross-Validation Score]
+```
+
 ### 6.1 Data Quality and Labeling
 
 - **For Supervised Learning:**
@@ -231,6 +290,22 @@ As datasets grow, both supervised and unsupervised methods face challenges in pr
 
 Understanding how a model makes decisions is crucial. Supervised models, especially deep neural networks, can be opaque, leading to the development of techniques such as explainable AI (XAI). Unsupervised learning results often need visualization and expert interpretation to be actionable.
 
+```mermaid
+graph TD
+    A[Define Hyperparameter Search Space] --> B[Select Search Strategy]
+    B --> C[Grid Search - Exhaustive]
+    B --> D[Random Search - Sampled]
+    B --> E[Bayesian Search - Informed]
+    C --> F[Train and Evaluate Each Config]
+    D --> F
+    E --> F
+    F --> G[Cross-Validation Score]
+    G --> H{Best Config Found?}
+    H -- No --> B
+    H -- Yes --> I[Retrain on Full Data]
+    I --> J[Final Model]
+```
+
 ### 6.4 Future Trends
 
 - **Hybrid Models:**
@@ -241,6 +316,66 @@ Understanding how a model makes decisions is crucial. Supervised models, especia
 ---
 
 ## 7. Real-World Applications
+
+```mermaid
+graph TD
+    A[Input Features] --> B[Embedding Layer]
+    B --> C[Hidden Layer 1 - ReLU]
+    C --> D[Dropout - Regularization]
+    D --> E[Hidden Layer 2 - ReLU]
+    E --> F[Output Layer]
+    F --> G{Task Type?}
+    G -- Classification --> H[Softmax - Class Probabilities]
+    G -- Regression --> I[Linear - Continuous Value]
+    H --> J[Cross-Entropy Loss]
+    I --> K[MSE Loss]
+    J --> L[Backpropagation]
+    K --> L
+    L --> M[Update Weights via Optimizer]
+```
+
+```mermaid
+graph LR
+    A[K-Means Algorithm] --> B[Choose K Centroids Randomly]
+    B --> C[Assign Each Point to Nearest Centroid]
+    C --> D[Recompute Centroid as Cluster Mean]
+    D --> E{Centroids Changed?}
+    E -- Yes --> C
+    E -- No --> F[Clusters Stable]
+    F --> G[Evaluate with Silhouette Score]
+    G --> H{Good Separation?}
+    H -- No --> I[Try Different K]
+    I --> B
+    H -- Yes --> J[Final Cluster Assignments]
+```
+
+```mermaid
+graph TD
+    A[Raw Text Data] --> B[Tokenization]
+    B --> C[Remove Stop Words]
+    C --> D[Stemming or Lemmatization]
+    D --> E[TF-IDF Vectorization]
+    E --> F[Feature Matrix]
+    F --> G[Train Classifier]
+    G --> H[Naive Bayes or SVM or Neural Net]
+    H --> I[Predict Sentiment or Topic]
+    I --> J[Evaluate Precision and Recall]
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> DataCollection
+    DataCollection --> Preprocessing : raw data ready
+    Preprocessing --> FeatureEngineering : cleaned
+    FeatureEngineering --> ModelSelection : features ready
+    ModelSelection --> Training : model chosen
+    Training --> Evaluation : epochs complete
+    Evaluation --> Tuning : metrics below threshold
+    Tuning --> Training : new hyperparams
+    Evaluation --> Deployment : metrics acceptable
+    Deployment --> Monitoring : model live
+    Monitoring --> DataCollection : data drift detected
+```
 
 ### 7.1 Applications of Supervised Learning
 
@@ -271,9 +406,298 @@ Understanding how a model makes decisions is crucial. Supervised models, especia
 
 ---
 
-## 8. Conclusion
+## 8. Ensemble Methods: From Bagging to Gradient Boosting
+
+Ensemble methods combine multiple base learners to reduce variance, bias, or both. They consistently outperform single models on structured/tabular data and are the workhorse of competition-winning supervised learning pipelines.
+
+### 8.1. Bagging (Bootstrap Aggregating)
+
+Random Forest is the canonical bagging ensemble. Each tree trains on a bootstrap sample of the data, and a random subset of features is considered at each split. Predictions are averaged (regression) or majority-voted (classification).
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+X, y = make_classification(
+    n_samples=10_000, n_features=20, n_informative=10,
+    n_redundant=5, random_state=42,
+)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+rf = RandomForestClassifier(
+    n_estimators=500,
+    max_depth=None,           # grow full trees — bagging controls variance
+    min_samples_leaf=1,
+    max_features='sqrt',      # classic RF: sqrt(n_features) per split
+    oob_score=True,           # out-of-bag accuracy estimate (free cross-validation)
+    n_jobs=-1,
+    random_state=42,
+)
+rf.fit(X_train, y_train)
+
+print(f"OOB accuracy: {rf.oob_score_:.4f}")
+print(classification_report(y_test, rf.predict(X_test)))
+```
+
+### 8.2. Gradient Boosting: XGBoost, LightGBM, CatBoost
+
+Gradient boosting builds trees sequentially — each new tree fits the residuals of the previous ensemble. Modern implementations (XGBoost, LightGBM) achieve state-of-the-art results through histogram-based approximate splitting, level-wise or leaf-wise growth, and hardware acceleration.
+
+```python
+import lightgbm as lgb
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+import numpy as np
+
+lgb_model = lgb.LGBMClassifier(
+    n_estimators=1000,
+    learning_rate=0.05,
+    num_leaves=63,
+    max_depth=-1,
+    min_child_samples=20,
+    subsample=0.8,              # row sub-sampling per tree
+    colsample_bytree=0.8,       # feature sub-sampling per tree
+    reg_alpha=0.1,              # L1 regularization
+    reg_lambda=0.1,             # L2 regularization
+    early_stopping_rounds=50,   # stop if no improvement on eval set
+    n_jobs=-1,
+    random_state=42,
+)
+
+# Training with early stopping
+lgb_model.fit(
+    X_train, y_train,
+    eval_set=[(X_test, y_test)],
+    eval_metric='logloss',
+    callbacks=[lgb.log_evaluation(100)],
+)
+
+cv_scores = cross_val_score(lgb_model, X, y, cv=StratifiedKFold(5), scoring='roc_auc')
+print(f"CV ROC-AUC: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+```
+
+```mermaid
+graph TD
+    A[Training Dataset] --> B[Bagging - Random Forest]
+    A --> C[Boosting - XGBoost LightGBM]
+    A --> D[Stacking]
+    B --> E[Bootstrap sample 1 - Tree 1]
+    B --> F[Bootstrap sample 2 - Tree 2]
+    B --> G[Bootstrap sample N - Tree N]
+    E --> H[Majority vote or mean]
+    F --> H
+    G --> H
+    C --> I[Tree 1 on raw residuals]
+    I --> J[Tree 2 on residuals of T1]
+    J --> K[Tree N on residuals of T1...TN-1]
+    K --> L[Additive model sum]
+    D --> M[Level-0 models - diverse algorithms]
+    M --> N[Level-1 meta-model trained on OOF predictions]
+    H --> O[Final ensemble prediction]
+    L --> O
+    N --> O
+```
+
+---
+
+## 9. Feature Importance Analysis
+
+Understanding which features drive predictions is critical for debugging, regulatory compliance, and feature selection.
+
+### 9.1. Permutation Importance
+
+Permutation importance is model-agnostic: shuffle one feature's values and measure the drop in performance. Large drops indicate important features.
+
+```python
+from sklearn.inspection import permutation_importance
+import pandas as pd
+import matplotlib.pyplot as plt
+
+result = permutation_importance(
+    rf, X_test, y_test,
+    n_repeats=30,
+    random_state=42,
+    n_jobs=-1,
+    scoring='roc_auc',
+)
+
+importance_df = pd.DataFrame({
+    'feature':    [f"feature_{i}" for i in range(X.shape[1])],
+    'importance': result.importances_mean,
+    'std':        result.importances_std,
+}).sort_values('importance', ascending=False)
+
+# Plot top 15
+top15 = importance_df.head(15)
+plt.figure(figsize=(10, 6))
+plt.barh(top15['feature'][::-1], top15['importance'][::-1],
+         xerr=top15['std'][::-1], align='center', color='steelblue')
+plt.xlabel('Mean AUC decrease')
+plt.title('Permutation Feature Importance (test set)')
+plt.tight_layout()
+plt.savefig('feature_importance.png', dpi=150)
+```
+
+### 9.2. SHAP-based Feature Analysis
+
+```python
+import shap
+
+# TreeExplainer is fast for tree-based models
+explainer   = shap.TreeExplainer(lgb_model)
+shap_values = explainer.shap_values(X_test)
+
+# Global summary: mean absolute SHAP value per feature
+shap.summary_plot(shap_values[1], X_test,
+                  feature_names=[f"feature_{i}" for i in range(X.shape[1])],
+                  plot_type='bar')
+
+# Dependence plot: how feature_0 interacts with feature_1
+shap.dependence_plot('feature_0', shap_values[1], X_test,
+                     interaction_index='feature_1',
+                     feature_names=[f"feature_{i}" for i in range(X.shape[1])])
+```
+
+---
+
+## 10. Full scikit-learn Pipeline with Preprocessing
+
+A Pipeline encapsulates preprocessing and modeling into a single estimator that can be cross-validated, serialized, and deployed as a unit.
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import GridSearchCV
+import joblib
+
+# Example: mixed numerical and categorical features
+numeric_features     = ['age', 'income', 'debt_ratio']
+categorical_features = ['region', 'employment_type', 'loan_purpose']
+
+numeric_transformer = Pipeline([
+    ('imputer', SimpleImputer(strategy='median')),
+    ('scaler',  StandardScaler()),
+])
+
+categorical_transformer = Pipeline([
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False)),
+])
+
+preprocessor = ColumnTransformer([
+    ('num', numeric_transformer,  numeric_features),
+    ('cat', categorical_transformer, categorical_features),
+])
+
+full_pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('classifier',   GradientBoostingClassifier(random_state=42)),
+])
+
+# Hyperparameter search with cross-validation
+param_grid = {
+    'classifier__n_estimators':  [100, 300],
+    'classifier__learning_rate': [0.05, 0.1],
+    'classifier__max_depth':     [3, 5],
+}
+grid_search = GridSearchCV(
+    full_pipeline,
+    param_grid,
+    cv=5,
+    scoring='roc_auc',
+    n_jobs=-1,
+    verbose=1,
+)
+grid_search.fit(X_train, y_train)
+
+print(f"Best params: {grid_search.best_params_}")
+print(f"Best CV AUC: {grid_search.best_score_:.4f}")
+
+# Save the best pipeline (preprocessor + model bundled)
+joblib.dump(grid_search.best_estimator_, 'loan_model_v1.joblib')
+```
+
+```mermaid
+graph LR
+    A[Raw DataFrame - mixed types] --> B[ColumnTransformer]
+    B --> C[Numeric Pipeline]
+    B --> D[Categorical Pipeline]
+    C --> E[SimpleImputer - median]
+    E --> F[StandardScaler]
+    D --> G[SimpleImputer - mode]
+    G --> H[OneHotEncoder]
+    F --> I[Feature Matrix]
+    H --> I
+    I --> J[GradientBoostingClassifier]
+    J --> K[Predict or predict_proba]
+    K --> L[GridSearchCV wraps entire pipeline]
+    L --> M[joblib.dump - serialized pipeline with transforms]
+```
+
+---
+
+## 11. AutoML Approaches
+
+AutoML systems automate the search over preprocessing, algorithm selection, and hyperparameter tuning. They are useful when you need a baseline quickly, when domain expertise is limited, or as a benchmark to beat.
+
+### 11.1. Auto-sklearn
+
+```python
+import autosklearn.classification
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import fetch_openml
+
+# Fetch a real dataset
+dataset = fetch_openml(data_id=1590, as_frame=True)  # Adult income
+X, y    = dataset.data, dataset.target
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+automl = autosklearn.classification.AutoSklearnClassifier(
+    time_left_for_this_task=600,    # 10-minute total budget
+    per_run_time_limit=60,          # 1 minute per candidate
+    n_jobs=-1,
+    memory_limit=8192,              # MB
+    metric=autosklearn.metrics.roc_auc,
+)
+automl.fit(X_train, y_train)
+
+print(automl.leaderboard())
+print(f"Test AUC: {automl.score(X_test, y_test):.4f}")
+```
+
+### 11.2. FLAML (Fast AutoML)
+
+```python
+from flaml import AutoML
+
+automl = AutoML()
+automl.fit(
+    X_train, y_train,
+    task='classification',
+    time_budget=120,             # seconds
+    metric='roc_auc',
+    estimator_list=['lgbm', 'xgboost', 'rf', 'catboost'],
+    log_file_name='flaml.log',
+)
+
+print(f"Best model: {automl.best_estimator}")
+print(f"Best config: {automl.best_config}")
+```
+
+---
+
+## 12. Conclusion
 
 Supervised and unsupervised learning are two pillars of machine learning, each serving distinct purposes. Supervised learning excels when historical labeled data is available and precise predictions are needed. Unsupervised learning, on the other hand, shines in exploring data to uncover hidden structures and patterns.
+
+Ensemble methods — particularly gradient boosting implementations like LightGBM and XGBoost — remain the most reliable approach for structured/tabular supervised tasks. Feature importance analysis via permutation importance and SHAP values bridges the gap between raw predictive power and actionable model understanding. Full scikit-learn pipelines bundle preprocessing and modeling into deployable, cross-validatable artifacts. AutoML tools accelerate experimentation and set competitive baselines, though domain expertise still determines which features to engineer and which business constraints to encode.
 
 Understanding the core principles, challenges, and applications of these methodologies empowers you to choose and combine techniques effectively. As the field continues to evolve, hybrid approaches like semi-supervised and self-supervised learning are paving the way for even more powerful and adaptable models.
 
@@ -281,7 +705,7 @@ By keeping up with advances in these areas and leveraging modern tools, you can 
 
 ---
 
-## 9. Further Reading and Resources
+## 13. Further Reading and Resources
 
 - **Books:**
   - _"Deep Learning"_ by Ian Goodfellow, Yoshua Bengio, and Aaron Courville – A comprehensive resource on modern deep learning techniques.

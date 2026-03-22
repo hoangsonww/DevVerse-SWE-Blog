@@ -37,17 +37,45 @@ In this guide, we aim to provide you with a clear and detailed understanding of 
 
 ## 2. History and Overview of AWS
 
-### The Origins of AWS
+### 2.1. The Origins of AWS
 
 Launched in 2006, AWS was one of the first cloud platforms to offer on-demand computing resources over the internet. Initially, it started with simple storage and compute services and has since evolved into a comprehensive suite of cloud solutions.
 
-### AWS Today
+### 2.2. AWS Today
 
 Today, AWS is used by millions of customers worldwide, ranging from startups to Fortune 500 companies. Its services cover computing, storage, databases, networking, machine learning, analytics, Internet of Things (IoT), and much more. AWS continually innovates and expands its service portfolio, keeping it at the forefront of cloud computing.
 
 ---
 
 ## 3. Core AWS Services
+
+```mermaid
+graph TD
+    AWS[AWS Core Services] --> Compute[Compute]
+    AWS --> Storage[Storage]
+    AWS --> Database[Database]
+    AWS --> Network[Networking]
+    AWS --> Security[Security]
+    AWS --> DevOps[DevOps Tools]
+    Compute --> EC2[EC2]
+    Compute --> Lambda[Lambda]
+    Compute --> ECS[ECS / EKS]
+    Storage --> S3[S3]
+    Storage --> EBS[EBS]
+    Storage --> Glacier[Glacier]
+    Database --> RDS[RDS]
+    Database --> DynamoDB[DynamoDB]
+    Database --> Aurora[Aurora]
+    Network --> VPC[VPC]
+    Network --> CloudFront[CloudFront]
+    Network --> Route53[Route 53]
+    Security --> IAM[IAM]
+    Security --> KMS[KMS]
+    Security --> CloudTrail[CloudTrail]
+    DevOps --> CloudFormation[CloudFormation]
+    DevOps --> CodePipeline[CodePipeline]
+    DevOps --> CloudWatch[CloudWatch]
+```
 
 AWS offers hundreds of services. Here we focus on the core categories:
 
@@ -154,11 +182,25 @@ AWS offers hundreds of services. Here we focus on the core categories:
 
 ## 4. AWS Global Infrastructure and Architecture
 
-### Global Network of Data Centers
+### 4.1. Global Network of Data Centers
+
+```mermaid
+graph TD
+    Region[AWS Region] --> AZ1[Availability Zone 1]
+    Region --> AZ2[Availability Zone 2]
+    Region --> AZ3[Availability Zone 3]
+    AZ1 --> DC1a[Data Center A]
+    AZ1 --> DC1b[Data Center B]
+    AZ2 --> DC2a[Data Center A]
+    AZ2 --> DC2b[Data Center B]
+    AZ3 --> DC3a[Data Center A]
+    Region --> Edge[Edge Locations]
+    Edge --> CF[CloudFront PoP]
+```
 
 AWS operates in multiple **Regions** around the globe. Each Region contains multiple **Availability Zones (AZs)** - physically separated data centers that offer redundancy and high availability. Additionally, AWS has numerous **Edge Locations** for content delivery via CloudFront.
 
-### Designing Resilient Architectures
+### 4.2. Designing Resilient Architectures
 
 - **High Availability:**
   Distribute applications across multiple AZs to protect against individual data center failures.
@@ -167,7 +209,7 @@ AWS operates in multiple **Regions** around the globe. Each Region contains mult
 - **Fault Tolerance:**
   Implement strategies like load balancing, redundancy, and backup solutions to ensure continuous operation.
 
-### Deployment Strategies
+### 4.3. Deployment Strategies
 
 - **Serverless Architectures:**
   Build applications using AWS Lambda, API Gateway, and managed databases for a fully serverless environment.
@@ -180,7 +222,7 @@ AWS operates in multiple **Regions** around the globe. Each Region contains mult
 
 ## 5. AWS Security Best Practices
 
-### Shared Responsibility Model
+### 5.1. Shared Responsibility Model
 
 AWS operates under a shared responsibility model:
 
@@ -189,7 +231,24 @@ AWS operates under a shared responsibility model:
 - **Customer's Responsibility:**
   Security in the cloud (data, identity, application-level controls).
 
-### Security Tools and Techniques
+The following diagram shows how the VPC networking layer isolates resources inside an AWS region:
+
+```mermaid
+graph TD
+    Internet[Internet] --> IGW[Internet Gateway]
+    IGW --> PublicSubnet[Public Subnet]
+    PublicSubnet --> ALB[Application Load Balancer]
+    ALB --> PrivateSubnet[Private Subnet]
+    PrivateSubnet --> EC2[EC2 App Servers]
+    EC2 --> DBSubnet[Database Subnet - isolated]
+    DBSubnet --> RDS[RDS Primary]
+    RDS --> RDSReplica[RDS Read Replica]
+    PublicSubnet --> NAT[NAT Gateway]
+    NAT --> PrivateSubnet
+    EC2 --> S3[S3 via VPC Endpoint]
+```
+
+### 5.2. Security Tools and Techniques
 
 - **Identity and Access Management (IAM):**
   Use IAM roles, policies, and multi-factor authentication (MFA) to secure access.
@@ -202,7 +261,32 @@ AWS operates under a shared responsibility model:
 
 ---
 
-## 6. Cost Optimization Strategies
+## 6. Auto-Scaling Sequence
+
+The following diagram shows how EC2 Auto Scaling responds to a traffic spike:
+
+```mermaid
+sequenceDiagram
+    participant CW as CloudWatch
+    participant ASG as Auto Scaling Group
+    participant ALB as Load Balancer
+    participant EC2New as New EC2 Instance
+
+    CW->>ASG: CPU alarm - threshold exceeded
+    ASG->>EC2New: Launch new instance
+    EC2New->>EC2New: Bootstrap and run health checks
+    EC2New->>ALB: Register with target group
+    ALB->>EC2New: Begin routing traffic
+    Note over CW,EC2New: Traffic handled - CPU normalizes
+    CW->>ASG: CPU alarm - below threshold
+    ASG->>ALB: Deregister instance
+    ALB->>EC2New: Drain connections
+    ASG->>EC2New: Terminate instance
+```
+
+---
+
+## 7. Cost Optimization Strategies
 
 AWS offers flexible pricing models, but cost control requires careful planning:
 
@@ -217,33 +301,33 @@ AWS offers flexible pricing models, but cost control requires careful planning:
 
 ---
 
-## 7. Real-World Use Cases and Case Studies
+## 8. Real-World Use Cases and Case Studies
 
-### Enterprise Applications
+### 8.1. Enterprise Applications
 
 Large enterprises use AWS to run mission-critical applications with high availability, scalability, and security. For example, companies in finance, healthcare, and retail leverage AWS for processing large volumes of data, ensuring regulatory compliance, and improving customer experiences.
 
-### Startups and Innovation
+### 8.2. Startups and Innovation
 
 Startups benefit from AWS’s flexible and scalable services, allowing them to innovate rapidly without significant upfront capital expenditure. AWS accelerates product development cycles and enables startups to scale quickly as they grow.
 
-### Serverless and Microservices
+### 8.3. Serverless and Microservices
 
 Organizations are increasingly adopting serverless architectures and microservices to improve agility and reduce operational overhead. AWS Lambda, combined with API Gateway and DynamoDB, is a popular choice for building scalable, event-driven applications.
 
-### Global Content Delivery
+### 8.4. Global Content Delivery
 
 Content providers use Amazon CloudFront and S3 to deliver high-quality content to users worldwide with minimal latency. This is critical for streaming services, e-commerce, and media companies.
 
 ---
 
-## 8. Getting Started with AWS
+## 9. Getting Started with AWS
 
-### AWS Free Tier
+### 9.1. AWS Free Tier
 
 New users can take advantage of the AWS Free Tier, which provides free usage of many AWS services for 12 months. This is an excellent way to experiment and learn without incurring significant costs.
 
-### Learning Resources
+### 9.2. Learning Resources
 
 - **Official AWS Documentation:**
   Comprehensive guides, tutorials, and best practices are available on the [AWS Documentation site](https://aws.amazon.com/documentation/).
@@ -254,7 +338,7 @@ New users can take advantage of the AWS Free Tier, which provides free usage of 
 - **Community and Forums:**
   Engage with the AWS community through forums, meetups, and Stack Overflow for support and networking.
 
-### Tools for Managing AWS
+### 9.3. Tools for Managing AWS
 
 - **AWS Management Console:**
   A web-based interface to manage AWS services.
@@ -265,9 +349,34 @@ New users can take advantage of the AWS Free Tier, which provides free usage of 
 
 ---
 
-## 9. Advanced Topics in AWS
+## 10. AWS Well-Architected Framework Pillars
 
-### DevOps and Automation
+The AWS Well-Architected Framework provides a consistent approach for evaluating cloud architectures across five pillars:
+
+```mermaid
+graph LR
+    WAF[Well-Architected Framework] --> OP[Operational Excellence]
+    WAF --> SEC[Security]
+    WAF --> REL[Reliability]
+    WAF --> PERF[Performance Efficiency]
+    WAF --> COST[Cost Optimization]
+    OP --> OP1[CI/CD pipelines]
+    OP --> OP2[Runbooks and automation]
+    SEC --> SEC1[IAM least privilege]
+    SEC --> SEC2[Encryption at rest and in transit]
+    REL --> REL1[Multi-AZ deployments]
+    REL --> REL2[Backups and recovery plans]
+    PERF --> PERF1[Right-sizing instances]
+    PERF --> PERF2[Caching with ElastiCache]
+    COST --> COST1[Reserved instances]
+    COST --> COST2[Spot instances for batch jobs]
+```
+
+---
+
+## 11. Advanced Topics in AWS
+
+### 11.1. DevOps and Automation
 
 AWS offers robust tools to implement DevOps practices:
 
@@ -278,7 +387,7 @@ AWS offers robust tools to implement DevOps practices:
 - **Monitoring and Logging:**
   Set up comprehensive monitoring with CloudWatch and logging with CloudTrail to maintain operational excellence.
 
-### Machine Learning and Analytics
+### 11.2. Machine Learning and Analytics
 
 AWS provides powerful services for building intelligent applications:
 
@@ -287,7 +396,7 @@ AWS provides powerful services for building intelligent applications:
 - **AWS Analytics Services:**
   Utilize Redshift for data warehousing, Athena for interactive querying, and EMR for big data processing.
 
-### Serverless Architectures
+### 11.3. Serverless Architectures
 
 Embrace the serverless paradigm to reduce operational overhead:
 
@@ -300,12 +409,450 @@ Embrace the serverless paradigm to reduce operational overhead:
 
 ---
 
-## 10. Conclusion
+### 9.1 Cost Optimization in Depth
+
+AWS bills can spiral without deliberate architecture decisions. The following strategies provide concrete savings with practical implementation steps.
+
+### 11.4. Right-Sizing EC2 Instances
+
+The single highest-impact cost action for most teams is running EC2 instances that are significantly over-provisioned. AWS Compute Optimizer analyzes CloudWatch metrics and recommends the optimal instance type.
+
+```bash
+# Enable Compute Optimizer across your account
+aws compute-optimizer update-enrollment-status \
+  --status Active \
+  --include-member-accounts
+
+# List EC2 recommendations (output to JSON for analysis)
+aws compute-optimizer get-ec2-instance-recommendations \
+  --account-ids 123456789012 \
+  --output json \
+  | jq '.instanceRecommendations[] | {instanceId: .instanceId, currentType: .currentInstanceType, recommendedType: .recommendationOptions[0].instanceType, estimatedSavings: .recommendationOptions[0].estimatedMonthlySavings.value}'
+```
+
+### 11.5. Reserved Instance vs Savings Plan Decision Tree
+
+```mermaid
+graph TD
+    A[EC2 Cost Optimization] --> B{Predictable workload for 1-3 years?}
+    B -- No --> C[Use On-Demand or Spot]
+    B -- Yes --> D{Flexible instance type?}
+    D -- No --> E[Standard Reserved Instance - up to 72% savings]
+    D -- Yes --> F{EC2 only or broader?}
+    F -- EC2 only --> G[Convertible Reserved Instance - up to 66% savings]
+    F -- Lambda and Fargate too --> H[Compute Savings Plan - up to 66% savings]
+    E --> I[Assign to specific region and AZ]
+    G --> J[Convert family across life of term]
+    H --> K[Automatically applies to covered services]
+    C --> L[Spot for fault-tolerant batch jobs - up to 90% savings]
+```
+
+### 11.6. S3 Cost Optimization with Intelligent-Tiering
+
+For large object stores with unpredictable access patterns, S3 Intelligent-Tiering automatically moves objects between access tiers based on usage, with no retrieval fees.
+
+```python
+import boto3
+
+s3 = boto3.client("s3")
+
+# Enable Intelligent-Tiering on a bucket with optional archiving tiers
+s3.put_bucket_intelligent_tiering_configuration(
+    Bucket="my-data-lake-bucket",
+    Id="EntireBucketConfig",
+    IntelligentTieringConfiguration={
+        "Id":     "EntireBucketConfig",
+        "Status": "Enabled",
+        "Tierings": [
+            {"Days": 90,  "AccessTier": "ARCHIVE_ACCESS"},
+            {"Days": 180, "AccessTier": "DEEP_ARCHIVE_ACCESS"},
+        ],
+    },
+)
+```
+
+### 11.7. Lambda Cost Optimization
+
+Lambda charges per 1ms of execution time and per GB of memory. Over-allocating memory is common; AWS Lambda Power Tuning (an open source Step Functions state machine) finds the optimal memory configuration.
+
+```bash
+# Deploy Lambda Power Tuning via SAR
+aws serverless-application-model deploy \
+  --application-id arn:aws:serverlessrepo:us-east-1:451282441545:applications/aws-lambda-power-tuning \
+  --semantic-version 4.3.4
+
+# Invoke the state machine with your function ARN
+aws stepfunctions start-execution \
+  --state-machine-arn arn:aws:states:us-east-1:123456789012:stateMachine:powerTuningMachine \
+  --input '{"lambdaARN":"arn:aws:lambda:us-east-1:123456789012:function:my-function","num":10,"payload":{},"powerValues":[128,256,512,1024,1536,2048]}'
+```
+
+### 11.8. Cost Tagging Strategy
+
+Without consistent resource tagging, cost attribution by team, product, or environment is impossible. Enforce tagging at deployment time using an AWS Config rule or SCP.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyUntaggedResources",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:RunInstances",
+        "rds:CreateDBInstance",
+        "lambda:CreateFunction"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/team": "true",
+          "aws:RequestTag/environment": "true",
+          "aws:RequestTag/cost-center": "true"
+        }
+      }
+    }
+  ]
+}
+```
+
+---
+
+The Well-Architected Framework is not just a reference document. AWS provides a structured review tool that produces a prioritized list of improvement items for any workload, and running it regularly is how well-run teams keep architectural debt visible and actionable.
+
+### 11.9. Running a Well-Architected Review
+
+```bash
+# Create a workload in the AWS Well-Architected Tool
+aws wellarchitected create-workload \
+  --workload-name "my-ecommerce-platform" \
+  --description "B2C e-commerce platform on AWS" \
+  --environment PRODUCTION \
+  --aws-regions us-east-1 us-west-2 \
+  --pillar-priorities operationalExcellence security reliability performanceEfficiency costOptimization
+
+# List milestones after answering questions in the console
+aws wellarchitected list-milestones \
+  --workload-id <workload-id>
+
+# Export the full lens review to JSON for tracking
+aws wellarchitected get-lens-review \
+  --workload-id <workload-id> \
+  --lens-alias wellarchitected \
+  --output json > review-$(date +%Y%m%d).json
+```
+
+### 11.10. Reviewing High-Risk Items Programmatically
+
+```python
+import boto3
+import json
+
+wa = boto3.client("wellarchitected", region_name="us-east-1")
+
+def list_high_risk_issues(workload_id: str, lens_alias: str = "wellarchitected"):
+    review = wa.get_lens_review(workloadId=workload_id, lensAlias=lens_alias)
+    pillar_summaries = review["LensReview"]["PillarReviewSummaries"]
+    high_risk_items = []
+    for pillar in pillar_summaries:
+        if pillar["RiskCounts"].get("HIGH", 0) > 0:
+            high_risk_items.append({
+                "pillar":     pillar["PillarName"],
+                "high_risks": pillar["RiskCounts"]["HIGH"],
+                "medium_risks": pillar["RiskCounts"].get("MEDIUM", 0),
+            })
+    return sorted(high_risk_items, key=lambda x: x["high_risks"], reverse=True)
+
+issues = list_high_risk_issues("wrkld-12345abcde")
+for issue in issues:
+    print(f"{issue['pillar']}: {issue['high_risks']} high, {issue['medium_risks']} medium risk items")
+```
+
+### 11.11. Well-Architected Review Cadence
+
+```mermaid
+stateDiagram-v2
+    [*] --> Define
+    Define: Define workload scope
+    Define --> Assess: Workload created in WA Tool
+    Assess: Answer pillar questions
+    Assess --> Review: Questions complete
+    Review: Review HRIs with team
+    Review --> Remediate: Priority list created
+    Remediate: Address high-risk items in backlog
+    Remediate --> Track: Items in JIRA or Azure DevOps
+    Track --> Milestone: HRIs resolved
+    Milestone: Create new milestone snapshot
+    Milestone --> Assess: Quarterly re-assessment
+```
+
+---
+
+Disaster recovery planning is another architectural decision that should happen before a failure forces it. AWS provides four DR strategies at progressively lower RTO/RPO and higher cost, and choosing the right tier depends on the business continuity requirements of each workload.
+
+### 11.12. The Four DR Tiers
+
+| Strategy                 | RTO       | RPO       | Cost       | Description                                             |
+| ------------------------ | --------- | --------- | ---------- | ------------------------------------------------------- |
+| Backup & Restore         | Hours     | Hours     | Low        | Restore from S3/Glacier snapshots                       |
+| Pilot Light              | 10-30 min | Minutes   | Low-Medium | Core services always on in DR region, scale on failover |
+| Warm Standby             | Minutes   | Seconds   | Medium     | Scaled-down but running copy in DR region               |
+| Multi-Site Active/Active | Seconds   | Near-zero | High       | Full capacity in multiple regions simultaneously        |
+
+### 11.13. Pilot Light Implementation with Route 53 Failover
+
+```mermaid
+graph TD
+    USER[User traffic] --> R53[Route 53 Health Check]
+    R53 --> PRIMARY[Primary Region - us-east-1]
+    R53 -->|Only on failover| DR[DR Region - us-west-2]
+    PRIMARY --> PRIMAPP[Full EC2 Auto Scaling Group]
+    PRIMARY --> PRIMRDS[RDS Primary - Multi-AZ]
+    DR --> DRAPP[Pilot Light - 1 small EC2 instance]
+    DR --> DRRDS[RDS Read Replica - promoted on failover]
+    PRIMRDS -->|Async replication| DRRDS
+    R53 --> HEALTH{Primary healthy?}
+    HEALTH -- No --> SCALE[Scale up ASG in DR region]
+    SCALE --> PROMOTE[Promote RDS Read Replica]
+    PROMOTE --> DR
+```
+
+```bash
+# Create Route 53 health check for primary endpoint
+aws route53 create-health-check \
+  --caller-reference "primary-$(date +%s)" \
+  --health-check-config '{
+    "IPAddress":        "52.10.20.30",
+    "Port":             443,
+    "Type":             "HTTPS",
+    "ResourcePath":     "/health",
+    "FailureThreshold": 3,
+    "RequestInterval":  10
+  }'
+
+# Create failover routing policy record
+aws route53 change-resource-record-sets \
+  --hosted-zone-id Z1234ABCDE \
+  --change-batch '{
+    "Changes": [{
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name":          "api.example.com",
+        "Type":          "A",
+        "SetIdentifier": "primary",
+        "Failover":      "PRIMARY",
+        "HealthCheckId": "abc-123-health-check-id",
+        "AliasTarget": {
+          "HostedZoneId": "Z1234567890",
+          "DNSName":      "primary-alb.us-east-1.elb.amazonaws.com",
+          "EvaluateTargetHealth": true
+        }
+      }
+    }]
+  }'
+```
+
+---
+
+### 11.14. Serverless Patterns Deep Dive
+
+Serverless on AWS extends far beyond simple Lambda functions. Production serverless architectures combine Lambda with Step Functions, EventBridge, SQS, SNS, and DynamoDB Streams to build robust event-driven systems.
+
+### 11.15. Fan-Out Pattern with SNS and SQS
+
+Publish an event to SNS, which fans out to multiple SQS queues. Each queue drives a Lambda consumer independently, providing parallel processing with per-consumer dead-letter queues.
+
+```python
+import boto3
+import json
+
+sns = boto3.client("sns")
+sqs = boto3.client("sqs")
+
+# Publish order created event
+def publish_order_created(order: dict) -> str:
+    response = sns.publish(
+        TopicArn="arn:aws:sns:us-east-1:123456789012:order-events",
+        Message=json.dumps(order),
+        MessageAttributes={
+            "eventType": {
+                "DataType": "String",
+                "StringValue": "ORDER_CREATED",
+            }
+        },
+    )
+    return response["MessageId"]
+
+# Lambda consumer for the fulfillment queue
+def fulfillment_handler(event, context):
+    for record in event["Records"]:
+        body  = json.loads(record["body"])
+        order = json.loads(body["Message"])
+        process_fulfillment(order)
+```
+
+### 11.16. Step Functions for Long-Running Workflows
+
+Lambda functions have a 15-minute execution limit. Step Functions orchestrate multi-step, long-running workflows with built-in retry logic, error handling, and state persistence.
+
+```json
+{
+  "Comment": "Order processing workflow",
+  "StartAt": "ValidateOrder",
+  "States": {
+    "ValidateOrder": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:validate-order",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3
+        }
+      ],
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "Next": "OrderFailed" }],
+      "Next": "ChargePayment"
+    },
+    "ChargePayment": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:charge-payment",
+      "Next": "SendConfirmation"
+    },
+    "SendConfirmation": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:send-confirmation",
+      "End": true
+    },
+    "OrderFailed": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:123456789012:function:notify-failure",
+      "End": true
+    }
+  }
+}
+```
+
+### 11.17. Serverless Architecture Overview
+
+```mermaid
+graph TD
+    CLIENT[Client App] --> APIGW[API Gateway]
+    APIGW --> VALIDATE[Lambda - validate order]
+    VALIDATE --> SFN[Step Functions - order workflow]
+    SFN --> CHARGE[Lambda - charge payment]
+    CHARGE --> FULFILL[Lambda - trigger fulfillment]
+    FULFILL --> SNS[SNS - order.created topic]
+    SNS --> SQS1[SQS - email queue]
+    SNS --> SQS2[SQS - inventory queue]
+    SNS --> SQS3[SQS - analytics queue]
+    SQS1 --> EMAIL[Lambda - send email]
+    SQS2 --> INV[Lambda - update inventory]
+    SQS3 --> ANLYT[Lambda - write to Kinesis]
+    ANLYT --> FIREHOSE[Kinesis Firehose]
+    FIREHOSE --> S3[S3 data lake]
+    EMAIL --> DLQ1[Dead-Letter Queue on failure]
+    INV --> DLQ2[Dead-Letter Queue on failure]
+```
+
+---
+
+## 12. Serverless Request Flow
+
+The following diagram shows how a serverless API request flows through AWS Lambda, API Gateway, and downstream services:
+
+```mermaid
+sequenceDiagram
+    participant Client as Client App
+    participant CF as CloudFront CDN
+    participant APIGW as API Gateway
+    participant Lambda as AWS Lambda
+    participant DDB as DynamoDB
+    participant S3 as S3 Bucket
+
+    Client->>CF: HTTPS request
+    CF->>APIGW: Forward to origin
+    APIGW->>APIGW: Authenticate via Cognito or IAM
+    APIGW->>Lambda: Invoke function with event
+    Lambda->>DDB: Query or write item
+    DDB->>Lambda: Return result
+    Lambda->>S3: Store artifact if needed
+    S3->>Lambda: Upload confirmed
+    Lambda->>APIGW: Return JSON response
+    APIGW->>CF: HTTP 200 with body
+    CF->>Client: Cached or fresh response
+```
+
+---
+
+## 13. AWS IAM Permission Evaluation Flow
+
+IAM evaluates every API call through a series of checks before granting or denying access:
+
+```mermaid
+graph TD
+    Call[API Call Made] --> SCPCheck{SCP allows action?}
+    SCPCheck -->|No| Deny[Explicit Deny - stop]
+    SCPCheck -->|Yes| ResourcePolicy{Resource-based policy exists?}
+    ResourcePolicy -->|Explicit deny| Deny
+    ResourcePolicy -->|Explicit allow| Allow[Allow - grant access]
+    ResourcePolicy -->|No policy| IdentityPolicy{Identity-based policy allows?}
+    IdentityPolicy -->|Explicit deny| Deny
+    IdentityPolicy -->|Explicit allow| PermBoundary{Permission boundary set?}
+    PermBoundary -->|Restricts action| Deny
+    PermBoundary -->|Allows action| Allow
+    IdentityPolicy -->|No match| ImplicitDeny[Implicit Deny - default]
+```
+
+---
+
+## 14. AWS CI/CD Pipeline with CodePipeline
+
+A typical AWS-native CI/CD pipeline connecting source control through to production deployment:
+
+```mermaid
+graph LR
+    CodeCommit[CodeCommit or GitHub] --> CodePipeline[AWS CodePipeline]
+    CodePipeline --> Source[Source Stage]
+    Source --> Build[Build Stage - CodeBuild]
+    Build --> Test[Test Stage - CodeBuild]
+    Test --> Staging[Deploy to Staging - CodeDeploy]
+    Staging --> ApprovalGate[Manual Approval Gate]
+    ApprovalGate --> Prod[Deploy to Production - CodeDeploy]
+    Build --> ECR[Push Docker image to ECR]
+    ECR --> ECS[ECS or EKS deployment]
+    Prod --> CloudWatch[CloudWatch Alarms monitor rollout]
+    CloudWatch --> Rollback[Auto-rollback on alarm breach]
+```
+
+---
+
+## 15. Conclusion
 
 AWS continues to lead the way in cloud computing by offering a vast and evolving portfolio of services that empower businesses and developers alike. With AWS, you can build highly scalable, secure, and cost-effective applications tailored to your needs. This guide has provided an extensive overview of AWS - from its core services and global architecture to security best practices, cost optimization, and advanced deployment strategies.
 
 Armed with this knowledge, you are well-prepared to dive into the AWS ecosystem, experiment with its services, and build solutions that drive innovation. Whether you are an aspiring cloud professional or an experienced engineer looking to optimize your infrastructure, AWS provides the tools and flexibility to help you succeed in a dynamic digital landscape.
 
+_This comprehensive guide is intended to serve as your ultimate resource for mastering AWS. By understanding its core services, deployment strategies, security practices, and advanced topics, you can unlock the full potential of AWS for your projects. Happy cloud computing and best of luck on your journey to mastering Amazon Web Services!_
+
 ---
 
-_This comprehensive guide is intended to serve as your ultimate resource for mastering AWS. By understanding its core services, deployment strategies, security practices, and advanced topics, you can unlock the full potential of AWS for your projects. Happy cloud computing and best of luck on your journey to mastering Amazon Web Services!_
+## 16. S3 Storage Class Transition Lifecycle
+
+S3 objects can automatically transition between storage classes based on age, reducing cost for infrequently accessed data:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Standard
+    Standard: S3 Standard - hot data
+    Standard --> StandardIA: After 30 days
+    StandardIA: S3 Standard-IA - infrequent access
+    StandardIA --> IntelligentTiering: Mixed access patterns
+    StandardIA --> OneZoneIA: After 60 days - non-critical
+    OneZoneIA --> Glacier: After 90 days
+    Glacier: S3 Glacier - archival
+    Glacier --> GlacierDeep: After 180 days
+    GlacierDeep: S3 Glacier Deep Archive - long-term
+    GlacierDeep --> Expired: Expiry rule reached
+    Expired --> [*]
+    IntelligentTiering --> [*]
+```

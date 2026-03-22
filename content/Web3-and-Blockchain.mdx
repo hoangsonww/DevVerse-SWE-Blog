@@ -26,6 +26,19 @@ Web3 moves power from centralized entities to users by leveraging:
 - **Composability:** “Money legos” that interoperate
 - **Permissionless Innovation:** Anyone can build & deploy
 
+```mermaid
+graph TD
+    A[User Wallet] --> B[Sign Transaction]
+    B --> C[Broadcast to Node Network]
+    C --> D[Mempool - Pending Transactions]
+    D --> E[Validator or Miner Selects Txns]
+    E --> F[Execute on EVM]
+    F --> G[Consensus Reached]
+    G --> H[New Block Added to Chain]
+    H --> I[State Updated on All Nodes]
+    I --> J[Transaction Confirmed]
+```
+
 ---
 
 ## 2. Core Concepts & Definitions
@@ -89,6 +102,19 @@ contract Packing {
 ---
 
 ## 5. End‑to‑End DeFi Vault Example
+
+```mermaid
+graph LR
+    A[User] --> B[Next.js Frontend]
+    B --> C[Wagmi - ethers.js]
+    C --> D[Smart Contract - Vault.sol]
+    D --> E[ERC-20 Token Contract]
+    D --> F[On-chain Balances Mapping]
+    F --> G[The Graph Subgraph]
+    G --> B
+    D --> H[Emit Deposit or Withdraw Event]
+    H --> G
+```
 
 ### 5.1 Contract Code
 
@@ -171,6 +197,28 @@ npx hardhat coverage
 npx hardhat gas-report --network hardhat
 ```
 
+The wallet connection flow a user follows before calling a smart contract:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Wallet as MetaMask Wallet
+    participant RPC as JSON-RPC Node
+    participant Contract as Smart Contract
+
+    User->>Browser: Click Connect Wallet
+    Browser->>Wallet: eth_requestAccounts
+    Wallet-->>User: Show permission prompt
+    User-->>Wallet: Approve
+    Wallet-->>Browser: Return account address
+    Browser->>RPC: eth_call or eth_sendTransaction
+    RPC->>Contract: Execute function
+    Contract-->>RPC: Return result or emit event
+    RPC-->>Browser: Transaction hash or return value
+    Browser-->>User: Display result
+```
+
 ---
 
 ## 7. Front‑End Integration (Next.js + Wagmi)
@@ -233,11 +281,29 @@ jobs:
 5. Checks-Effects-Interactions pattern
 6. OpenZeppelin Defender monitoring
 
+Consensus mechanism comparison across major blockchain designs:
+
+```mermaid
+graph TD
+    CONSENSUS[Consensus Mechanism] --> POW[Proof of Work]
+    CONSENSUS --> POS[Proof of Stake]
+    CONSENSUS --> DPOS[Delegated Proof of Stake]
+    CONSENSUS --> PBFT[Practical Byzantine Fault Tolerance]
+    POW --> POW1[Miners solve hash puzzles]
+    POW --> POW2[High energy usage]
+    POS --> POS1[Validators stake tokens]
+    POS --> POS2[Energy efficient]
+    DPOS --> DPOS1[Token holders vote for delegates]
+    DPOS --> DPOS2[High throughput]
+    PBFT --> PBFT1[Permissioned networks]
+    PBFT --> PBFT2[Low latency finality]
+```
+
 ---
 
 ## 10. Layer‑2 & Cross‑Chain
 
-### Optimism Deployment Config
+### 10.1. Optimism Deployment Config
 
 ```js
 module.exports = {
@@ -250,7 +316,7 @@ module.exports = {
 };
 ```
 
-### Wormhole Bridge Script
+### 10.2. Wormhole Bridge Script
 
 ```js
 await token.approve(wormholeAddress, amount);
@@ -347,6 +413,394 @@ snarkjs groth16 prove proof.zkey input.json proof.json public.json
 - Chainlink Proof‑Of‑Reserve
 - Off-chain GDPR data storage
 
+Layer-2 rollup architecture showing how transactions flow from user to L1:
+
+```mermaid
+graph LR
+    USER[User] --> L2[Layer-2 Rollup Node]
+    L2 --> BATCH[Batch Transactions]
+    BATCH --> PROOF[Generate Proof - ZK or Optimistic]
+    PROOF --> L1[Post to Ethereum L1]
+    L1 --> VERIFY[Verify and Finalize]
+    VERIFY --> STATE[Update L1 State Root]
+    USER2[Other User] --> L2
+    L2 --> BRIDGE[Bridge Contract]
+    BRIDGE --> L1
+```
+
+```mermaid
+graph TD
+    A[Smart Contract Upgrade Flow] --> B[Deploy Implementation V2]
+    B --> C[Call upgradeToAndCall on Proxy]
+    C --> D{Storage Collision Check?}
+    D -- Collision Found --> E[Fix Layout and Redeploy]
+    D -- Safe --> F[Proxy Delegates to New Logic]
+    F --> G[State Preserved in Proxy Storage]
+    G --> H[Users Interact with Same Address]
+    H --> I[New Behavior Active]
+```
+
+```mermaid
+graph LR
+    A[NFT Minting Flow] --> B[User Calls mint Function]
+    B --> C[Contract Validates Payment]
+    C --> D[Increment Token ID Counter]
+    D --> E[Assign Token to msg.sender]
+    E --> F[Store Metadata URI on IPFS]
+    F --> G[Emit Transfer Event]
+    G --> H[Subgraph Indexes Event]
+    H --> I[Marketplace Shows New NFT]
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> Proposed
+    Proposed --> Active : voting period starts
+    Active --> Defeated : quorum not reached
+    Active --> Succeeded : majority votes yes
+    Succeeded --> Queued : timelock delay starts
+    Queued --> Executed : delay expires
+    Queued --> Cancelled : guardian cancels
+    Executed --> [*]
+    Defeated --> [*]
+    Cancelled --> [*]
+```
+
+```mermaid
+graph TD
+    A[DeFi Protocol Security Layers] --> B[Smart Contract Audits]
+    A --> C[Formal Verification]
+    A --> D[Bug Bounty Program]
+    A --> E[On-chain Monitoring]
+    B --> F[Slither Static Analysis]
+    B --> G[Manual Code Review]
+    C --> H[Mathematical Proof of Correctness]
+    D --> I[Immunefi or HackerOne]
+    E --> J[Tenderly Alerts]
+    E --> K[OpenZeppelin Defender Sentinels]
+    J --> L[Pause Contract on Anomaly]
+    K --> L
+```
+
+Gas cost is a first-class concern in Solidity development. Every opcode has a deterministic cost, and production contracts on Ethereum Mainnet can save users thousands of dollars through careful optimization.
+
+### 17.1. Storage Packing and Layout
+
+EVM storage is organized in 256-bit (32-byte) slots. Packing multiple smaller values into a single slot reduces the number of `SSTORE` operations (5,000+ gas each) required.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+// UNOPTIMIZED: 3 separate storage slots
+contract Unoptimized {
+    uint256 a;   // slot 0
+    uint128 b;   // slot 1 (wastes upper 128 bits)
+    uint128 c;   // slot 2 (wastes upper 128 bits)
+    bool    d;   // slot 3 (wastes 255 bits)
+}
+
+// OPTIMIZED: 2 storage slots
+contract Optimized {
+    uint256 a;   // slot 0
+    uint128 b;   // slot 1, bytes 0-15
+    uint128 c;   // slot 1, bytes 16-31 — packed with b!
+    bool    d;   // slot 2, byte 0
+    // Declare additional small values after bool to pack into slot 2
+    uint64  e;   // slot 2, bytes 1-8
+    uint64  f;   // slot 2, bytes 9-16
+}
+```
+
+### 17.2. Using `calldata` Instead of `memory` for Read-Only Arguments
+
+Function parameters declared as `memory` are copied; `calldata` is read directly from the transaction input, saving copy gas on arrays and structs.
+
+```solidity
+// Costs more gas - copies the array to memory
+function sumMemory(uint256[] memory values) external pure returns (uint256 total) {
+    for (uint256 i; i < values.length; ++i) total += values[i];
+}
+
+// Cheaper - reads directly from calldata, no copy
+function sumCalldata(uint256[] calldata values) external pure returns (uint256 total) {
+    for (uint256 i; i < values.length; ++i) total += values[i];
+}
+```
+
+### 17.3. Batch Operations to Amortize Fixed Costs
+
+The base transaction cost (21,000 gas) is paid once per transaction. Batch operations that combine many state updates into a single call dramatically reduce per-operation cost.
+
+```solidity
+contract BatchTransfer {
+    IERC20 public immutable token;
+
+    constructor(address _token) { token = IERC20(_token); }
+
+    /// @notice Transfer tokens to multiple recipients in a single transaction.
+    /// @dev Saves ~21,000 gas base cost per extra transaction replaced.
+    function multiTransfer(
+        address[] calldata recipients,
+        uint256[] calldata amounts
+    ) external {
+        require(recipients.length == amounts.length, "Length mismatch");
+        for (uint256 i; i < recipients.length; ++i) {
+            token.transferFrom(msg.sender, recipients[i], amounts[i]);
+        }
+    }
+}
+```
+
+### 17.4. Custom Errors vs Revert Strings
+
+Custom errors were introduced in Solidity 0.8.4 and cost significantly less gas than string revert messages because the ABI-encoded selector (4 bytes) replaces the full UTF-8 string in the revert data.
+
+```solidity
+// Expensive - stores and returns the full string in revert data
+function withdrawOld(uint256 amt) external {
+    require(balances[msg.sender] >= amt, "Insufficient balance");
+    // ...
+}
+
+// Cheaper - ABI-encoded 4-byte selector only
+error InsufficientBalance(address user, uint256 requested, uint256 available);
+
+function withdraw(uint256 amt) external {
+    if (balances[msg.sender] < amt) {
+        revert InsufficientBalance(msg.sender, amt, balances[msg.sender]);
+    }
+    // ...
+}
+```
+
+### 17.5. Gas Optimization Impact Table
+
+| Technique              | Typical Savings          | When to Apply                        |
+| ---------------------- | ------------------------ | ------------------------------------ |
+| Storage slot packing   | 5,000-20,000 gas         | Structs with mixed-size fields       |
+| `calldata` vs `memory` | 200-2,000 gas            | External functions with array params |
+| Custom errors          | 100-500 gas per revert   | All require/revert statements        |
+| Unchecked arithmetic   | 20-200 gas per op        | Loops with provably safe bounds      |
+| Batch operations       | 21,000 gas per merged tx | Airdrop, multi-send, batch approval  |
+| Immutable variables    | 200 gas per read         | Constants set in constructor         |
+
+```mermaid
+graph TD
+    NEWCONTRACT[New Solidity Contract] --> FORGE[Run forge test --gas-report]
+    FORGE --> BASELINE[Record baseline gas for each function]
+    BASELINE --> PACK{Storage packing opportunity?}
+    PACK -- Yes --> PACKFIX[Reorder struct fields by size descending]
+    PACK -- No --> CALLDATA{Array args on external functions?}
+    CALLDATA -- Yes --> CALLFX[Change memory to calldata]
+    CALLDATA -- No --> ERRORS{String revert messages?}
+    ERRORS -- Yes --> ERRFIX[Replace with custom errors]
+    ERRORS -- No --> RETEST[Re-run gas report and compare]
+    PACKFIX --> RETEST
+    CALLFX --> RETEST
+    ERRFIX --> RETEST
+    RETEST --> COMMIT[Commit optimized version]
+```
+
+---
+
+Deployed contracts are immutable by default. Upgradeability is achieved by separating storage from logic using a proxy pattern, where users always call the proxy and the proxy delegates execution to the current implementation.
+
+### 17.6. UUPS (Universal Upgradeable Proxy Standard)
+
+UUPS places the upgrade logic inside the implementation contract rather than the proxy. This produces a cheaper proxy (no admin storage slot read on every call) but requires care to avoid accidentally deploying an implementation without the upgrade function.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+contract VaultV1 is Initializable, UUPSUpgradeable, OwnableUpgradeable {
+    mapping(address => uint256) public balances;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() { _disableInitializers(); }
+
+    function initialize(address owner_) public initializer {
+        __Ownable_init(owner_);
+        __UUPSUpgradeable_init();
+    }
+
+    function deposit() external payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 amt) external {
+        require(balances[msg.sender] >= amt, "Insufficient");
+        balances[msg.sender] -= amt;
+        payable(msg.sender).transfer(amt);
+    }
+
+    // Required by UUPS - restrict who can upgrade
+    function _authorizeUpgrade(address) internal override onlyOwner {}
+}
+```
+
+```solidity
+// VaultV2 adds an emergency pause feature
+contract VaultV2 is VaultV1 {
+    bool public paused;
+
+    modifier whenNotPaused() {
+        require(!paused, "Contract paused");
+        _;
+    }
+
+    function setPaused(bool _paused) external onlyOwner {
+        paused = _paused;
+    }
+
+    // Override deposit to add pause check
+    function deposit() external payable override whenNotPaused {
+        balances[msg.sender] += msg.value;
+    }
+}
+```
+
+### 17.7. Deploying and Upgrading with OpenZeppelin Hardhat Upgrades
+
+```typescript
+// scripts/deploy.ts
+import { ethers, upgrades } from "hardhat";
+
+async function main() {
+  const VaultV1 = await ethers.getContractFactory("VaultV1");
+  const [owner] = await ethers.getSigners();
+
+  // Deploy proxy + implementation
+  const proxy = await upgrades.deployProxy(VaultV1, [owner.address], {
+    kind: "uups",
+    initializer: "initialize",
+  });
+  await proxy.waitForDeployment();
+  console.log("Proxy deployed to:", await proxy.getAddress());
+}
+
+// scripts/upgrade.ts
+async function upgrade() {
+  const proxyAddress = "0xYourProxyAddress";
+  const VaultV2 = await ethers.getContractFactory("VaultV2");
+
+  // Validates storage layout compatibility before deploying
+  const upgraded = await upgrades.upgradeProxy(proxyAddress, VaultV2, {
+    kind: "uups",
+  });
+  await upgraded.waitForDeployment();
+  console.log("Upgraded to V2");
+}
+```
+
+### 17.8. Transparent vs UUPS Proxy Comparison
+
+```mermaid
+graph TD
+    CALL[User calls proxy address] --> TRANS{Transparent Proxy}
+    CALL --> UUPS{UUPS Proxy}
+    TRANS --> ADMINCHECK[Check: is caller admin?]
+    ADMINCHECK -- Admin --> ADMINLOGIC[Run proxy admin function]
+    ADMINCHECK -- User --> DELEGATE[delegatecall to implementation]
+    UUPS --> DELEGATE2[delegatecall directly - no admin check]
+    DELEGATE2 --> IMPL[Implementation has upgradeToAndCall]
+    DELEGATE --> IMPL2[Implementation - no upgrade logic]
+    IMPL --> UPGAUTH[_authorizeUpgrade - onlyOwner check]
+    UPGAUTH --> NEWIMPL[Point proxy to new implementation]
+```
+
+---
+
+Layer-2 rollups reduce transaction costs by 10-100x compared to Ethereum Mainnet while inheriting Mainnet security. Most EVM-compatible contracts deploy unchanged to L2, but there are important differences in tooling and deployment.
+
+### 17.9. Optimism Deployment with Hardhat
+
+```typescript
+// hardhat.config.ts
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
+
+const config: HardhatUserConfig = {
+  solidity: "0.8.24",
+  networks: {
+    "optimism-mainnet": {
+      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: [process.env.PRIVATE_KEY!],
+      chainId: 10,
+    },
+    "arbitrum-mainnet": {
+      url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: [process.env.PRIVATE_KEY!],
+      chainId: 42161,
+    },
+    "base-mainnet": {
+      url: "https://mainnet.base.org",
+      accounts: [process.env.PRIVATE_KEY!],
+      chainId: 8453,
+    },
+  },
+  etherscan: {
+    apiKey: {
+      optimisticEthereum: process.env.OPTIMISTIC_ETHERSCAN_KEY!,
+      arbitrumOne: process.env.ARBISCAN_KEY!,
+    },
+  },
+};
+
+export default config;
+```
+
+### 17.10. L1 to L2 Message Passing (Optimism)
+
+Optimism provides a canonical bridge for sending messages from Ethereum Mainnet (L1) to Optimism (L2). This is used for governance actions or liquidity bridging.
+
+```solidity
+// L1 side - send a message to an L2 contract
+interface ICrossDomainMessenger {
+    function sendMessage(address target, bytes calldata message, uint32 minGasLimit) external;
+}
+
+contract L1Governor {
+    ICrossDomainMessenger constant MESSENGER =
+        ICrossDomainMessenger(0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1);
+
+    address public l2Vault;
+
+    function setPausedOnL2(bool paused) external onlyOwner {
+        bytes memory data = abi.encodeWithSignature("setPaused(bool)", paused);
+        MESSENGER.sendMessage(l2Vault, data, 100_000 /* minGasLimit */);
+    }
+}
+```
+
+### 17.11. L2 Network Comparison
+
+| Network       | Stack                 | Avg Gas Cost | Finality to L1          | EVM Compatibility           |
+| ------------- | --------------------- | ------------ | ----------------------- | --------------------------- |
+| Optimism      | OP Stack (Optimistic) | ~$0.01-0.05  | 7 days challenge window | Full EVM equivalence        |
+| Arbitrum One  | Nitro (Optimistic)    | ~$0.01-0.05  | 7 days challenge window | Full EVM equivalence        |
+| Base          | OP Stack (Optimistic) | ~$0.001-0.01 | 7 days challenge window | Full EVM equivalence        |
+| zkSync Era    | ZK Rollup             | ~$0.01-0.05  | Hours (ZK proof)        | Near-EVM (some differences) |
+| Polygon zkEVM | ZK Rollup             | ~$0.01-0.05  | Hours (ZK proof)        | Full EVM equivalence        |
+
+```mermaid
+graph LR
+    L1[Ethereum L1 - Mainnet] --> BRIDGE[Official Bridge Contract]
+    BRIDGE --> L2[Layer-2 Network]
+    L2 --> SEQUENCER[Sequencer - collects transactions]
+    SEQUENCER --> BATCH[Batch transactions off-chain]
+    BATCH --> PROOF[Generate proof - Optimistic or ZK]
+    PROOF --> L1STATE[Post state root to L1]
+    L1STATE --> FINALIZE[Finalize after challenge period or ZK verification]
+    L2 --> USER[User transacts cheaply on L2]
+    USER --> SEQUENCER
+```
+
 ---
 
 ## 18. DAO Governance Case Study
@@ -361,7 +815,7 @@ Architecture: Snapshot proposals → Subgraph indexing → Governor timelock →
 
 ---
 
-## Conclusion
+## 19. Conclusion
 
 Web3 development combines cutting‑edge cryptography, decentralized infrastructure, and modern software engineering practices to build applications that empower users with true ownership of data, assets, and identity. Throughout this guide, you’ve learned:
 
@@ -374,7 +828,7 @@ Web3 development combines cutting‑edge cryptography, decentralized infrastruct
 - **Scalability & Interoperability:** Layer‑2 rollups (Optimism), cross‑chain bridges (Wormhole, LayerZero), and IPFS for decentralized storage
 - **Advanced Topics:** Meta‑transactions for gasless UX, zero‑knowledge proofs for privacy, decentralized identity (DID), and on‑chain indexing (The Graph)
 
-### Further Resources
+### 19.1. Further Resources
 
 | Topic                      | Resource                                       | Description                                                            |
 | -------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------- |

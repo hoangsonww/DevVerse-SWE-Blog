@@ -38,6 +38,27 @@ Two-Factor Authentication enhances traditional authentication by combining two i
 
 This multi-factor approach creates an additional barrier against cyber attacks like phishing, brute-force, or credential stuffing. Even if a malicious actor obtains a user’s password, the absence of the second factor renders the stolen credentials useless.
 
+The following diagram shows a typical 2FA login flow:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Web Application
+    participant Auth as Auth Server
+    participant TOTP as Authenticator App
+
+    User->>App: Enter username and password
+    App->>Auth: Validate credentials
+    Auth-->>App: Credentials valid
+    App-->>User: Request 2FA code
+    User->>TOTP: Open authenticator
+    TOTP-->>User: Display 6-digit code
+    User->>App: Enter 2FA code
+    App->>Auth: Verify TOTP code
+    Auth-->>App: Code valid
+    App-->>User: Access granted
+```
+
 ---
 
 ## 2. Understanding 2FA and Its Benefits
@@ -74,6 +95,22 @@ This multi-factor approach creates an additional barrier against cyber attacks l
 
 This guide will focus on a popular and secure method: TOTP-based 2FA.
 
+The following diagram compares the security level and implementation complexity of each 2FA method:
+
+```mermaid
+graph LR
+    A[2FA Method Selection] --> B[SMS Code]
+    A --> C[TOTP App]
+    A --> D[Push Notification]
+    A --> E[Hardware Key]
+    A --> F[Biometrics]
+    B --> B1[Low Security - SIM swap risk]
+    C --> C1[Medium Security - Phishing resistant]
+    D --> D1[Medium Security - App dependent]
+    E --> E1[High Security - Physical possession]
+    F --> F1[High Security - Device bound]
+```
+
 ---
 
 ## 3. Architectural Overview of a 2FA System
@@ -90,6 +127,22 @@ A typical 2FA system involves both backend and frontend components:
 - **Enrollment UI:** Displaying QR codes and instructions.
 - **Verification UI:** A user-friendly form for entering TOTP codes.
 - **Error Handling:** Providing feedback on invalid tokens or expired codes.
+
+The 2FA enrollment state machine shows the transitions a user goes through when enabling 2FA:
+
+```mermaid
+stateDiagram-v2
+    [*] --> NotEnrolled
+    NotEnrolled --> SecretGenerated: Request enrollment
+    SecretGenerated --> QRCodeDisplayed: Generate QR code
+    QRCodeDisplayed --> VerifyingFirstCode: User scans QR code
+    VerifyingFirstCode --> Enrolled: TOTP code valid
+    VerifyingFirstCode --> QRCodeDisplayed: TOTP code invalid
+    Enrolled --> BackupCodesGenerated: Generate backup codes
+    BackupCodesGenerated --> Active2FA: User saves backup codes
+    Active2FA --> NotEnrolled: User disables 2FA
+    Active2FA --> [*]
+```
 
 Below, we detail the implementation with comprehensive code examples.
 
@@ -333,6 +386,25 @@ export default function TwoFactorVerification({ userId, onSuccess }) {
 - **Backup Codes:** Generate a set of one-time backup codes that users can store securely in case they lose access to their primary 2FA device.
 - **Recovery Process:** Implement a robust recovery process that verifies the user's identity before disabling 2FA.
 
+The backup code recovery flow shows how a user regains access when their primary 2FA device is unavailable:
+
+```mermaid
+graph TD
+    A[User Cannot Access 2FA Device] --> B{Has backup codes?}
+    B -->|Yes| C[Enter backup code]
+    B -->|No| D[Contact support]
+    C --> E{Code valid and unused?}
+    E -->|Yes| F[Mark code as used]
+    F --> G[Grant temporary access]
+    G --> H[Prompt to re-enroll 2FA]
+    E -->|No| I[Deny access and log attempt]
+    D --> J[Identity verification via email or phone]
+    J --> K{Identity confirmed?}
+    K -->|Yes| L[Admin disables 2FA]
+    L --> H
+    K -->|No| M[Access denied]
+```
+
 #### Example: Generating Backup Codes (Server-Side)
 
 ```javascript
@@ -367,6 +439,24 @@ While this guide focuses on TOTP, push notifications provide a modern alternativ
 - **Workflow:** A push notification is sent to a user’s mobile app, and the user simply approves the login attempt.
 - **Implementation:** Requires a dedicated mobile app and integration with services like Firebase Cloud Messaging (FCM).
 
+The following sequence diagram shows how TOTP codes are generated using a shared secret and a time window:
+
+```mermaid
+sequenceDiagram
+    participant Secret as Shared Secret
+    participant Clock as System Clock
+    participant HMAC as HMAC-SHA1
+    participant TOTP as TOTP Code
+
+    Secret->>HMAC: Provide secret key
+    Clock->>HMAC: Provide time counter (floor of Unix time divided by 30)
+    HMAC->>HMAC: Compute hash
+    HMAC->>TOTP: Dynamic truncation
+    TOTP->>TOTP: Extract 6-digit code mod 1000000
+    Note over TOTP: Code valid for 30 seconds
+    Note over Secret,TOTP: Same computation runs on server for verification
+```
+
 ### 7.2 Hardware Tokens and Biometric Integration
 
 For environments demanding the highest security:
@@ -376,15 +466,419 @@ For environments demanding the highest security:
 
 ---
 
-## 8. Conclusion
+## 8. WebAuthn and Passkeys
 
-Implementing Two-Factor Authentication is a critical step in fortifying your user authentication process. By combining a traditional password with a dynamic, time-based code, you create a much more secure environment for your users. This guide provided an in-depth look at 2FA - from the underlying principles and benefits to comprehensive backend and frontend implementations with detailed code examples.
+WebAuthn (Web Authentication) is a W3C standard that enables passwordless authentication using public-key cryptography. The user's private key never leaves their device - a passkey stored in a platform authenticator (Touch ID, Face ID, Windows Hello) or hardware key (YubiKey) signs a server challenge.
 
-Adopting best practices - such as secure secret storage, rate limiting, backup codes, and robust error handling - ensures that your 2FA implementation not only enhances security but also delivers a seamless user experience. As cyber threats continue to evolve, integrating 2FA into your authentication strategy will help build trust and protect both user data and your organization’s reputation.
+### 8.1 Why Passkeys Are Phishing-Resistant
+
+Traditional TOTP codes can be intercepted by real-time phishing proxies. WebAuthn signatures are cryptographically bound to the origin (`rpId`), so a challenge signed for `bank.com` is invalid at `bank-phish.com`.
+
+### 8.2 Registration Flow
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Server
+    participant Authenticator as Platform Authenticator (Touch ID)
+
+    Browser->>Server: POST /auth/register/begin {username}
+    Server->>Server: Generate random challenge (32 bytes)
+    Server-->>Browser: PublicKeyCredentialCreationOptions {challenge, rpId, user}
+    Browser->>Authenticator: navigator.credentials.create(options)
+    Authenticator->>Authenticator: Generate key pair (private key stays on device)
+    Authenticator-->>Browser: Attestation object + client data JSON
+    Browser->>Server: POST /auth/register/finish {attestation, clientDataJSON}
+    Server->>Server: Verify challenge, origin, and attestation signature
+    Server->>Server: Store credentialId and publicKey for user
+    Server-->>Browser: Registration complete
+```
+
+### 8.3 Server-Side WebAuthn with SimpleWebAuthn (Node.js)
+
+```javascript
+const {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} = require("@simplewebauthn/server");
+
+const RP_NAME = "My App";
+const RP_ID = "example.com"; // Must match the domain serving the app
+const ORIGIN = `https://${RP_ID}`;
+
+// Registration: Step 1 - generate options for the browser
+app.post("/auth/register/begin", async (req, res) => {
+  const { username } = req.body;
+  const user = await getUserByUsername(username);
+
+  const options = await generateRegistrationOptions({
+    rpName: RP_NAME,
+    rpID: RP_ID,
+    userID: user.id,
+    userName: user.email,
+    userDisplayName: user.name,
+    attestationType: "none",
+    authenticatorSelection: {
+      residentKey: "preferred", // Create a discoverable credential
+      userVerification: "preferred", // Require biometric or PIN
+    },
+    excludeCredentials: user.credentials.map((cred) => ({
+      id: cred.credentialID,
+      type: "public-key",
+    })),
+  });
+
+  // Store challenge temporarily in session (expires in 60 seconds)
+  req.session.registrationChallenge = options.challenge;
+  res.json(options);
+});
+
+// Registration: Step 2 - verify the authenticator response
+app.post("/auth/register/finish", async (req, res) => {
+  const { username, attestationResponse } = req.body;
+  const user = await getUserByUsername(username);
+
+  const verification = await verifyRegistrationResponse({
+    response: attestationResponse,
+    expectedChallenge: req.session.registrationChallenge,
+    expectedOrigin: ORIGIN,
+    expectedRPID: RP_ID,
+  });
+
+  if (!verification.verified) {
+    return res.status(400).json({ error: "Registration verification failed" });
+  }
+
+  const { credentialID, credentialPublicKey, counter } =
+    verification.registrationInfo;
+
+  // Persist credential alongside the user record
+  await saveCredential(user.id, {
+    credentialID: Buffer.from(credentialID),
+    credentialPublicKey: Buffer.from(credentialPublicKey),
+    counter,
+    transports: attestationResponse.response.transports ?? [],
+  });
+
+  delete req.session.registrationChallenge;
+  res.json({ verified: true });
+});
+```
+
+### 8.4 Authentication Flow with an Existing Passkey
+
+```javascript
+// Authentication: Step 1 - generate challenge
+app.post("/auth/login/begin", async (req, res) => {
+  const { username } = req.body;
+  const user = await getUserByUsername(username);
+
+  const options = await generateAuthenticationOptions({
+    rpID: RP_ID,
+    userVerification: "preferred",
+    allowCredentials: user.credentials.map((cred) => ({
+      id: cred.credentialID,
+      type: "public-key",
+      transports: cred.transports,
+    })),
+  });
+
+  req.session.authChallenge = options.challenge;
+  res.json(options);
+});
+
+// Authentication: Step 2 - verify signature
+app.post("/auth/login/finish", async (req, res) => {
+  const { username, assertionResponse } = req.body;
+  const user = await getUserByUsername(username);
+  const credential = user.credentials.find(
+    (c) => c.credentialID.toString("base64url") === assertionResponse.id,
+  );
+
+  const verification = await verifyAuthenticationResponse({
+    response: assertionResponse,
+    expectedChallenge: req.session.authChallenge,
+    expectedOrigin: ORIGIN,
+    expectedRPID: RP_ID,
+    authenticator: {
+      credentialID: credential.credentialID,
+      credentialPublicKey: credential.credentialPublicKey,
+      counter: credential.counter,
+      transports: credential.transports,
+    },
+  });
+
+  if (!verification.verified) {
+    return res.status(401).json({ error: "Authentication failed" });
+  }
+
+  // Update the counter to prevent replay attacks
+  await updateCredentialCounter(
+    credential.credentialID,
+    verification.authenticationInfo.newCounter,
+  );
+
+  delete req.session.authChallenge;
+  req.session.userId = user.id;
+  res.json({ verified: true });
+});
+```
 
 ---
 
-## Further Reading & Resources
+User-facing 2FA with TOTP or passkeys does not translate directly to service-to-service APIs. For APIs, the equivalent security posture uses mTLS, short-lived tokens, and IP allowlisting.
+
+### 8.5. Short-Lived JWT with Rotating Refresh Tokens
+
+```javascript
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+
+const ACCESS_TOKEN_TTL = "15m"; // Very short-lived
+const REFRESH_TOKEN_TTL_DAYS = 7;
+
+function issueTokenPair(userId) {
+  const accessToken = jwt.sign(
+    { sub: userId, type: "access" },
+    process.env.JWT_ACCESS_SECRET,
+    { expiresIn: ACCESS_TOKEN_TTL, algorithm: "RS256" },
+  );
+
+  // Refresh token is a random opaque string; map to userId in DB
+  const refreshToken = crypto.randomBytes(48).toString("base64url");
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_DAYS * 86400000);
+
+  return { accessToken, refreshToken, expiresAt };
+}
+
+app.post("/auth/token/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
+  const stored = await db.refreshTokens.findOne({
+    token: refreshToken,
+    revoked: false,
+  });
+
+  if (!stored || stored.expiresAt < new Date()) {
+    return res.status(401).json({ error: "Invalid or expired refresh token" });
+  }
+
+  // Rotate: revoke old token, issue new pair (refresh token rotation)
+  await db.refreshTokens.updateOne(
+    { _id: stored._id },
+    { $set: { revoked: true } },
+  );
+  const newPair = issueTokenPair(stored.userId);
+  await db.refreshTokens.insertOne({
+    token: newPair.refreshToken,
+    userId: stored.userId,
+    expiresAt: newPair.expiresAt,
+    revoked: false,
+  });
+
+  res.json({
+    accessToken: newPair.accessToken,
+    refreshToken: newPair.refreshToken,
+  });
+});
+```
+
+The following diagram shows the full API authentication flow, including token rotation and the gateway's rate-limiting and IP-allowlist enforcement:
+
+```mermaid
+graph LR
+    CALLER[API Client - service or user] --> GW[API Gateway]
+    GW --> VALIDATE{Validate access token}
+    VALIDATE -->|Valid and not expired| HANDLER[Route Handler]
+    VALIDATE -->|Expired| REFRESH_EP[POST /auth/token/refresh]
+    VALIDATE -->|Invalid signature| REJECT[401 Unauthorized]
+    REFRESH_EP --> ROTATE[Rotate refresh token - revoke old issue new]
+    ROTATE --> NEW_PAIR[New access + refresh token pair]
+    NEW_PAIR --> CALLER
+    HANDLER --> RESOURCE[Protected API Resource]
+    GW --> RATELIMIT[Per-client rate limiting]
+    GW --> IPLIMIT[IP allowlist for service accounts]
+```
+
+---
+
+Organizations handling sensitive user data must align their authentication systems with regulatory frameworks.
+
+### 8.6. SOC 2 Type II MFA Requirements
+
+SOC 2 Trust Service Criteria CC6.1 and CC6.8 require:
+
+- **All privileged accounts** (admin, infrastructure, CI/CD pipelines) must use MFA.
+- MFA must be enforced at the identity provider level, not just the application layer, to prevent bypass via password reset flows.
+- Evidence of MFA enforcement must be continuously collected for the audit period (typically 6 or 12 months).
+
+```mermaid
+graph TD
+    USER[Employee or Admin] --> IDP[Identity Provider - Okta or Azure AD]
+    IDP --> MFA_REQUIRED{Is account in high-privilege group?}
+    MFA_REQUIRED -->|Yes| FORCE_MFA[Enforce MFA - TOTP or hardware key required]
+    MFA_REQUIRED -->|No| POLICY{Org MFA policy}
+    POLICY -->|All users required| FORCE_MFA
+    POLICY -->|Optional| ALLOW_PASSWORD[Password only - not recommended]
+    FORCE_MFA --> AUDIT_LOG[Log MFA event - user, timestamp, method, outcome]
+    AUDIT_LOG --> SIEM[SIEM - Splunk or Datadog]
+    SIEM --> SOC2_EVIDENCE[Continuous evidence for SOC 2 auditor]
+```
+
+### 8.7. HIPAA Authentication Controls
+
+HIPAA Security Rule (45 CFR 164.312) specifies:
+
+- **164.312(d) - Person or Entity Authentication:** Verify the identity of any person seeking access to ePHI.
+- **164.312(a)(2)(iii) - Automatic Logoff:** Sessions must time out after a period of inactivity (typically 15 minutes for clinical systems).
+- **164.312(b) - Audit Controls:** Log all access to ePHI, including authentication events, login failures, and session terminations.
+
+Implementation checklist for HIPAA-compliant 2FA:
+
+- Enforce 2FA for all staff accessing ePHI - no exceptions for convenience.
+- Hardware tokens (FIDO2/WebAuthn) are preferred over SMS for covered entities after NIST SP 800-63B guidance.
+- Store authentication logs for a minimum of 6 years.
+- Implement automatic session revocation when a user's role changes or employment is terminated.
+
+The controls required by each framework map to a common set of FIDO2-based implementations:
+
+```mermaid
+graph LR
+    REQS[Compliance Requirements] --> SOC2[SOC 2 - CC6]
+    REQS --> HIPAA[HIPAA - 164.312]
+    REQS --> PCI[PCI DSS - Req 8]
+    SOC2 --> MFA_PRIV[MFA for all privileged access]
+    SOC2 --> AUDIT[Continuous audit evidence]
+    HIPAA --> MFA_PHI[MFA for ePHI access]
+    HIPAA --> LOGOFF[Auto-logoff after inactivity]
+    HIPAA --> AUDIT_PHI[6-year audit log retention]
+    PCI --> MFA_ALL[MFA for all access to cardholder data]
+    PCI --> LOCKOUT[Account lockout after 6 failed attempts]
+    MFA_PRIV --> FIDO2[FIDO2 or TOTP implementation]
+    MFA_PHI --> FIDO2
+    MFA_ALL --> FIDO2
+    FIDO2 --> PHISH[Phishing-resistant by design]
+```
+
+---
+
+## 9. Rate Limiting and Brute-Force Protection
+
+Every 2FA endpoint must be guarded against brute-force and enumeration attacks. The following diagram shows the layered defense strategy:
+
+```mermaid
+graph TD
+    Request[Incoming verification request] --> IPCheck{IP rate limit exceeded?}
+    IPCheck -->|Yes| Block429[Return 429 Too Many Requests]
+    IPCheck -->|No| UserCheck{User attempt count exceeded?}
+    UserCheck -->|Yes| LockAccount[Temporarily lock account]
+    LockAccount --> NotifyUser[Send unlock email to user]
+    UserCheck -->|No| VerifyToken[Verify TOTP or backup code]
+    VerifyToken --> Valid{Token valid?}
+    Valid -->|Yes| ResetCount[Reset failure counter]
+    ResetCount --> GrantAccess[Grant session access]
+    Valid -->|No| IncrCount[Increment failure counter]
+    IncrCount --> LogAttempt[Log failed attempt with IP and timestamp]
+    LogAttempt --> UserCheck
+```
+
+---
+
+## 10. 2FA Token Lifecycle
+
+A TOTP token is valid for a narrow time window. The diagram below shows the full lifecycle from generation to expiry:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Generated: Authenticator app opens 30-second window
+    Generated: Token generated from shared secret
+    Generated --> Displayed: Show 6-digit code to user
+    Displayed --> Entered: User copies code to login form
+    Entered --> Verified: Server validates against same HMAC-SHA1 computation
+    Verified --> Accepted: Code matches within allowed window
+    Verified --> Rejected: Code does not match or window expired
+    Accepted --> [*]
+    Rejected --> Idle: User must wait for next token
+    Generated --> Expired: 30-second window passes without use
+    Expired --> Idle
+```
+
+---
+
+## 11. 2FA System Component Diagram
+
+The key classes and their relationships in a typical 2FA backend implementation:
+
+```mermaid
+classDiagram
+    class User {
+        +userId string
+        +email string
+        +passwordHash string
+        +is2FAEnabled boolean
+        +totpSecret string
+        +backupCodes string[]
+    }
+    class TOTPService {
+        +generateSecret() string
+        +generateQRCode(secret) dataURL
+        +verifyToken(secret, token) boolean
+    }
+    class BackupCodeService {
+        +generate(count) string[]
+        +verify(userId, code) boolean
+        +markUsed(userId, code) void
+    }
+    class AuthController {
+        +enroll(userId) QRResponse
+        +verify(userId, token) boolean
+        +recoverWithBackup(userId, code) boolean
+        +disable(userId) void
+    }
+    AuthController --> TOTPService
+    AuthController --> BackupCodeService
+    AuthController --> User
+    TOTPService --> User : writes secret
+    BackupCodeService --> User : reads and marks codes
+```
+
+---
+
+## 12. SMS vs TOTP Attack Surface Comparison
+
+Understanding the attack surface of each common 2FA method helps teams make informed security decisions:
+
+```mermaid
+graph LR
+    Attacker[Attacker] --> SIMSwap[SIM Swap Attack]
+    Attacker --> Phishing[Phishing Page]
+    Attacker --> DeviceTheft[Physical Device Theft]
+    Attacker --> SSAttack[SS7 Network Intercept]
+    SIMSwap --> SMSVuln[SMS 2FA bypassed]
+    SSAttack --> SMSVuln
+    Phishing --> SMSVuln
+    Phishing --> TOTPVuln[TOTP bypassed in real-time relay]
+    DeviceTheft --> TOTPVuln
+    DeviceTheft --> HWKeyVuln[Hardware key bypassed]
+    SIMSwap --> HWKeyImmune[Hardware key unaffected]
+    SSAttack --> HWKeyImmune
+    Phishing --> HWKeyImmune
+    HWKeyImmune --> YubiKey[YubiKey - strongest defense]
+```
+
+---
+
+## 13. Conclusion
+
+Implementing Two-Factor Authentication is a critical step in fortifying your user authentication process. By combining a traditional password with a dynamic, time-based code, you create a much more secure environment for your users. This guide provided an in-depth look at 2FA - from the underlying principles and benefits to comprehensive backend and frontend implementations with detailed code examples.
+
+Adopting best practices - such as secure secret storage, rate limiting, backup codes, and robust error handling - ensures that your 2FA implementation not only enhances security but also delivers a seamless user experience. As cyber threats continue to evolve, integrating 2FA into your authentication strategy will help build trust and protect both user data and your organization's reputation.
+
+---
+
+## 14. Further Reading & Resources
 
 - **Libraries and Tools:**
   - [Speakeasy (Node.js)](https://github.com/speakeasyjs/speakeasy)

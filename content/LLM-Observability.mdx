@@ -19,6 +19,25 @@ export default function LLMObservabilityArticle({ children }) {
 
 LLM applications are probabilistic systems that blend prompts, retrieval, tools, and model outputs. Traditional observability is necessary but not sufficient. You need visibility into quality, cost, and safety to ship reliable AI experiences. This guide outlines the signals and workflows that keep LLM systems healthy.
 
+```mermaid
+graph TD
+    A[User Prompt] --> B[Retrieval - RAG context fetch]
+    B --> C[Prompt Assembly - template plus context]
+    C --> D[LLM Inference]
+    D --> E[Post-Processing and Tool Calls]
+    E --> F[Response Delivered to User]
+    F --> G[Trace Stored with Trace ID]
+    G --> H[Evaluation Pipeline]
+    H --> I{Quality Score Passes?}
+    I -- No --> J[Alert and Flag for Review]
+    I -- Yes --> K[Safety Guardrail Check]
+    K --> L{Policy Violation?}
+    L -- Yes --> J
+    L -- No --> M[Metrics Aggregated - latency, cost, quality]
+    M --> N[Dashboard and Drift Detection]
+    N --> O[Feedback Loop into Next Prompt Version]
+```
+
 ---
 
 ## 1. The key signals to track
@@ -45,6 +64,19 @@ You need traces that capture every step:
 
 Store this data with consistent trace IDs so you can reconstruct failures quickly.
 
+A prompt-response trace waterfall shows the latency contribution of each step from retrieval through to final delivery:
+
+```mermaid
+graph TD
+    A[Trace Start - Request Received] --> B[Retrieval Step - vector search]
+    B --> C[Context Assembly - template render]
+    C --> D[LLM Call - token generation]
+    D --> E[Tool Calls - optional external APIs]
+    E --> F[Post-Processing - format and filter]
+    F --> G[Trace End - Response Sent]
+    G --> H[Span Stored - latency and tokens per step]
+```
+
 ---
 
 ## 3. Evaluation pipelines
@@ -56,6 +88,23 @@ Automated evaluation is critical for regression detection:
 - Use LLM-as-judge with calibrated grading rubrics.
 
 Track evaluation scores over time, not just pass/fail thresholds.
+
+The scoring pipeline below shows how each prompt in the evaluation set is graded across factuality, relevance, and toxicity dimensions before an aggregate quality score determines whether a deployment is blocked:
+
+```mermaid
+graph LR
+    A[Prompt from Eval Set] --> B[Run Against Current Model]
+    B --> C[LLM-as-Judge Grader]
+    C --> D[Factuality Score]
+    C --> E[Relevance Score]
+    C --> F[Toxicity Score]
+    D --> G[Aggregate Quality Score]
+    E --> G
+    F --> G
+    G --> H{Score Above SLO Threshold?}
+    H -- Yes --> I[Mark as Passing]
+    H -- No --> J[Flag for Review and Block Deploy]
+```
 
 ---
 
@@ -97,6 +146,24 @@ Privacy constraints should be visible in the observability pipeline, not bolted 
 
 ## 7. Feedback loops
 
+```mermaid
+graph TD
+    A[User Feedback - thumbs up or down] --> B[Annotate with Prompt Version and Model Config]
+    B --> C[Link to Stored Trace in Observability Store]
+    C --> D[Triage by Severity and Volume]
+    D --> E{High Severity?}
+    E -- Yes --> F[Immediate Runbook - rollback or reroute]
+    E -- No --> G[Batch Queue for Eval Set Update]
+    F --> H[Re-Evaluate on Updated Eval Set]
+    G --> H
+    H --> I[Prompt or Model Update]
+    I --> J[CI Evaluation Gate]
+    J --> K{Passes SLO Thresholds?}
+    K -- Yes --> L[Deploy New Version]
+    K -- No --> M[Iterate and Fix]
+    M --> I
+```
+
 Production feedback fuels reliability:
 
 - Collect user ratings and annotate failures.
@@ -104,6 +171,21 @@ Production feedback fuels reliability:
 - Prioritize fixes based on severity and volume.
 
 An efficient feedback loop shortens the gap between insight and improvement.
+
+Cost attribution requires tracking tokens at the request level and aggregating them by feature and user tier. The flow below shows how a token spike triggers a cost alert before it accumulates into a billing surprise:
+
+```mermaid
+graph TD
+    A[Request Received] --> B[Log Input Token Count]
+    B --> C[Route to Model - small or large]
+    C --> D[Log Output Token Count]
+    D --> E[Compute Request Cost]
+    E --> F[Attribute to Feature and User Tier]
+    F --> G[Aggregate into Cost Dashboard]
+    G --> H{Token Spike Detected?}
+    H -- Yes --> I[Trigger Cost Alert]
+    H -- No --> J[Store for Trend Analysis]
+```
 
 ---
 
@@ -153,6 +235,110 @@ Large teams need a clear model governance process:
 
 Model governance is what keeps observability data actionable.
 
+The diagram below shows how prompt, model, and tool versions are tracked as deployable artifacts through a governance gate:
+
+```mermaid
+graph TD
+    A[Developer Proposes Change] --> B{Change Type}
+    B -- Prompt Update --> C[New Prompt Version Tagged]
+    B -- Model Swap --> D[New Model Version Registered]
+    B -- Tool Update --> E[New Tool Schema Version]
+    C --> F[Eval Suite Run Against New Prompt]
+    D --> F
+    E --> F
+    F --> G{Meets Quality and Safety SLOs?}
+    G -- No --> H[Block Merge - Return to Author]
+    G -- Yes --> I[Version Artifact Stored with Provenance]
+    I --> J[Staged Rollout - shadow traffic first]
+    J --> K[Full Deployment]
+```
+
+The sequence diagram shows how a safety guardrail intercepts a policy-violating response before it reaches the user:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as LLM Application
+    participant LLM as LLM Model
+    participant Guard as Safety Guardrail
+    participant Audit as Audit Log
+
+    User->>App: Send prompt
+    App->>LLM: Forward assembled prompt
+    LLM-->>App: Generated response
+    App->>Guard: Check response against policy rules
+    Guard->>Guard: Evaluate toxicity, PII, and policy categories
+    Guard-->>App: Violation detected - category hate speech
+    App->>Audit: Log prompt, response, and violation reason
+    App-->>User: Return safe fallback response
+    Audit->>Audit: Flag for human review queue
+```
+
+The class diagram models the core observability data structures used to capture a full LLM request trace:
+
+```mermaid
+classDiagram
+    class Trace {
+        +String traceId
+        +String sessionId
+        +Timestamp startedAt
+        +List spans
+        +getLatency()
+        +getTotalTokens()
+    }
+    class Span {
+        +String spanId
+        +String name
+        +Timestamp startedAt
+        +Int durationMs
+        +Map metadata
+    }
+    class LLMSpan {
+        +String model
+        +String promptVersion
+        +Int inputTokens
+        +Int outputTokens
+        +Float costUsd
+    }
+    class RetrievalSpan {
+        +String index
+        +String query
+        +Int topK
+        +Float meanScore
+    }
+    class EvalResult {
+        +String traceId
+        +Float factualityScore
+        +Float relevanceScore
+        +Float toxicityScore
+        +String verdict
+    }
+    Trace --> Span : contains
+    Span <|-- LLMSpan
+    Span <|-- RetrievalSpan
+    Trace --> EvalResult : evaluated by
+```
+
+The state diagram captures the states an LLM deployment version passes through from staging to retirement:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Candidate : Version artifact created
+    Candidate --> ShadowTest : Shadow traffic routed to version
+    ShadowTest --> Evaluating : Eval suite running
+    Evaluating --> Rejected : SLO threshold not met
+    Evaluating --> Approved : All SLOs passed
+    Approved --> Canary : 5 percent live traffic
+    Canary --> RollingOut : Canary metrics healthy
+    Canary --> RolledBack : Metric degradation detected
+    RollingOut --> Active : 100 percent traffic
+    Active --> Deprecated : Newer version promoted
+    Deprecated --> Retired : All traffic migrated
+    Retired --> [*]
+    RolledBack --> Rejected
+    Rejected --> [*]
+```
+
 ---
 
 ## 12. Implementation checklist
@@ -164,3 +350,393 @@ Model governance is what keeps observability data actionable.
 - Track cost per request and per feature.
 
 Strong observability transforms LLM apps from experiments into reliable products.
+
+---
+
+## 13. Prompt versioning and A/B testing
+
+Prompts are deployable artifacts. Treating them with the same lifecycle discipline as application code - version control, staged rollout, metric-gated promotion - is foundational to reliable LLM systems.
+
+### Prompt version registry schema
+
+```typescript
+// prompt-registry.ts
+interface PromptVersion {
+  id: string; // "prompt_v2_3_0" or a UUID
+  name: string; // Human-readable name: "qa-answer-v2"
+  systemPrompt: string;
+  userTemplate: string; // Handlebars or Jinja-style template
+  modelId: string; // "gpt-4o", "claude-3-5-sonnet", etc.
+  temperature: number;
+  maxTokens: number;
+  tags: string[]; // ["production", "qa", "experiment"]
+  createdAt: string;
+  createdBy: string;
+  parentId: string | null; // Chain for lineage tracking
+  evalSuiteId: string; // Which eval set covers this prompt
+}
+
+// When loading a prompt, always load by version ID, never "latest"
+async function loadPromptVersion(versionId: string): Promise<PromptVersion> {
+  const version = await promptRegistry.get(versionId);
+  if (!version) {
+    throw new Error(`Prompt version not found: ${versionId}`);
+  }
+  // Log the version used so every trace has full provenance
+  tracer.setAttribute("prompt.version_id", versionId);
+  tracer.setAttribute("prompt.model_id", version.modelId);
+  return version;
+}
+```
+
+### A/B testing prompts in production
+
+```typescript
+// prompt-ab.ts: route traffic between two prompt versions using a stable hash
+import crypto from "crypto";
+
+interface ABConfig {
+  controlVersionId: string; // Stable baseline
+  variantVersionId: string; // Candidate to evaluate
+  variantTrafficPct: number; // 0-100
+}
+
+function selectPromptVersion(
+  userId: string,
+  config: ABConfig,
+): { versionId: string; group: "control" | "variant" } {
+  // Stable hash ensures the same user always gets the same version
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${userId}:prompt-ab`)
+    .digest("hex");
+
+  const bucket = parseInt(hash.slice(0, 8), 16) % 100;
+
+  if (bucket < config.variantTrafficPct) {
+    return { versionId: config.variantVersionId, group: "variant" };
+  }
+  return { versionId: config.controlVersionId, group: "control" };
+}
+
+// In the request handler:
+async function handleQuery(userId: string, query: string) {
+  const { versionId, group } = selectPromptVersion(userId, {
+    controlVersionId: "prompt_v2_1_0",
+    variantVersionId: "prompt_v2_2_0",
+    variantTrafficPct: 10,
+  });
+
+  const prompt = await loadPromptVersion(versionId);
+
+  // Attach A/B metadata to every trace for analysis
+  tracer.setAttribute("ab.group", group);
+  tracer.setAttribute("ab.version_id", versionId);
+
+  // ... run the LLM call
+}
+```
+
+```mermaid
+graph TD
+    REQUEST[User Request] --> HASH[Stable hash on user ID]
+    HASH --> BUCKET[Assign to 0-99 bucket]
+    BUCKET --> DECISION{Bucket less than variant pct?}
+    DECISION -- Yes --> VARIANT[Serve variant prompt v2-2-0]
+    DECISION -- No --> CONTROL[Serve control prompt v2-1-0]
+    VARIANT --> LLM[LLM Inference]
+    CONTROL --> LLM
+    LLM --> TRACE[Store trace with ab group label]
+    TRACE --> ANALYSIS[Aggregate quality scores by group]
+    ANALYSIS --> COMPARE{Variant statistically better?}
+    COMPARE -- Yes --> PROMOTE[Promote variant to production]
+    COMPARE -- No --> ROLLBACK[Keep control - discard variant]
+```
+
+---
+
+## 14. OpenTelemetry integration for LLM traces
+
+OpenTelemetry provides a vendor-neutral way to instrument LLM applications. The emerging GenAI semantic conventions (part of OTel 1.24+) define standard attribute names for LLM spans.
+
+```typescript
+// otel-llm.ts: instrumenting an LLM call with OpenTelemetry semantic conventions
+import { trace, context, SpanStatusCode, SpanKind } from "@opentelemetry/api";
+
+const tracer = trace.getTracer("llm-service", "1.0.0");
+
+async function tracedLLMCall(params: {
+  system: string;
+  user: string;
+  model: string;
+  promptVersionId: string;
+}): Promise<{ response: string; inputTokens: number; outputTokens: number }> {
+  return tracer.startActiveSpan(
+    "llm.chat",
+    {
+      kind: SpanKind.CLIENT,
+      attributes: {
+        // GenAI semantic conventions
+        "gen_ai.system": "openai",
+        "gen_ai.operation.name": "chat",
+        "gen_ai.request.model": params.model,
+        "gen_ai.request.temperature": 0.2,
+        "gen_ai.request.max_tokens": 2048,
+        // Custom attributes
+        "llm.prompt.version": params.promptVersionId,
+      },
+    },
+    async (span) => {
+      try {
+        const start = Date.now();
+
+        // Actual LLM API call
+        const result = await openai.chat.completions.create({
+          model: params.model,
+          messages: [
+            { role: "system", content: params.system },
+            { role: "user", content: params.user },
+          ],
+        });
+
+        const durationMs = Date.now() - start;
+        const inputTokens = result.usage?.prompt_tokens ?? 0;
+        const outputTokens = result.usage?.completion_tokens ?? 0;
+        const costUsd = computeCost(params.model, inputTokens, outputTokens);
+
+        // Attach response metrics to span
+        span.setAttributes({
+          "gen_ai.usage.input_tokens": inputTokens,
+          "gen_ai.usage.output_tokens": outputTokens,
+          "llm.cost.usd": costUsd,
+          "llm.duration.ms": durationMs,
+        });
+
+        span.setStatus({ code: SpanStatusCode.OK });
+
+        return {
+          response: result.choices[0].message.content ?? "",
+          inputTokens,
+          outputTokens,
+        };
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: (error as Error).message,
+        });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  );
+}
+
+function computeCost(
+  model: string,
+  inputTokens: number,
+  outputTokens: number,
+): number {
+  const pricing: Record<string, { input: number; output: number }> = {
+    "gpt-4o": { input: 0.0025, output: 0.01 }, // per 1K tokens
+    "gpt-4o-mini": { input: 0.00015, output: 0.0006 },
+    "claude-3-5-sonnet": { input: 0.003, output: 0.015 },
+  };
+  const rates = pricing[model] ?? { input: 0.001, output: 0.002 };
+  return (inputTokens * rates.input + outputTokens * rates.output) / 1000;
+}
+```
+
+---
+
+## 15. Langfuse and LangSmith setup patterns
+
+Both Langfuse and LangSmith are purpose-built LLM observability platforms. They collect traces, host evaluation datasets, and surface cost and quality dashboards.
+
+### Langfuse with OpenAI SDK
+
+```typescript
+// langfuse-instrumentation.ts
+import Langfuse from "langfuse";
+import OpenAI from "openai";
+
+const langfuse = new Langfuse({
+  publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+  secretKey: process.env.LANGFUSE_SECRET_KEY!,
+  baseUrl: process.env.LANGFUSE_BASEURL ?? "https://cloud.langfuse.com",
+});
+
+const openai = new OpenAI();
+
+async function answeredWithTrace(
+  sessionId: string,
+  userId: string,
+  question: string,
+): Promise<string> {
+  // Create a trace for this user session
+  const trace = langfuse.trace({
+    id: `trace-${Date.now()}`,
+    sessionId,
+    userId,
+    name: "qa-answer",
+    input: { question },
+  });
+
+  // Log the retrieval span
+  const retrievalSpan = trace.span({
+    name: "vector-retrieval",
+    input: { query: question },
+  });
+
+  const documents = await vectorSearch(question);
+
+  retrievalSpan.end({
+    output: {
+      documentCount: documents.length,
+      topScore: documents[0]?.score,
+    },
+  });
+
+  // Log the LLM call as a generation
+  const generation = trace.generation({
+    name: "llm-answer",
+    model: "gpt-4o-mini",
+    input: { question, documents: documents.map((d) => d.text) },
+    modelParameters: { temperature: 0.1, maxTokens: 512 },
+  });
+
+  const result = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: buildSystemPrompt(documents) },
+      { role: "user", content: question },
+    ],
+  });
+
+  const answer = result.choices[0].message.content ?? "";
+
+  generation.end({
+    output: answer,
+    usage: {
+      input: result.usage?.prompt_tokens,
+      output: result.usage?.completion_tokens,
+    },
+  });
+
+  trace.update({ output: { answer } });
+
+  // Flush asynchronously - do not await on critical path
+  langfuse.flushAsync();
+
+  return answer;
+}
+```
+
+### LangSmith trace via LangChain
+
+```python
+# langsmith_rag.py
+import os
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_pinecone import PineconeVectorStore
+from langsmith import traceable
+
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "devverse-qa"
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+vectorstore = PineconeVectorStore(embedding=embeddings, index_name="articles")
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Answer based on the provided context. Be concise.\n\nContext:\n{context}"),
+    ("human", "{question}"),
+])
+
+@traceable(name="rag-qa-pipeline", metadata={"prompt_version": "v2.1.0"})
+def rag_answer(question: str) -> str:
+    docs = vectorstore.similarity_search(question, k=4)
+    context = "\n\n".join(d.page_content for d in docs)
+    chain = prompt | llm
+    result = chain.invoke({"question": question, "context": context})
+    return result.content
+```
+
+```mermaid
+graph TD
+    APP[Application Code] --> SDK[Langfuse or LangSmith SDK]
+    SDK --> TRACE[Trace Created with session and user ID]
+    TRACE --> RETSPAN[Retrieval Span]
+    TRACE --> GENSPAN[Generation Span]
+    RETSPAN --> DOCS[Documents retrieved and scored]
+    GENSPAN --> TOKENS[Token counts and cost recorded]
+    SDK --> PLATFORM[Observability Platform]
+    PLATFORM --> DASH[Latency and Cost Dashboard]
+    PLATFORM --> EVALSET[Evaluation Dataset]
+    PLATFORM --> ALERTS[SLO Breach Alerts]
+    PLATFORM --> HUMANREV[Human Review Queue]
+```
+
+---
+
+## 16. Cost optimization strategies
+
+LLM inference costs scale with token usage and model selection. A systematic approach to cost management can reduce spend by 40-70% without sacrificing quality.
+
+### Cost reduction techniques
+
+| Technique                        | Typical Saving | Tradeoff                              |
+| -------------------------------- | -------------- | ------------------------------------- |
+| Model routing (small vs. large)  | 60-80%         | Requires quality validation per route |
+| Prompt compression               | 20-40%         | Requires testing for context loss     |
+| Response caching (semantic)      | 15-30%         | Cache management complexity           |
+| Output length limits             | 10-20%         | May truncate useful responses         |
+| Retrieval pruning (reduce top-k) | 5-15%          | May reduce answer quality             |
+| Batch inference                  | 20-40%         | Adds latency                          |
+
+```typescript
+// model-router.ts: route queries to the cheapest capable model
+interface RoutingRule {
+  modelId: string;
+  maxComplexityScore: number; // 0-100 scale
+  maxInputTokens: number;
+}
+
+const ROUTING_RULES: RoutingRule[] = [
+  { modelId: "gpt-4o-mini", maxComplexityScore: 40, maxInputTokens: 2000 },
+  { modelId: "gpt-4o", maxComplexityScore: 80, maxInputTokens: 8000 },
+  { modelId: "gpt-4-turbo", maxComplexityScore: 100, maxInputTokens: 128000 },
+];
+
+async function routeToModel(query: string, context: string): Promise<string> {
+  const complexityScore = await scoreComplexity(query);
+  const estimatedInputTokens = estimateTokens(query + context);
+
+  // Find cheapest model that can handle this request
+  const rule = ROUTING_RULES.find(
+    (r) =>
+      complexityScore <= r.maxComplexityScore &&
+      estimatedInputTokens <= r.maxInputTokens,
+  );
+
+  const selectedModel = rule?.modelId ?? "gpt-4-turbo";
+
+  // Track routing decisions for cost analysis
+  metrics.increment("llm.routing", {
+    selected_model: selectedModel,
+    complexity_bucket: Math.floor(complexityScore / 10) * 10,
+  });
+
+  return selectedModel;
+}
+```
+
+---
+
+## 17. Conclusion
+
+LLM observability is a discipline that bridges traditional software reliability engineering and machine learning operations. The challenges are distinct from classical services because failures manifest as quality degradations rather than crashes, and the root causes often trace back to prompt text rather than code logic.
+
+The teams that ship reliable LLM products share a common pattern: they instrument from day one rather than retrofitting observability after launch, they define measurable quality SLOs before the first model swap, and they treat prompts as first-class versioned artifacts with automated evaluation gates. The tools described here - OpenTelemetry semantic conventions, Langfuse, LangSmith, and A/B testing infrastructure - provide the foundation. The quality data they generate is what allows teams to make evidence-based decisions rather than guesses about model and prompt changes.

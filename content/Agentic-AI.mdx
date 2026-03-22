@@ -32,7 +32,7 @@ This wasn't a chatbot regurgitating information. This was an _agent_ - a system 
 
 ---
 
-## From Assistants to Agents: A Fundamental Shift
+## 1. From Assistants to Agents: A Fundamental Shift
 
 The difference between traditional AI assistants and agentic systems isn't just incremental - it's fundamental. Think of it this way: ChatGPT is like a brilliant colleague you can consult. An agentic AI system is like hiring an entire team that works while you sleep.
 
@@ -48,13 +48,29 @@ I first experienced this shift while building a research agent for a venture cap
 
 The key insight? We didn't program these specific behaviors. We gave the agent goals, tools, and the ability to reason about how to use them. The sophisticated behaviors emerged from these simple principles.
 
+The following diagram illustrates the core agent loop that powers autonomous systems:
+
+```mermaid
+graph TD
+    GOAL[User Goal] --> PLAN[Plan Next Step]
+    PLAN --> REASON[Reason About Options]
+    REASON --> ACT[Execute Action]
+    ACT --> OBS[Observe Result]
+    OBS --> EVAL{Goal Achieved?}
+    EVAL -->|No| PLAN
+    EVAL -->|Yes| DONE[Return Result]
+    ACT --> TOOLS[Tool Use]
+    TOOLS --> MEM[Memory Store]
+    MEM --> REASON
+```
+
 ---
 
-## The Architecture of Autonomy
+## 2. The Architecture of Autonomy
 
 Building truly agentic systems requires rethinking how we structure AI applications. After months of experimentation with various approaches, I've identified several key patterns that separate true agents from simple automation.
 
-### The Planning Paradox
+### 2.1. The Planning Paradox
 
 Early in my journey with agentic systems, I made a classic mistake: over-planning. I built an agent that would create elaborate 20-step plans before taking any action. It was impressive to watch it think, but it rarely completed tasks successfully. Reality is messy, and plans need to adapt.
 
@@ -145,9 +161,25 @@ result = graph.invoke({"messages": [{"role": "user", "content": "Research QC sta
 print(result["messages"][-1].content)
 ```
 
-### Memory: The Secret Ingredient
+### 2.2. Memory: The Secret Ingredient
 
-What really brings an agent to life is memory - not just storing information, but organizing and retrieving it intelligently. I learned this lesson the hard way when an early agent kept making the same mistakes repeatedly, like a goldfish swimming in circles.
+What really brings an agent to life is memory - not just storing information, but organizing and retrieving it intelligently.
+
+```mermaid
+graph TD
+    Input[New Information] --> WM[Working Memory - current context]
+    WM --> Relevant{Relevant to goal?}
+    Relevant -->|Short-term| WM
+    Relevant -->|Pattern learned| EM[Episodic Memory - past experiences]
+    Relevant -->|General fact| SM[Semantic Memory - world knowledge]
+    EM --> Retrieval[Similarity Search]
+    SM --> Retrieval
+    Retrieval --> Reasoning[Agent Reasoning Engine]
+    WM --> Reasoning
+    Reasoning --> Action[Next Action]
+```
+
+I learned this lesson the hard way when an early agent kept making the same mistakes repeatedly, like a goldfish swimming in circles.
 
 The solution wasn't just adding a database. It was creating three distinct types of memory:
 
@@ -214,7 +246,7 @@ class MemorySystem:
         return f"Based on memory: {hint}"
 ```
 
-### The Tool Revolution
+### 2.3. The Tool Revolution
 
 Perhaps the most exciting development in agentic AI is tool use. Early language models could only generate text. Modern agents can interact with the world - searching the web, writing code, querying databases, even controlling other software.
 
@@ -276,7 +308,7 @@ print(response.content)
 
 ---
 
-## **MCP: Model Context Protocol in Agents (with code)**
+## 3. MCP: Model Context Protocol in Agents (with code)
 
 _Add interoperable, secure tool access to your agents via MCP - so they can connect to local/remote tool servers without bespoke glue code._
 
@@ -398,11 +430,11 @@ if __name__ == "__main__":
 
 ---
 
-## Real-World Impact: Stories from the Field
+## 4. Real-World Impact: Stories from the Field
 
 The true test of any technology is real-world application. Here are three stories that illustrate the transformative potential of agentic AI:
 
-### The Customer Success Revolution
+### 4.1. The Customer Success Revolution
 
 A SaaS company implemented an agentic system for customer success. Traditional chatbots could answer FAQs, but this agent did something different. It monitored user behavior, identified struggling customers before they complained, and proactively reached out with personalized assistance.
 
@@ -440,7 +472,7 @@ async def run_watcher():
 asyncio.run(run_watcher())
 ```
 
-### The Research Assistant That Became a Collaborator
+### 4.2. The Research Assistant That Became a Collaborator
 
 In my own work, I use an agent I call "Darwin" (because it constantly evolves its approach). What started as a simple research assistant has become something more - a genuine thinking partner.
 
@@ -464,7 +496,7 @@ Given a paper excerpt, produce:
 3) a runnable example."""
 ```
 
-### The Code Review That Prevented Disaster
+### 4.3. The Code Review That Prevented Disaster
 
 A startup I advise implemented an agentic code review system. Unlike static analysis tools, this agent understood context, intent, and implications. During a routine review, it flagged something subtle - not a bug, but a architectural decision that would make the system hard to scale.
 
@@ -511,11 +543,11 @@ console.log(result.comments.at(-1));
 
 ---
 
-## The Ethical Tightrope
+## 5. The Ethical Tightrope
 
 With great power comes great responsibility, and agentic AI raises profound ethical questions that we're only beginning to grapple with.
 
-### The Accountability Challenge
+### 5.1. The Accountability Challenge
 
 When an autonomous agent makes a decision, who's responsible? This isn't theoretical - I faced this dilemma when an agent I built made an unexpected recommendation that turned out to be brilliant but could have been disastrous.
 
@@ -523,7 +555,7 @@ The agent was analyzing market data and recommended a contrarian investment stra
 
 We're entering uncharted territory where the line between tool and decision-maker blurs. My approach: treat agents like junior employees. They can research, analyze, and recommend, but humans must own critical decisions. This isn't just about legal liability - it's about maintaining human agency in an age of artificial intelligence.
 
-### The Transparency Imperative
+### 5.2. The Transparency Imperative
 
 One of my agents once rejected a seemingly perfect job candidate. When pressed for reasoning, it revealed a troubling pattern - the agent had learned to associate certain universities with success, inadvertently encoding bias.
 
@@ -531,7 +563,7 @@ This highlighted a critical need: agents must be able to explain their reasoning
 
 Building transparent agents isn't just about fairness - it's about trust. If we're going to rely on these systems for important decisions, we need to understand how they think.
 
-### The Automation Paradox
+### 5.3. The Automation Paradox
 
 There's an uncomfortable truth about agentic AI: it's going to eliminate some jobs while creating others. But the transformation is more nuanced than simple replacement.
 
@@ -541,11 +573,11 @@ The key is viewing agents not as replacements but as amplifiers. They handle the
 
 ---
 
-## Building Your First Agent: Lessons Learned
+## 6. Building Your First Agent: Lessons Learned
 
 If you're intrigued by agentic AI and want to start building, here are hard-won lessons from my journey:
 
-### Start Simple, Think Big
+### 6.1. Start Simple, Think Big
 
 Your first agent doesn't need to be AGI. Start with a focused problem. My first successful agent did one thing: summarize daily industry news. But building it taught me principles that scaled to much more complex systems.
 
@@ -599,7 +631,7 @@ const g = new StateGraph<S>()
 console.log(await g.invoke({ topic: "agent safety patterns", answer: "" }));
 ```
 
-### Embrace Failure as a Feature
+### 6.2. Embrace Failure as a Feature
 
 Agents will fail, often in surprising ways. Instead of trying to prevent all failures, build systems that fail gracefully and learn from mistakes.
 
@@ -619,11 +651,26 @@ if fm.disallow("fetch_patents"):
     print("Switching to cached patent DB...")
 ```
 
-### The Human-in-the-Loop Sweet Spot
+### 6.3. The Human-in-the-Loop Sweet Spot
 
 Pure autonomy sounds appealing, but the most effective agents maintain a thoughtful balance with human oversight. Not constant supervision, but strategic checkpoints.
 
 Think of it like teaching someone to drive. At first, you're actively coaching. Gradually, you intervene less. Eventually, they only check in for major decisions. This progressive autonomy lets agents grow while maintaining safety.
+
+```mermaid
+graph TD
+    AgentStep[Agent proposes next action] --> RiskEval{Risk level?}
+    RiskEval -->|Low - read-only| AutoExecute[Execute automatically]
+    RiskEval -->|Medium - reversible write| Notify[Notify human, proceed]
+    RiskEval -->|High - irreversible| HumanApproval[Pause and await approval]
+    HumanApproval -->|Approved| Execute[Execute action]
+    HumanApproval -->|Rejected| Rethink[Agent rethinks plan]
+    Rethink --> AgentStep
+    AutoExecute --> Observe[Observe result]
+    Execute --> Observe
+    Notify --> Observe
+    Observe --> AgentStep
+```
 
 #### Code: Insert human approval checkpoint (Python)
 
@@ -641,7 +688,31 @@ if requires_approval(state):
     await_approval()
 ```
 
-### Tools Make the Agent
+### 6.4. Tool Selection Decision Tree
+
+When an agent faces a task, it must reason through which tool is appropriate before acting.
+
+```mermaid
+graph TD
+    Task[Incoming task] --> NeedsData{Needs external data?}
+    NeedsData -->|Yes| DataType{Data source type}
+    DataType -->|Web| WebSearch[Use web search tool]
+    DataType -->|File| FileRead[Use file system tool]
+    DataType -->|API| APICall[Use HTTP/API tool]
+    NeedsData -->|No| NeedsCalc{Needs computation?}
+    NeedsCalc -->|Yes| CodeExec[Use code execution tool]
+    NeedsCalc -->|No| NeedsMemory{Check memory first?}
+    NeedsMemory -->|Yes| MemLookup[Use memory retrieval tool]
+    NeedsMemory -->|No| DirectAnswer[Respond directly from LLM]
+    WebSearch --> Combine[Combine results]
+    FileRead --> Combine
+    APICall --> Combine
+    CodeExec --> Combine
+    MemLookup --> Combine
+    Combine --> NextStep[Plan next step or finalize]
+```
+
+### 6.5. Tools Make the Agent
 
 An agent without tools is just a chatbot with ambition. The real power comes from giving agents ways to interact with the world. Start with basic tools:
 
@@ -654,11 +725,11 @@ But here's the secret: the best tools are often the simplest. A well-designed se
 
 ---
 
-## The Future We're Building
+## 7. The Future We're Building
 
 As I write this, we're at an inflection point. The technology for truly agentic systems exists today, but we're just scratching the surface of what's possible.
 
-### The Near Future: Specialized Agents
+### 7.1. The Near Future: Specialized Agents
 
 In the next year, I expect to see an explosion of specialized agents. Not general-purpose AI, but expert systems for specific domains:
 
@@ -669,15 +740,31 @@ In the next year, I expect to see an explosion of specialized agents. Not genera
 
 These won't replace professionals but will dramatically amplify their capabilities. Imagine a doctor with an agent that's read every medical paper, a lawyer with perfect recall of case law, or a developer with an agent that understands every line of code in a million-line codebase.
 
-### The Medium Term: Agent Societies
+### 7.2. The Medium Term: Agent Societies
 
 The really interesting future isn't individual agents but agent ecosystems. I'm already experimenting with multi-agent systems where specialized agents collaborate on complex tasks.
+
+```mermaid
+graph TD
+    ORCH[Orchestrator Agent] --> R[Research Agent]
+    ORCH --> D[Design Agent]
+    ORCH --> E[Engineering Agent]
+    ORCH --> PM[PM Agent]
+    R --> |Findings| ORCH
+    D --> |Concepts| ORCH
+    E --> |Feasibility| ORCH
+    PM --> |Schedule| ORCH
+    R -.-> KB[(Shared Knowledge Base)]
+    D -.-> KB
+    E -.-> KB
+    PM -.-> KB
+```
 
 Picture this: a product development team of agents. The market researcher agent identifies opportunities. The designer agent creates concepts. The engineering agent evaluates feasibility. The project manager agent coordinates everything. They negotiate, debate, and iterate - much like a human team but at digital speed.
 
 This isn't science fiction. I have a prototype system where agents with different "personalities" and expertise collaborate on writing projects. The results are fascinating - they challenge each other, build on ideas, and sometimes produce insights none would have reached alone.
 
-### The Long Game: Augmented Humanity
+### 7.3. The Long Game: Augmented Humanity
 
 The ultimate promise of agentic AI isn't replacing human intelligence but augmenting it. Imagine having a team of expert agents as thought partners, each enhancing different aspects of your cognition.
 
@@ -687,7 +774,7 @@ This isn't about becoming cyborgs. It's about having AI collaborators so seamles
 
 ---
 
-## A Personal Reflection: What This Means for Us
+## 8. A Personal Reflection: What This Means for Us
 
 Six months ago, I was skeptical about agentic AI. Not about the technology - I knew that was coming - but about whether we were ready for it. Would we use it wisely? Would it make us dependent? Would we lose something essentially human in the process?
 
@@ -699,25 +786,11 @@ The developers and organizations that will thrive in this new era aren't those w
 
 ---
 
-## Conclusion: The Journey Ahead
-
-Agentic AI represents a fundamental shift in how we interact with artificial intelligence. We're moving from a world where AI answers our questions to one where AI takes action on our behalf. This transition is both exciting and sobering.
-
-The technology is powerful, but it's not magic. Agents are tools - sophisticated, capable, sometimes surprising tools - but tools nonetheless. Their value comes not from replacing human intelligence but from amplifying it.
-
-As you consider incorporating agentic AI into your work or life, remember this: the goal isn't to automate everything. It's to automate the right things, freeing humans to do what we do best - create, connect, and care.
-
-The future isn't about humans versus agents. It's about humans with agents, building things we never could alone. And that future? It's already here. The question isn't whether to embrace it, but how to shape it.
-
-_What role will you play in this agentic future? What would you build if you had a tireless, intelligent collaborator? The possibilities are limited only by our imagination and our wisdom in pursuing them._
-
----
-
-## Start Your Journey
+## 9. Start Your Journey
 
 If you're ready to explore agentic AI, here are concrete next steps:
 
-### For Developers
+### 9.1. For Developers
 
 - **Start with LangGraph**: Build your first stateful agent with clear planning and execution phases
 - **Experiment with Memory**: Implement simple episodic memory using vector databases
@@ -734,14 +807,14 @@ pip install langgraph langchain langchain-openai langgraph-checkpoint-sqlite lan
 npm i @langchain/langgraph @langchain/core @langchain/openai
 ```
 
-### For Organizations
+### 9.2. For Organizations
 
 - **Identify Repetitive Workflows**: Look for tasks that require judgment but follow patterns
 - **Start Small**: Pilot an agent for a single, well-defined process
 - **Measure Impact**: Track not just efficiency but quality and innovation metrics
 - **Invest in Understanding**: This technology is strategic - ensure leadership understands it
 
-### For Everyone
+### 9.3. For Everyone
 
 - **Stay Curious**: This field evolves daily - maintain a learning mindset
 - **Think Ethically**: Consider implications before implementing
@@ -750,4 +823,425 @@ npm i @langchain/langgraph @langchain/core @langchain/openai
 
 For a deep dive into implementation, check out my [Agentic AI Pipeline](https://github.com/hoangsonww/Agentic-AI-Pipeline) project, where theory meets practice.
 
+---
+
+## 10. MCP Architecture: Server-Client Communication
+
+The Model Context Protocol defines a clean boundary between agent logic and tool servers. The following diagram shows how an agent runtime connects to multiple MCP servers:
+
+```mermaid
+graph TD
+    Agent[LangGraph Agent] --> MCPClient[MultiServerMCPClient]
+    MCPClient --> Server1[MCP Math Server - stdio]
+    MCPClient --> Server2[MCP File Server - stdio]
+    MCPClient --> Server3[MCP Slug Server - stdio]
+    Server1 --> Tool1a[add tool]
+    Server1 --> Tool1b[multiply tool]
+    Server2 --> Tool2a[read_file tool]
+    Server2 --> Tool2b[write_file tool]
+    Server3 --> Tool3a[slugify tool]
+    MCPClient --> ToolList[Merged tool list]
+    ToolList --> LLM[LLM with bound tools]
+    LLM --> ToolCall[Tool call selected by model]
+    ToolCall --> MCPClient
+    MCPClient --> CorrectServer[Route to correct server]
+    CorrectServer --> Result[Tool result returned]
+    Result --> LLM
+```
+
+---
+
+## 11. Agent Failure and Recovery State Machine
+
+Production agents must handle failure gracefully. This state machine shows how a well-designed agent recovers from errors without human intervention:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Planning: Receive goal
+    Planning --> Executing: Plan ready
+    Executing --> Observing: Action dispatched
+    Observing --> Evaluating: Result received
+    Evaluating --> Planning: Goal not yet achieved
+    Evaluating --> Done: Goal achieved
+    Done --> [*]
+    Executing --> ToolError: Tool call failed
+    ToolError --> RetryCheck: Check retry count
+    RetryCheck --> Executing: Retries remaining
+    RetryCheck --> FallbackTool: Max retries exceeded
+    FallbackTool --> Executing: Alternative tool selected
+    FallbackTool --> HumanEscalate: No fallback available
+    HumanEscalate --> [*]
+```
+
+---
+
+## 12. Agentic System Class Relationships
+
+The key components of a LangGraph-based agentic system and how they relate to each other:
+
+```mermaid
+classDiagram
+    class AgentGraph {
+        +nodes NodeRegistry
+        +edges EdgeList
+        +checkpointer Checkpointer
+        +compile() RunnableGraph
+        +invoke(state) FinalState
+    }
+    class MemorySystem {
+        +working WorkingMemory
+        +episodic EpisodicMemory
+        +semantic SemanticMemory
+        +recall(query) MemoryChunk[]
+        +note_failure(task, reason) void
+    }
+    class ToolRegistry {
+        +tools Tool[]
+        +register(tool) void
+        +dispatch(name, args) Result
+    }
+    class LLMNode {
+        +model BoundModel
+        +systemPrompt string
+        +call(state) StateUpdate
+    }
+    class ToolNode {
+        +registry ToolRegistry
+        +execute(toolCall) ToolResult
+    }
+    AgentGraph --> LLMNode
+    AgentGraph --> ToolNode
+    LLMNode --> MemorySystem : reads context
+    ToolNode --> ToolRegistry
+    MemorySystem --> EpisodicMemory
+    MemorySystem --> SemanticMemory
+```
+
+---
+
+## 13. Autonomy Spectrum: From Assistant to Fully Autonomous
+
+Agentic systems exist on a spectrum based on how much human oversight they require:
+
+```mermaid
+graph LR
+    A[Pure Assistant] --> B[Supervised Agent]
+    B --> C[Semi-Autonomous Agent]
+    C --> D[Autonomous Agent]
+    D --> E[Full Autonomy - future]
+    A --> A1[Human drives every step]
+    B --> B1[Agent suggests - human approves each action]
+    C --> C1[Human reviews only high-risk actions]
+    D --> D1[Human sets goal - agent self-directs]
+    E --> E1[Agent sets and achieves its own sub-goals]
+```
+
 The agentic revolution isn't coming - it's here. The question is: what will you build with it?
+
+---
+
+## 14. Agent Evaluation Frameworks
+
+Shipping an agentic system to production without evaluation infrastructure is flying blind. Unlike traditional software where unit tests catch regressions deterministically, agents fail probabilistically: they may succeed 9 times and fail on the 10th in subtle ways that are hard to detect without structured evaluation.
+
+### 14.1. Why Evaluation is Different for Agents
+
+Standard metrics like accuracy apply to classification tasks. Agents need to be evaluated on multi-step trajectories, not just final outputs. A correct final answer reached through a broken sequence of tool calls is not a reliable agent.
+
+```mermaid
+graph TD
+    AGENT_RUN[Agent Trajectory] --> FINAL[Final Output]
+    AGENT_RUN --> STEPS[Intermediate Steps]
+    FINAL --> F_EVAL[Output Quality Score]
+    STEPS --> S_EVAL[Step-Level Evaluation]
+    S_EVAL --> TOOL_ACC[Tool Selection Accuracy]
+    S_EVAL --> STEP_ORDER[Step Ordering Correctness]
+    S_EVAL --> RECOVERY[Error Recovery Rate]
+    F_EVAL --> COMPOSITE[Composite Agent Score]
+    TOOL_ACC --> COMPOSITE
+    STEP_ORDER --> COMPOSITE
+    RECOVERY --> COMPOSITE
+```
+
+### 14.2. LangSmith Evaluation Pipeline
+
+```python
+from langsmith import Client
+from langsmith.evaluation import evaluate, LangChainStringEvaluator
+
+client = Client()
+
+# Define your agent as a callable target
+def run_agent(inputs: dict) -> dict:
+    result = my_agent.invoke({"task": inputs["question"]})
+    return {"output": result["final_answer"]}
+
+# Evaluators: correctness, helpfulness, hallucination
+evaluators = [
+    LangChainStringEvaluator("cot_qa"),        # chain-of-thought QA correctness
+    LangChainStringEvaluator("criteria", config={"criteria": "helpfulness"}),
+    LangChainStringEvaluator("labeled_score_string"),
+]
+
+# Run evaluation against a golden dataset
+results = evaluate(
+    run_agent,
+    data="agent-golden-dataset-v1",  # Dataset stored in LangSmith
+    evaluators=evaluators,
+    experiment_prefix="prod-agent-v2.3",
+    metadata={"model": "claude-3-5-sonnet", "temperature": 0.0},
+)
+
+print(f"Average correctness: {results.aggregate_metrics['cot_qa/score']:.2f}")
+```
+
+### 14.3. Trajectory-Level Evaluation
+
+Evaluate not just the final answer but whether the agent reached it the right way.
+
+```python
+from typing import List
+
+def evaluate_trajectory(
+    trajectory: List[dict],
+    expected_tools: List[str],
+) -> dict:
+    """
+    Check that the agent called the expected tools in roughly the right order.
+    """
+    actual_tools = [
+        step["tool"] for step in trajectory if step.get("type") == "tool_call"
+    ]
+
+    # Tool coverage: did the agent use all required tools?
+    coverage = len(set(expected_tools) & set(actual_tools)) / len(expected_tools)
+
+    # Hallucination check: did the agent call tools that don't exist?
+    valid_tools = {"search", "read_file", "write_file", "run_tests", "get_schema"}
+    hallucinated = [t for t in actual_tools if t not in valid_tools]
+
+    # Efficiency: how many extra steps beyond the minimum needed?
+    extra_steps = max(0, len(actual_tools) - len(expected_tools))
+
+    return {
+        "tool_coverage": coverage,
+        "hallucinated_tools": hallucinated,
+        "extra_steps": extra_steps,
+        "trajectory_score": coverage * (1 - 0.1 * extra_steps),
+    }
+```
+
+---
+
+## 15. Cost Management for Production Agents
+
+Agent costs can spiral unexpectedly. A single agent loop that calls a 200K-token model 15 times per task, with 5,000 concurrent users, produces a bill that surprises most teams on first invoice. Cost management is an engineering concern from day one.
+
+### 15.1. Token Cost Attribution
+
+```python
+import time
+from dataclasses import dataclass, field
+from typing import List
+
+@dataclass
+class TokenUsage:
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cached_input_tokens: int = 0
+    timestamp: float = field(default_factory=time.time)
+
+    @property
+    def cost_usd(self) -> float:
+        # Approximate pricing (verify against provider)
+        pricing = {
+            "claude-sonnet-4-5": (0.003, 0.015),      # input, output per 1K tokens
+            "claude-3-5-haiku-20241022": (0.0008, 0.004),
+            "gpt-4o": (0.0025, 0.01),
+            "gpt-4o-mini": (0.00015, 0.0006),
+        }
+        inp_price, out_price = pricing.get(self.model, (0.001, 0.005))
+        billed_input = self.input_tokens - self.cached_input_tokens
+        return (billed_input / 1000 * inp_price) + (self.output_tokens / 1000 * out_price)
+
+
+class CostAwareAgent:
+    """Wraps an agent with cost tracking and circuit breakers."""
+
+    def __init__(self, agent, cost_limit_usd: float = 0.50):
+        self.agent = agent
+        self.cost_limit = cost_limit_usd
+        self.usage_log: List[TokenUsage] = []
+
+    @property
+    def total_cost(self) -> float:
+        return sum(u.cost_usd for u in self.usage_log)
+
+    def run(self, task: str) -> str:
+        if self.total_cost > self.cost_limit:
+            raise RuntimeError(
+                f"Cost limit ${self.cost_limit} exceeded. "
+                f"Current spend: ${self.total_cost:.4f}"
+            )
+
+        result = self.agent.invoke({"task": task})
+        usage = TokenUsage(
+            model=result["model"],
+            input_tokens=result["usage"]["input_tokens"],
+            output_tokens=result["usage"]["output_tokens"],
+            cached_input_tokens=result["usage"].get("cache_read_input_tokens", 0),
+        )
+        self.usage_log.append(usage)
+        return result["output"]
+```
+
+### 15.2. Cost Optimization Strategies
+
+```mermaid
+graph TD
+    TASK[Incoming Task] --> ROUTE{Route to Model}
+    ROUTE -->|Simple - classification or lookup| SMALL[Small Model - Haiku or mini]
+    ROUTE -->|Complex - code or analysis| LARGE[Large Model - Sonnet or GPT-4o]
+    ROUTE -->|Deterministic lookup| CACHE[Cache Layer - Redis]
+    SMALL --> RESULT[Result]
+    LARGE --> RESULT
+    CACHE --> RESULT
+    RESULT --> STORE[Store in Semantic Cache]
+    STORE --> |Future similar queries| CACHE
+```
+
+Key strategies to reduce agent spend in production:
+
+1. **Model routing**: Use a cheap model to classify task complexity, then route to the appropriate tier. Most tasks are simple enough for a small model.
+2. **Prompt caching**: Anthropic and OpenAI both offer cache pricing for repeated system prompts. A 10K-token system prompt cached across 1,000 runs saves roughly $0.03 per 1,000 requests.
+3. **Semantic caching**: Store (query embedding, response) pairs. When a new query is semantically similar to a cached one, return the cached response directly.
+4. **Context trimming**: Compress conversation history before each LLM call. Sending 15K tokens of history when 3K would suffice wastes money on every turn.
+5. **Early termination**: Detect when the agent is looping and has not made progress in N steps. Bail out and escalate rather than burning tokens indefinitely.
+
+---
+
+## 16. Agent Security and Sandboxing
+
+Agents that can execute code, write files, and call external APIs are powerful. They are also dangerous if not properly sandboxed. Prompt injection, tool abuse, and runaway automation are real production risks.
+
+### 16.1. Threat Model
+
+```mermaid
+graph LR
+    ATTACKER[Adversary] --> |Malicious prompt in document| INJECT[Prompt Injection]
+    INJECT --> AGENT[Agent]
+    AGENT --> |Tricked into executing| DANGEROUS[Dangerous Tool Call]
+    DANGEROUS --> FS[File System Writes]
+    DANGEROUS --> NET[Exfiltrate Data]
+    DANGEROUS --> SHELL[Shell Command Execution]
+    FS --> DAMAGE[Data Loss]
+    NET --> BREACH[Data Breach]
+    SHELL --> COMPROMISE[System Compromise]
+```
+
+### 16.2. Defense: Tool Allowlisting and Capability Separation
+
+```python
+from functools import wraps
+from typing import Callable, Set
+
+ALLOWED_TOOLS: Set[str] = {"read_file", "search_docs", "run_tests"}
+PRIVILEGED_TOOLS: Set[str] = {"write_file", "execute_shell", "send_email"}
+
+def require_confirmation(tool_fn: Callable):
+    """Decorator: privileged tools require explicit human approval."""
+    @wraps(tool_fn)
+    def wrapper(*args, **kwargs):
+        print(f"\nPrivileged tool called: {tool_fn.__name__}")
+        print(f"Arguments: {args}, {kwargs}")
+        approval = input("Approve? (yes/no): ").strip().lower()
+        if approval != "yes":
+            raise PermissionError(f"Tool {tool_fn.__name__} denied by operator.")
+        return tool_fn(*args, **kwargs)
+    return wrapper
+
+
+def sandbox_tool_call(tool_name: str, args: dict, context: dict) -> dict:
+    """
+    Enforce tool allowlist and validate arguments before execution.
+    Returns the tool result or an error dict.
+    """
+    if tool_name not in ALLOWED_TOOLS | PRIVILEGED_TOOLS:
+        return {"error": f"Unknown tool: {tool_name}. Not in registry."}
+
+    # Path traversal protection for file operations
+    if "path" in args:
+        import os
+        safe_root = "/workspace"
+        resolved = os.path.realpath(os.path.join(safe_root, args["path"]))
+        if not resolved.startswith(safe_root):
+            return {"error": "Path traversal attempt blocked."}
+
+    # Rate limiting per tool
+    if context.get(f"{tool_name}_calls", 0) > 20:
+        return {"error": f"Rate limit exceeded for tool {tool_name}."}
+
+    return {"approved": True}
+```
+
+### 16.3. Defense: Code Execution Sandboxing
+
+When agents need to run code, always execute it in an isolated container with no network access, strict CPU and memory limits, and no access to the host filesystem.
+
+```python
+import subprocess
+import tempfile
+import os
+
+def execute_code_sandboxed(code: str, timeout_seconds: int = 10) -> dict:
+    """
+    Execute Python code in a restricted Docker container.
+    Returns stdout, stderr, and exit code.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as f:
+        f.write(code)
+        script_path = f.name
+
+    try:
+        result = subprocess.run(
+            [
+                "docker", "run",
+                "--rm",                          # auto-remove container
+                "--network", "none",             # no network access
+                "--memory", "128m",              # 128MB memory limit
+                "--cpus", "0.5",                 # half a CPU core
+                "--read-only",                   # read-only filesystem
+                "-v", f"{script_path}:/code.py:ro",
+                "python:3.12-slim",
+                "python", "/code.py",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+        return {
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode,
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": "Execution timed out", "returncode": -1}
+    finally:
+        os.unlink(script_path)
+
+---
+
+## 17. Conclusion: The Journey Ahead
+
+Agentic AI represents a fundamental shift in how we interact with artificial intelligence. We're moving from a world where AI answers our questions to one where AI takes action on our behalf. This transition is both exciting and sobering.
+
+The technology is powerful, but it's not magic. Agents are tools - sophisticated, capable, sometimes surprising tools - but tools nonetheless. Their value comes not from replacing human intelligence but from amplifying it.
+
+As you consider incorporating agentic AI into your work or life, remember this: the goal isn't to automate everything. It's to automate the right things, freeing humans to do what we do best - create, connect, and care.
+
+The future isn't about humans versus agents. It's about humans with agents, building things we never could alone. And that future? It's already here. The question isn't whether to embrace it, but how to shape it.
+
+_What role will you play in this agentic future? What would you build if you had a tireless, intelligent collaborator? The possibilities are limited only by our imagination and our wisdom in pursuing them._
+```

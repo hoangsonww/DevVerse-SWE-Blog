@@ -10,11 +10,12 @@ import {
   FiSun,
   FiMoon,
   FiMessageSquare,
+  FiHeart,
 } from "react-icons/fi";
-import { FaRegStar } from "react-icons/fa";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
 import UserMenu from "./UserMenu";
 import TranslateMenu from "./TranslateMenu";
+import Tooltip from "./Tooltip";
 import { supabase } from "@/supabase/supabaseClient";
 
 function formatSegment(segment: string): string {
@@ -162,6 +163,19 @@ export default function Navbar() {
           <span>Home</span>
         </Link>
         <FiChevronRight />
+        <Link
+          href="/home"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiBook />
+          <span>Articles</span>
+        </Link>
+        <FiChevronRight />
         <span>{authPage}</span>
       </span>
     );
@@ -181,6 +195,19 @@ export default function Navbar() {
           <span>Home</span>
         </Link>
         <FiChevronRight />
+        <Link
+          href="/home"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiBook />
+          <span>Articles</span>
+        </Link>
+        <FiChevronRight />
         <span>Favorites</span>
       </span>
     );
@@ -198,6 +225,19 @@ export default function Navbar() {
         >
           <FiHome />
           <span>Home</span>
+        </Link>
+        <FiChevronRight />
+        <Link
+          href="/home"
+          style={{
+            color: "var(--link-color)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+          }}
+        >
+          <FiBook />
+          <span>Articles</span>
         </Link>
         <FiChevronRight />
         <FiMessageSquare />
@@ -295,31 +335,39 @@ export default function Navbar() {
           }}
         >
           <UserMenu />
-          <div
-            className="icon-btn"
-            onClick={() => router.push("/chat")}
-            aria-label="Open Chatbot"
-            title="Open Chatbot"
-          >
-            <FiMessageSquare size={24} />
-          </div>
-          <TranslateMenu />
-          {user && (
+          <Tooltip text="Open Chatbot" position="bottom">
             <div
               className="icon-btn"
-              onClick={() => router.push("/favorites")}
-              aria-label="View Favorites"
+              onClick={() => router.push("/chat")}
+              aria-label="Open Chatbot"
             >
-              <FaRegStar size={24} />
+              <FiMessageSquare size={24} />
             </div>
+          </Tooltip>
+          {user && (
+            <Tooltip text="View Favorites" position="bottom">
+              <div
+                className="icon-btn"
+                onClick={() => router.push("/favorites")}
+                aria-label="View Favorites"
+              >
+                <FiHeart size={24} />
+              </div>
+            </Tooltip>
           )}
-          <div
-            className="icon-btn"
-            onClick={() => setDarkMode(!darkMode)}
-            aria-label="Toggle dark mode"
+          <Tooltip
+            text={darkMode ? "Light Mode" : "Dark Mode"}
+            position="bottom"
           >
-            {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
-          </div>
+            <div
+              className="icon-btn"
+              onClick={() => setDarkMode(!darkMode)}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
+            </div>
+          </Tooltip>
+          <TranslateMenu />
         </div>
       </nav>
 

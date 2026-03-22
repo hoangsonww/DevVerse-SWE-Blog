@@ -21,7 +21,7 @@ TailwindCSS is a utility-first CSS framework that enables rapid UI development b
 
 ---
 
-## Introduction
+## 1. Introduction
 
 Traditional CSS frameworks often come with pre-designed components that can limit your design flexibility. TailwindCSS takes a different approach by offering utility classes that you can combine to create custom designs without leaving your HTML. This approach offers:
 
@@ -32,7 +32,20 @@ Traditional CSS frameworks often come with pre-designed components that can limi
 
 ---
 
-## Installation
+## 2. Installation
+
+```mermaid
+graph TD
+    A[Source Files - HTML - JSX - TSX] --> B[Tailwind Scanner]
+    B --> C[Detect Used Utility Classes]
+    C --> D[Generate Raw CSS]
+    D --> E[PostCSS Processing]
+    E --> F[Purge Unused Styles]
+    F --> G[Minified CSS Bundle]
+    G --> H[Browser Render]
+    I[tailwind.config.js] --> B
+    I --> F
+```
 
 ### Using npm
 
@@ -59,7 +72,7 @@ Make sure to import this CSS file into your project (e.g., in your Next.js `_app
 
 ---
 
-## Configuration
+## 3. Configuration
 
 TailwindCSS is highly configurable. The `tailwind.config.js` file allows you to customize your theme, add plugins, and specify which files Tailwind should scan for class names.
 
@@ -109,7 +122,7 @@ This tells your build process to include TailwindCSS in your final CSS bundle, s
 
 ---
 
-## Utility-First Approach
+## 4. Utility-First Approach
 
 TailwindCSS is built around utility classes. Instead of writing custom CSS, you use classes like `p-4`, `bg-blue-500`, `text-center`, and more to style your elements directly in your HTML.
 
@@ -135,7 +148,16 @@ Each class corresponds to a specific style:
 
 ---
 
-## Responsive Design
+## 5. Responsive Design
+
+```mermaid
+graph LR
+    A[Base Styles - Mobile First] --> B[sm breakpoint - 640px]
+    B --> C[md breakpoint - 768px]
+    C --> D[lg breakpoint - 1024px]
+    D --> E[xl breakpoint - 1280px]
+    E --> F[2xl breakpoint - 1536px]
+```
 
 TailwindCSS makes responsive design simple with its mobile-first approach. Use prefixes like `sm:`, `md:`, `lg:`, and `xl:` to apply styles at different breakpoints.
 
@@ -151,9 +173,25 @@ TailwindCSS makes responsive design simple with its mobile-first approach. Use p
 
 This example adjusts both padding and text size based on the viewport width.
 
+```mermaid
+graph TD
+    A[tailwind.config.js - Design Tokens] --> B[Colors]
+    A --> C[Spacing Scale]
+    A --> D[Typography]
+    A --> E[Breakpoints]
+    B --> F[bg-primary - text-secondary etc]
+    C --> G[p-4 - m-8 - gap-2 etc]
+    D --> H[font-sans - text-lg etc]
+    E --> I[sm - md - lg - xl prefixes]
+    F --> J[Utility Classes Available in Markup]
+    G --> J
+    H --> J
+    I --> J
+```
+
 ---
 
-## Customization and Extensibility
+## 6. Customization and Extensibility
 
 TailwindCSS is designed to be customized. You can extend the default theme, create your own utility classes, or even add plugins to handle custom functionalities.
 
@@ -192,9 +230,21 @@ Then, add it to your configuration:
 plugins: [require('@tailwindcss/forms')],
 ```
 
+```mermaid
+graph LR
+    A[Repeated Utility Pattern in Markup] --> B{Extract to Component?}
+    B -- Yes --> C[React or Vue Component]
+    B -- Shared CSS Only --> D[Apply directive in CSS]
+    C --> E[Encapsulated Reusable UI]
+    D --> F[btn - card - badge classes]
+    E --> G[Used Across Pages]
+    F --> G
+    G --> H[Consistent Design System]
+```
+
 ---
 
-## Best Practices
+## 7. Best Practices
 
 1. **Purge Unused CSS:**
    Ensure that your `content` paths in `tailwind.config.js` are correctly set up so that Tailwind can remove unused styles in production builds.
@@ -211,9 +261,20 @@ plugins: [require('@tailwindcss/forms')],
 5. **Responsive Design:**
    Always consider mobile-first design principles. Test your layouts on various devices to ensure they look great everywhere.
 
+```mermaid
+graph TD
+    A[Developer Saves File] --> B[JIT Scanner Runs]
+    B --> C[Parse HTML - JSX - TSX for Class Names]
+    C --> D[Build Class Dependency Map]
+    D --> E[Generate Only Used CSS Rules]
+    E --> F[Apply PostCSS Transforms]
+    F --> G[Inject into Dev Server Hot Reload]
+    G --> H[Browser Updates Instantly]
+```
+
 ---
 
-## Real-World Examples
+## 8. Real-World Examples
 
 TailwindCSS is widely used in production by companies like GitHub, Discord, and more. Many modern web applications leverage its utility-first approach to build fast, responsive, and maintainable UIs.
 
@@ -240,17 +301,408 @@ Imagine a landing page built entirely with TailwindCSS:
 
 This snippet uses Tailwind's utility classes to create a visually appealing and responsive landing page section.
 
+```mermaid
+graph TD
+    A[Dark Mode Strategy] --> B{Config darkMode?}
+    B -- media --> C[Follows OS Preference]
+    B -- class --> D[Toggle dark Class on html]
+    C --> E[prefers-color-scheme media query]
+    D --> F[JS Toggles Class on Click]
+    E --> G[dark Variant Activates]
+    F --> G
+    G --> H[dark-bg-gray-900 Applied]
+    G --> I[dark-text-white Applied]
+    H --> J[Dark UI Rendered]
+    I --> J
+```
+
+```mermaid
+graph LR
+    A[Tailwind Variants] --> B[State Variants]
+    A --> C[Responsive Variants]
+    A --> D[Dark Mode Variant]
+    B --> E[hover - focus - active]
+    B --> F[disabled - checked - required]
+    C --> G[sm - md - lg - xl - 2xl]
+    D --> H[dark prefix]
+    E --> I[hover-bg-blue-600]
+    F --> J[disabled-opacity-50]
+    G --> K[lg-grid-cols-3]
+    H --> L[dark-text-gray-100]
+```
+
+```mermaid
+graph TD
+    A[Component Library Pattern] --> B[Install headlessui or radix]
+    B --> C[Unstyled Accessible Primitives]
+    C --> D[Apply Tailwind Classes]
+    D --> E[Create Wrapper Component]
+    E --> F[Export as Button - Modal - Dropdown]
+    F --> G[Reuse Across Pages]
+    G --> H[Override via Props or CVA variants]
+    H --> I[Consistent Branded Design System]
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> Development
+    Development --> Scanning : file saved
+    Scanning --> Generating : classes detected
+    Generating --> HotReload : CSS rebuilt
+    HotReload --> Development : browser updated
+    Development --> ProductionBuild : deploy triggered
+    ProductionBuild --> Purging : remove unused classes
+    Purging --> Minifying : only used classes remain
+    Minifying --> [*] : optimized bundle shipped
+```
+
 ---
 
-## Conclusion
+## 9. Group and Peer Modifiers
+
+Two of Tailwind's most powerful but underused features are `group` and `peer`. They let you style children based on parent state, and siblings based on sibling state, without any JavaScript.
+
+### The `group` Modifier
+
+Apply `group` to a parent container, then use `group-hover:`, `group-focus:`, `group-aria-*:` on any descendant.
+
+```html
+<div
+  class="group relative cursor-pointer rounded-xl border border-gray-200 p-6 hover:border-blue-500 hover:shadow-lg transition-all"
+>
+  <h2
+    class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors"
+  >
+    Card Title
+  </h2>
+  <p class="mt-2 text-sm text-gray-500 group-hover:text-gray-700">
+    Hover the card to see all children respond together.
+  </p>
+  <span
+    class="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 text-xs font-medium"
+  >
+    View →
+  </span>
+</div>
+```
+
+You can also name groups to avoid conflicts when nesting:
+
+```html
+<div class="group/card">
+  <div class="group/header">
+    <span class="group-hover/card:text-blue-500 group-hover/header:font-bold">
+      Nested group targeting
+    </span>
+  </div>
+</div>
+```
+
+### The `peer` Modifier
+
+`peer` applies a class to a sibling element when the marked element is in a given state. This is especially useful for custom form controls.
+
+```html
+<form class="space-y-4">
+  <div>
+    <input
+      type="email"
+      id="email"
+      placeholder=" "
+      required
+      class="peer block w-full rounded-lg border border-gray-300 px-4 py-3 text-sm
+             focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200
+             invalid:[&:not(:placeholder-shown)]:border-red-500"
+    />
+    <p
+      class="mt-1 hidden text-xs text-red-500 peer-[&:not(:placeholder-shown)]:peer-invalid:block"
+    >
+      Please enter a valid email address.
+    </p>
+  </div>
+</form>
+```
+
+---
+
+## 10. Building a Custom Tailwind Plugin
+
+Plugins let you extend Tailwind with your own utilities, components, and variants. They are plain JavaScript functions that tap into PostCSS internals through a provided API.
+
+### Plugin Structure
+
+```js
+// tailwind.config.js
+const plugin = require("tailwindcss/plugin");
+
+module.exports = {
+  plugins: [
+    plugin(function ({ addUtilities, addComponents, addVariant, theme, e }) {
+      // 1. Add custom utilities
+      addUtilities({
+        ".text-balance": { "text-wrap": "balance" },
+        ".text-pretty": { "text-wrap": "pretty" },
+        ".scrollbar-thin": {
+          "scrollbar-width": "thin",
+          "scrollbar-color": `${theme("colors.gray.400")} transparent`,
+        },
+      });
+
+      // 2. Add component classes
+      addComponents({
+        ".btn": {
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: theme("borderRadius.lg"),
+          paddingLeft: theme("spacing.4"),
+          paddingRight: theme("spacing.4"),
+          paddingTop: theme("spacing.2"),
+          paddingBottom: theme("spacing.2"),
+          fontWeight: theme("fontWeight.semibold"),
+          transition: "all 150ms ease",
+        },
+        ".btn-primary": {
+          backgroundColor: theme("colors.blue.600"),
+          color: theme("colors.white"),
+          "&:hover": { backgroundColor: theme("colors.blue.700") },
+        },
+      });
+
+      // 3. Add custom variants
+      addVariant("hocus", ["&:hover", "&:focus"]);
+      addVariant("children", "& > *");
+      addVariant("not-first", "&:not(:first-child)");
+    }),
+  ],
+};
+```
+
+```mermaid
+graph TD
+    A[tailwind.config.js plugins array] --> B[Plugin Function]
+    B --> C[addUtilities - single-purpose helpers]
+    B --> D[addComponents - multi-class abstractions]
+    B --> E[addVariant - new conditional prefixes]
+    B --> F[matchUtilities - dynamic value support]
+    C --> G[Generated Utility CSS Rules]
+    D --> H[Generated Component CSS Rules]
+    E --> I[New Variant Available in Markup]
+    F --> J[Arbitrary-Value Utility e.g. tab-4]
+    G --> K[Final PostCSS Output]
+    H --> K
+    I --> K
+    J --> K
+```
+
+### Dynamic Utilities with `matchUtilities`
+
+`matchUtilities` integrates your custom utility with Tailwind's arbitrary-value and `theme()` systems:
+
+```js
+plugin(function ({ matchUtilities, theme }) {
+  matchUtilities(
+    {
+      tab: (value) => ({
+        tabSize: value,
+      }),
+    },
+    { values: theme("spacing") },
+  );
+});
+```
+
+This lets you write `tab-4`, `tab-8`, or even `tab-[3]` in markup.
+
+---
+
+## 11. Animation Utilities
+
+Tailwind ships with `animate-spin`, `animate-ping`, `animate-pulse`, and `animate-bounce` out of the box, but the real power is in composing custom keyframe animations through config.
+
+### Configuring Custom Keyframes
+
+```js
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      keyframes: {
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)", opacity: "0" },
+          to: { transform: "translateX(0)", opacity: "1" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.3s ease-out both",
+        "slide-in-right": "slide-in-right 0.4s ease-out both",
+        shimmer: "shimmer 1.5s infinite linear",
+      },
+    },
+  },
+};
+```
+
+Usage in markup:
+
+```html
+<!-- Skeleton loader with shimmer -->
+<div
+  class="h-4 w-full rounded bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200
+         bg-[length:200%_100%] animate-shimmer"
+></div>
+
+<!-- Page section entrance -->
+<section class="animate-fade-in">
+  <h1 class="text-4xl font-bold">Welcome</h1>
+</section>
+```
+
+---
+
+## 12. Tailwind with Component Libraries
+
+Combining Tailwind's utility classes with unstyled, accessible primitives from libraries like Headless UI, Radix UI, or shadcn/ui gives you the best of both worlds: behavioral correctness and total styling freedom.
+
+```mermaid
+graph LR
+    A[shadcn/ui or Radix UI] --> B[Unstyled Accessible Primitives]
+    B --> C[Dialog, Dropdown, Tooltip, etc.]
+    C --> D[Apply Tailwind Classes via className]
+    D --> E[Branded Component]
+    E --> F[Wrap in Your Own Component]
+    F --> G[Export from design-system package]
+    G --> H[Consumed across monorepo apps]
+    H --> I[Override variants via CVA or clsx]
+```
+
+### Class Variance Authority (CVA) Pattern
+
+CVA is a tiny library that manages class variants in a type-safe way, making it ideal for building Tailwind-based design systems:
+
+```tsx
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const button = cva(
+  "inline-flex items-center justify-center rounded-lg font-semibold transition-all focus-visible:outline-none",
+  {
+    variants: {
+      intent: {
+        primary: "bg-blue-600 text-white hover:bg-blue-700",
+        secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
+        danger: "bg-red-600 text-white hover:bg-red-700",
+        ghost: "text-gray-600 hover:bg-gray-100",
+      },
+      size: {
+        sm: "h-8  px-3 text-xs",
+        md: "h-10 px-4 text-sm",
+        lg: "h-12 px-6 text-base",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      intent: "primary",
+      size: "md",
+    },
+  },
+);
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof button>;
+
+export function Button({ intent, size, className, ...props }: ButtonProps) {
+  return (
+    <button className={cn(button({ intent, size }), className)} {...props} />
+  );
+}
+```
+
+---
+
+## 13. Performance: Bundle Size and Production Build
+
+Tailwind v3 with JIT generates only the classes present in your scanned content files, so the final CSS bundle is almost always under 15 KB gzipped in production — far smaller than a typical custom stylesheet.
+
+### Common Pitfalls That Bloat the Bundle
+
+1. **Dynamic class construction** - Tailwind cannot detect strings assembled at runtime:
+
+```js
+// BAD: Tailwind's scanner will not find these classes
+const color = userColor; // e.g. "blue"
+return <div className={`text-${color}-500`}>...</div>;
+
+// GOOD: Use a full class lookup map
+const colorMap = {
+  blue: "text-blue-500",
+  green: "text-green-500",
+  red: "text-red-500",
+};
+return <div className={colorMap[userColor]}>...</div>;
+```
+
+2. **Missing content paths** - If a file is not in the `content` glob, its classes will be purged.
+
+3. **Third-party component packages** - Include the package's source files in `content` if they use Tailwind classes:
+
+```js
+content: [
+  './src/**/*.{ts,tsx}',
+  './node_modules/@my-org/design-system/dist/**/*.js', // add this
+],
+```
+
+### CSS Layer Strategy
+
+Use `@layer` to keep your custom CSS co-operating with Tailwind's specificity model:
+
+```css
+@layer base {
+  /* Resets and defaults: lowest specificity */
+  h1,
+  h2,
+  h3 {
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  /* Reusable multi-utility patterns */
+  .card {
+    @apply rounded-xl border border-gray-200 p-6 shadow-sm;
+  }
+}
+
+@layer utilities {
+  /* Custom single-purpose utilities: highest specificity */
+  .content-auto {
+    content-visibility: auto;
+  }
+}
+```
+
+---
+
+## 14. Conclusion
 
 TailwindCSS offers a powerful, utility-first approach to styling that can dramatically speed up your development process while keeping your designs consistent and responsive. With its extensive configuration options and rich plugin ecosystem, TailwindCSS is an ideal choice for modern web development.
+
+From advanced modifiers like `group` and `peer` to custom plugin APIs and CVA-powered component systems, Tailwind scales from a single-page project all the way to an enterprise design system. The JIT compiler keeps production bundles lean, and the rich ecosystem of headless UI primitives means you never have to choose between accessibility and pixel-perfect designs.
 
 By mastering TailwindCSS, you can build beautiful, performant, and maintainable web applications with ease. Whether you're a beginner or an experienced developer, TailwindCSS empowers you to bring your design vision to life without writing a lot of custom CSS.
 
 ---
 
-## Further Reading and Resources
+## 15. Further Reading and Resources
 
 - **Official Documentation:** [TailwindCSS Documentation](https://tailwindcss.com/docs)
 - **Tailwind Play:** [Tailwind Play](https://play.tailwindcss.com/) – An interactive playground for experimenting with TailwindCSS.

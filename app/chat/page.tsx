@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import MermaidChart from "@/ui/MermaidChart";
 import {
   getCitationNumberFromHref,
   linkifyCitations,
@@ -333,6 +334,22 @@ export default function ChatPage() {
                       className={styles.markdown}
                       remarkPlugins={[remarkGfm]}
                       components={{
+                        code: ({ className, children, ...props }) => {
+                          if (className === "language-mermaid") {
+                            const code =
+                              typeof children === "string"
+                                ? children
+                                : Array.isArray(children)
+                                  ? children.join("")
+                                  : "";
+                            return <MermaidChart chart={code} />;
+                          }
+                          return (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
                         a: ({ href, children }) => {
                           if (href?.startsWith("#source-")) {
                             const sourceNumber =

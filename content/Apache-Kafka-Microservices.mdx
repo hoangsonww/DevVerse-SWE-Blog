@@ -46,6 +46,20 @@ Apache Kafka has become a key component in the event-driven ecosystem due to:
 - **Durability and Fault Tolerance:** With data replication and distributed architecture, Kafka ensures data safety and reliable message delivery.
 - **Flexible Integration:** Kafka acts as a central message bus that integrates with various processing frameworks and storage systems.
 
+```mermaid
+graph TD
+    P1[Producer 1] --> T1[Topic: Orders]
+    P2[Producer 2] --> T2[Topic: Payments]
+    T1 --> |Partition 0| C1[Consumer Group A]
+    T1 --> |Partition 1| C2[Consumer Group A]
+    T2 --> |Partition 0| C3[Consumer Group B]
+    T1 --> |Partition 0| C4[Consumer Group C]
+    subgraph Kafka Cluster
+        T1
+        T2
+    end
+```
+
 ---
 
 ## 2. Theoretical Foundations and Architectural Patterns
@@ -66,6 +80,19 @@ Key architectural patterns for Kafka-based systems include:
 - **Event Sourcing:** Captures state changes as a sequence of events for auditability and state reconstruction.
 - **CQRS (Command Query Responsibility Segregation):** Separates the processing of commands (writes) and queries (reads) to optimize performance.
 - **Log Compaction:** Retains the latest value for a message key, enabling state rebuilding and handling evolving data.
+
+The following diagram illustrates the CQRS pattern with Kafka as the event backbone:
+
+```mermaid
+graph LR
+    CMD[Command API] --> KP[Kafka Producer]
+    KP --> TOPIC[Kafka Topic]
+    TOPIC --> KC1[Write Consumer]
+    KC1 --> WDB[(Write DB)]
+    TOPIC --> KC2[Read Consumer]
+    KC2 --> RDB[(Read DB / Cache)]
+    QUERY[Query API] --> RDB
+```
 
 ### 2.3. Data Modeling and Schema Management
 
@@ -181,11 +208,51 @@ Key configurations to enhance reliability include:
 - **Idempotent Producers:** Enable idempotence to avoid duplicate event processing.
 - **Transactional Messaging:** For workflows requiring exactly-once semantics, use Kafka’s transactional APIs.
 
+The following sequence diagram illustrates exactly-once delivery using Kafka transactions:
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant K as Kafka Broker
+    participant C as Consumer
+    participant DB as Database
+
+    P->>K: initTransactions
+    P->>K: beginTransaction
+    P->>K: send message to topic
+    P->>K: commitTransaction
+    K->>C: deliver message - offset not yet committed
+    C->>DB: write to database
+    DB->>C: write acknowledged
+    C->>K: commitOffset - mark as processed
+    Note over P,DB: Message processed exactly once
+    Note over K,C: If consumer crashes before commitOffset - message redelivered safely
+```
+
 ### 4.2. Scaling Consumers and Managing Backpressure
 
 - **Consumer Groups:** Distribute processing across multiple consumers.
 - **Partitioning Strategy:** Use meaningful keys to maintain data locality.
 - **Monitoring Consumer Lag:** Tools like Kafka Manager help track processing delays.
+
+Consumer group rebalancing happens automatically when consumers join or leave. The diagram below shows the partition reassignment process:
+
+```mermaid
+graph TD
+    T[Topic - 4 Partitions] --> P0[Partition 0]
+    T --> P1[Partition 1]
+    T --> P2[Partition 2]
+    T --> P3[Partition 3]
+    P0 --> C1[Consumer 1]
+    P1 --> C1
+    P2 --> C2[Consumer 2]
+    P3 --> C2
+    C3[Consumer 3 joins] --> Rebalance[Rebalance triggered]
+    Rebalance --> P0B[Partition 0 stays on Consumer 1]
+    Rebalance --> P1B[Partition 1 moves to Consumer 3]
+    Rebalance --> P2B[Partition 2 stays on Consumer 2]
+    Rebalance --> P3B[Partition 3 moves to Consumer 3]
+```
 
 ### 4.3. Performance Tuning
 
@@ -195,6 +262,23 @@ Key configurations to enhance reliability include:
 ---
 
 ## 5. Integration, Monitoring, and Continuous Delivery
+
+### 5.1. Stream Processing Topology
+
+For real-time analytics, Kafka Streams enables stateful transformations using a processing topology:
+
+```mermaid
+graph LR
+    Source[Source Topic - raw-events] --> Filter[Filter Node - valid events only]
+    Filter --> Map[Map Node - enrich with metadata]
+    Map --> Branch{Branch on event type}
+    Branch -->|order| OrderAgg[Aggregator - order totals by window]
+    Branch -->|click| ClickCount[Count - clicks per session]
+    OrderAgg --> Sink1[Sink Topic - order-summaries]
+    ClickCount --> Sink2[Sink Topic - click-metrics]
+    Sink1 --> Dashboard[Analytics Dashboard]
+    Sink2 --> Dashboard
+```
 
 ### 5.1. Integrating Microservices
 
@@ -358,13 +442,431 @@ You should see confirmation from the order service and corresponding output in t
 
 ---
 
-## 7. Conclusion
+## 7. Kafka Connect Deep Dive
+
+Kafka Connect is a framework for reliably streaming data between Kafka and external systems (databases, cloud storage, search engines) without writing custom producer/consumer code.
+
+### 7.1 Connect Architecture
+
+```mermaid
+graph TD
+    EXT_SRC[External Source - PostgreSQL or S3] --> SRC_CONN[Source Connector]
+    SRC_CONN --> KAFKA[Kafka Topic]
+    KAFKA --> SINK_CONN[Sink Connector]
+    SINK_CONN --> EXT_SINK[External Sink - Elasticsearch or Snowflake]
+    subgraph ConnectCluster
+        WORKER1[Connect Worker 1]
+        WORKER2[Connect Worker 2]
+        SRC_CONN
+        SINK_CONN
+    end
+    WORKER1 --> SRC_CONN
+    WORKER2 --> SINK_CONN
+    REST[Connect REST API] --> WORKER1
+    REST --> WORKER2
+```
+
+### 7.2 Deploying the Debezium PostgreSQL Source Connector
+
+Debezium captures row-level changes from the PostgreSQL write-ahead log (WAL) and streams them as Kafka events, enabling zero-downtime database migrations and event sourcing:
+
+```bash
+# Deploy Debezium PostgreSQL connector via Kafka Connect REST API
+curl -X POST http://localhost:8083/connectors \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "postgres-source-connector",
+    "config": {
+      "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+      "database.hostname": "postgres",
+      "database.port": "5432",
+      "database.user": "debezium",
+      "database.password": "dbz",
+      "database.dbname": "ecommerce",
+      "database.server.name": "ecommerce",
+      "table.include.list": "public.orders,public.inventory",
+      "plugin.name": "pgoutput",
+      "slot.name": "debezium_slot",
+      "publication.name": "dbz_publication",
+      "transforms": "unwrap",
+      "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+      "transforms.unwrap.add.fields": "op,ts_ms",
+      "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+    }
+  }'
+```
+
+### 7.3 Elasticsearch Sink Connector
+
+```bash
+curl -X POST http://localhost:8083/connectors \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "elasticsearch-sink-connector",
+    "config": {
+      "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+      "tasks.max": "2",
+      "topics": "ecommerce.public.orders",
+      "connection.url": "http://elasticsearch:9200",
+      "type.name": "_doc",
+      "key.ignore": "false",
+      "schema.ignore": "true",
+      "behavior.on.malformed.documents": "warn",
+      "behavior.on.null.values": "delete",
+      "flush.timeout.ms": "10000"
+    }
+  }'
+```
+
+---
+
+At-least-once delivery is the Kafka default; achieving exactly-once requires both idempotent producers and transactional consumers. The pattern is commonly called the "read-process-write" transaction.
+
+### 7.4. Transactional Producer and Consume-Transform-Produce
+
+```python
+from kafka import KafkaProducer, KafkaConsumer
+from kafka.errors import KafkaError
+import json, os
+
+KAFKA_BROKER = os.environ.get("KAFKA_BROKER", "localhost:9092")
+TRANSACTIONAL_ID = "order-enrichment-service-1"
+
+# Idempotent transactional producer
+producer = KafkaProducer(
+    bootstrap_servers=[KAFKA_BROKER],
+    enable_idempotence=True,
+    transactional_id=TRANSACTIONAL_ID,
+    acks="all",
+    retries=2147483647,
+    max_in_flight_requests_per_connection=5,
+    value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+)
+producer.init_transactions()
+
+consumer = KafkaConsumer(
+    "orders",
+    bootstrap_servers=[KAFKA_BROKER],
+    group_id="order-enrichment-group",
+    auto_offset_reset="earliest",
+    enable_auto_commit=False,  # Manual commit inside transaction
+    isolation_level="read_committed",  # Only read committed messages
+    value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+)
+
+def enrich_order(order):
+    """Add tax calculation and fulfillment region to order."""
+    order["tax"] = round(order["total"] * 0.08, 2)
+    order["region"] = "us-east-1" if order.get("zipCode", "00000") < "50000" else "us-west-2"
+    return order
+
+for message in consumer:
+    order = message.value
+    enriched = enrich_order(order)
+
+    try:
+        producer.begin_transaction()
+        # Write enriched order to output topic
+        producer.send("orders-enriched", enriched)
+        # Commit the consumer offset as part of the same transaction
+        producer.send_offsets_to_transaction(
+            {message.partition: message.offset + 1 for _ in [message]},
+            consumer.config["group_id"]
+        )
+        producer.commit_transaction()
+    except KafkaError as e:
+        producer.abort_transaction()
+        print(f"Transaction aborted: {e}")
+```
+
+The sequence below traces the atomicity guarantee through the full consume-transform-produce cycle:
+
+```mermaid
+sequenceDiagram
+    participant C as Consumer
+    participant K as Kafka Broker
+    participant TP as Transactional Producer
+    participant OUT as Output Topic
+
+    C->>K: Poll messages (isolation_level=read_committed)
+    K-->>C: Batch of committed messages
+    C->>C: Process and transform messages
+    TP->>K: beginTransaction
+    TP->>OUT: send enriched message
+    TP->>K: sendOffsetsToTransaction (consumer offsets)
+    K->>K: Store offsets atomically with message
+    TP->>K: commitTransaction
+    K->>K: Mark output messages as committed
+    K->>K: Mark consumer offsets as committed
+    Note over C,OUT: If crash before commit, transaction aborts
+    Note over C,OUT: Consumer reprocesses from last committed offset
+    Note over C,OUT: Duplicate output messages impossible
+```
+
+---
+
+Kafka Streams is a client library for building stateful stream processing applications. Windowing is essential for aggregations over time-bounded slices of an event stream.
+
+### 7.5. Tumbling Window Aggregation
+
+```java
+import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.kstream.*;
+import java.time.Duration;
+import java.util.Properties;
+
+public class OrderWindowAggregator {
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "order-window-aggregator");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+
+        StreamsBuilder builder = new StreamsBuilder();
+
+        KStream<String, Order> orders = builder.stream("orders",
+            Consumed.with(Serdes.String(), new JsonSerde<>(Order.class)));
+
+        // Tumbling window: non-overlapping 5-minute buckets
+        KTable<Windowed<String>, Long> orderCountByRegion = orders
+            .selectKey((k, order) -> order.getRegion())
+            .groupByKey()
+            .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofMinutes(5)))
+            .count(Materialized.as("order-count-store"));
+
+        orderCountByRegion.toStream()
+            .map((windowedRegion, count) -> KeyValue.pair(
+                windowedRegion.key(),
+                new RegionSummary(windowedRegion.key(), count, windowedRegion.window().startTime())
+            ))
+            .to("order-region-summaries", Produced.with(Serdes.String(), new JsonSerde<>(RegionSummary.class)));
+
+        KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
+}
+```
+
+The four standard window types each suit a different class of aggregation problem:
+
+```mermaid
+graph LR
+    TIME[Event Time Stream] --> TW[Tumbling Window - fixed non-overlapping]
+    TIME --> HW[Hopping Window - fixed overlapping]
+    TIME --> SW[Sliding Window - event-triggered]
+    TIME --> SES[Session Window - activity-gap based]
+    TW --> TW1[0-5 min bucket - 5-10 min bucket - no overlap]
+    HW --> HW1[0-5 min advance every 2 min - results overlap]
+    SW --> SW1[Window moves when new event arrives within max gap]
+    SES --> SES1[Window closes after inactivity gap - variable size]
+    TW1 --> UC1[Hourly billing reports]
+    HW1 --> UC2[Rolling average dashboard]
+    SW1 --> UC3[Fraud detection within short window]
+    SES1 --> UC4[User session analytics]
+```
+
+---
+
+In a microservices environment, producers and consumers evolve independently. The Schema Registry enforces compatibility rules so consumers never break when producers update their event schemas.
+
+### 7.6. Avro Schema Registration and Evolution
+
+```python
+from confluent_kafka import Producer
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
+from confluent_kafka.serialization import SerializationContext, MessageField
+
+SCHEMA_REGISTRY_URL = "http://localhost:8081"
+KAFKA_BROKER = "localhost:9092"
+
+# Version 1 of the Order schema
+ORDER_SCHEMA_V1 = """
+{
+  "type": "record",
+  "name": "Order",
+  "namespace": "com.example.ecommerce",
+  "fields": [
+    {"name": "orderId", "type": "long"},
+    {"name": "customerId", "type": "string"},
+    {"name": "total", "type": "double"}
+  ]
+}
+"""
+
+# Version 2 adds an optional field with a default - backward compatible
+ORDER_SCHEMA_V2 = """
+{
+  "type": "record",
+  "name": "Order",
+  "namespace": "com.example.ecommerce",
+  "fields": [
+    {"name": "orderId", "type": "long"},
+    {"name": "customerId", "type": "string"},
+    {"name": "total", "type": "double"},
+    {"name": "currency", "type": "string", "default": "USD"}
+  ]
+}
+"""
+
+schema_registry_conf = {"url": SCHEMA_REGISTRY_URL}
+schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+
+# Register v2 schema - registry checks backward compatibility automatically
+from confluent_kafka.schema_registry import Schema
+schema_id = schema_registry_client.register_schema(
+    "orders-value",
+    Schema(ORDER_SCHEMA_V2, "AVRO")
+)
+print(f"Registered schema ID: {schema_id}")
+```
+
+The compatibility mode chosen for each topic determines which schema changes are safe to make without redeploying consumers:
+
+```mermaid
+graph TD
+    CHANGE[Schema Change Proposed] --> MODE{Compatibility Mode}
+    MODE -->|BACKWARD| BC[New schema can read old messages]
+    MODE -->|FORWARD| FC[Old schema can read new messages]
+    MODE -->|FULL| BOTH[Both backward and forward compatible]
+    MODE -->|NONE| NONE[No compatibility check - dangerous]
+    BC --> ADD_OPT[Safe: add optional field with default]
+    BC --> DEL_FIELD[Safe: delete optional field]
+    BC --> UNSAFE1[Unsafe: add required field without default]
+    FC --> REN[Safe: rename field with alias]
+    BOTH --> CONSERVATIVE[Most conservative - only additive optional changes]
+    BOTH --> PROD[Recommended for production topics]
+```
+
+---
+
+## 8. Kafka Topic Anatomy
+
+Understanding how a Kafka topic is physically organized helps with partition key design and consumer group assignments:
+
+```mermaid
+graph TD
+    Topic[Topic: orders] --> P0[Partition 0]
+    Topic --> P1[Partition 1]
+    Topic --> P2[Partition 2]
+    P0 --> O0[Offset 0]
+    O0 --> O1[Offset 1]
+    O1 --> O2[Offset 2]
+    O2 --> OLast[Offset N - latest]
+    P1 --> Leader1[Leader: Broker 2]
+    P1 --> Replica1a[Replica: Broker 1]
+    P1 --> Replica1b[Replica: Broker 3]
+    P2 --> Leader2[Leader: Broker 3]
+    P2 --> Replica2a[Replica: Broker 1]
+    OLast --> Committed[Committed offset tracked by consumer]
+    Committed --> Lag[Consumer lag = latest minus committed]
+```
+
+---
+
+## 9. Producer Configuration Decision Tree
+
+Choosing the right producer reliability settings depends on the use case:
+
+```mermaid
+graph TD
+    UseCase[Producer use case] --> LossOK{Message loss acceptable?}
+    LossOK -->|Yes - fire and forget| AcksZero[acks=0 - maximum throughput]
+    LossOK -->|No| DupeOK{Duplicate messages acceptable?}
+    DupeOK -->|Yes - at least once| AcksAll[acks=all - wait for all replicas]
+    DupeOK -->|No - exactly once| Idempotent[enable.idempotence=true]
+    Idempotent --> Transactional{Cross-topic atomicity needed?}
+    Transactional -->|Yes| TxnAPI[Use Kafka transactions API]
+    Transactional -->|No| IdempotentOnly[Idempotent producer sufficient]
+    AcksAll --> RetryConfig[Set retries and delivery.timeout.ms]
+    TxnAPI --> RetryConfig
+    IdempotentOnly --> RetryConfig
+    RetryConfig --> BatchConfig[Tune batch.size and linger.ms for throughput]
+```
+
+---
+
+## 10. Event-Driven Microservices Interaction
+
+The following sequence shows how multiple microservices interact through Kafka topics in the order processing system:
+
+```mermaid
+sequenceDiagram
+    participant Client as HTTP Client
+    participant OrderSvc as Order Service
+    participant KOrders as Kafka - orders topic
+    participant PaySvc as Payment Service
+    participant KPayments as Kafka - payments topic
+    participant NotifSvc as Notification Service
+
+    Client->>OrderSvc: POST /order
+    OrderSvc->>KOrders: Publish order event
+    KOrders->>PaySvc: Deliver order event
+    PaySvc->>PaySvc: Process payment
+    PaySvc->>KPayments: Publish payment result
+    KPayments->>NotifSvc: Deliver payment event
+    NotifSvc->>NotifSvc: Send email to customer
+    KOrders->>NotifSvc: Deliver order event in parallel
+    NotifSvc->>NotifSvc: Send order confirmation
+```
+
+---
+
+## 11. Kafka Cluster Component Relationships
+
+Key components of a Kafka cluster and how they relate at the system level:
+
+```mermaid
+classDiagram
+    class KafkaBroker {
+        +brokerId int
+        +host string
+        +port int
+        +topics Topic[]
+        +handleProduce(record) void
+        +handleFetch(request) Records
+    }
+    class Topic {
+        +name string
+        +partitions Partition[]
+        +retentionMs long
+        +replicationFactor int
+    }
+    class Partition {
+        +partitionId int
+        +leaderId int
+        +replicas int[]
+        +logEndOffset long
+        +append(record) offset
+    }
+    class ConsumerGroup {
+        +groupId string
+        +members Consumer[]
+        +partitionAssignment map
+        +commitOffset(partition, offset) void
+    }
+    class Consumer {
+        +memberId string
+        +subscribedTopics string[]
+        +poll(timeout) Records
+    }
+    KafkaBroker --> Topic
+    Topic --> Partition
+    ConsumerGroup --> Consumer
+    Consumer --> Partition : reads from
+    KafkaBroker --> ConsumerGroup : coordinates
+```
+
+---
+
+## 12. Conclusion
 
 Apache Kafka provides a robust foundation for building scalable, event-driven backend systems. By leveraging effective architectural patterns, reliable data modeling, and advanced performance tuning, you can construct microservices that decouple processing and handle high-throughput environments. This article detailed the theoretical concepts, implementation strategies, and operational practices involved in building Kafka-based systems. The full example application demonstrated a complete order processing system, serving as a practical reference to jump-start your own projects.
 
 ---
 
-## 8. Further Resources
+## 13. Further Resources
 
 - **Apache Kafka Documentation:** [https://kafka.apache.org/documentation/](https://kafka.apache.org/documentation/)
 - **Confluent Resources:** [https://www.confluent.io/resources/](https://www.confluent.io/resources/)

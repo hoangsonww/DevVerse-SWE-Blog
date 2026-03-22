@@ -29,13 +29,28 @@ It was 2 AM, and I was stuck on a particularly gnarly bug in a distributed syste
 
 ---
 
-## The Unexpected Journey from Autocomplete to AI Partner
+## 1. The Unexpected Journey from Autocomplete to AI Partner
+
+```mermaid
+graph TD
+    A[Developer writes code] --> B[AI assistant observes context]
+    B --> C[AI generates suggestion]
+    C --> D{Developer reviews}
+    D -->|Accepts| E[Code inserted into editor]
+    D -->|Modifies| F[Developer edits suggestion]
+    D -->|Rejects| G[Developer writes manually]
+    E --> H[Run tests and review]
+    F --> H
+    G --> H
+    H -->|Issues found| A
+    H -->|Looks good| I[Commit and deploy]
+```
 
 Remember when IntelliSense felt revolutionary? That little dropdown suggesting method names seemed like magic in the early 2000s. Fast forward to today, and we have AI assistants that can architect entire systems, debug complex issues, and even question our design decisions.
 
 The transformation didn't happen overnight. It's been a gradual evolution from simple pattern matching to sophisticated reasoning engines. But somewhere along the way - perhaps when GitHub Copilot first autocompleted an entire function correctly, or when Claude Code explained why my approach might lead to technical debt - we crossed a threshold. These tools stopped being mere conveniences and started being creative partners.
 
-### The Current Landscape: More Than Just Code Completion
+### 1.1. The Current Landscape: More Than Just Code Completion
 
 Today's AI coding assistants fall into distinct categories, each with its own philosophy:
 
@@ -49,7 +64,7 @@ Today's AI coding assistants fall into distinct categories, each with its own ph
 
 ---
 
-## The Day AI Became My Pair Programming Partner
+## 2. The Day AI Became My Pair Programming Partner
 
 Let me share a recent experience that changed my perspective on AI assistance. I was building a real-time collaborative editor - think Google Docs but for code. The complexity was overwhelming: operational transformation algorithms, conflict resolution, WebSocket management, and state synchronization across clients.
 
@@ -95,7 +110,7 @@ What struck me wasn't the code itself, but how the AI framed it as part of a lar
 
 ---
 
-## The Productivity Paradox: Moving Faster While Thinking Deeper
+## 3. The Productivity Paradox: Moving Faster While Thinking Deeper
 
 There's an interesting paradox I've noticed since integrating AI assistants into my workflow. I'm writing code faster than ever, but I'm spending more time thinking about architecture and design. The mundane tasks that used to eat up hours - writing boilerplate, implementing standard patterns, creating test cases - now happen almost instantly. This liberation from the mechanical aspects of coding has freed me to focus on the creative and strategic elements.
 
@@ -156,7 +171,7 @@ But here's the crucial part: instead of just accepting this code, I spent the ti
 
 ---
 
-## The Ethical Tightrope: Attribution, Ownership, and Responsibility
+## 4. The Ethical Tightrope: Attribution, Ownership, and Responsibility
 
 As these tools become more powerful, we're walking an increasingly complex ethical tightrope. Last month, a colleague discovered that Copilot had suggested code that was nearly identical to a function from a GPL-licensed project. The suggestion was accepted without realizing the licensing implications. This incident sparked a team-wide discussion about AI and intellectual property.
 
@@ -189,7 +204,7 @@ We use AI to accelerate learning, not to bypass it. When AI suggests an unfamili
 
 ---
 
-## The Bias We Don't Talk About
+## 5. The Bias We Don't Talk About
 
 There's an uncomfortable truth about AI coding assistants that our industry needs to address: they can perpetuate and amplify biases present in their training data. I noticed this firsthand when working on a user management system. The AI consistently suggested database schemas with fields like "firstName" and "lastName" - a Western-centric assumption about how names work.
 
@@ -208,29 +223,43 @@ As developers, we have a responsibility to recognize and correct these biases. I
 
 ---
 
-## The Human Elements That AI Can't Replace
+## 6. The Human Elements That AI Can't Replace
 
 Despite the impressive capabilities of AI assistants, I've identified several areas where human judgment remains irreplaceable:
 
-### Creative Problem Solving
+### 6.1. Creative Problem Solving
 
 While AI can suggest solutions based on patterns it's seen, true innovation - the "aha!" moments that lead to breakthrough solutions - still comes from human creativity. AI can help you implement a distributed cache, but it won't invent Redis.
 
-### Ethical Decision Making
+### 6.2. Ethical Decision Making
 
 AI can flag potential ethical issues, but the nuanced decisions about user privacy, data handling, and feature implications require human values and judgment. When we decided to implement end-to-end encryption in our chat application, the technical implementation was straightforward with AI help, but the decision to prioritize user privacy over certain features was fundamentally human.
 
-### Understanding Context and Constraints
+### 6.3. Understanding Context and Constraints
 
 AI doesn't know your team's specific constraints, your company's technical debt, or why you chose PostgreSQL over MongoDB three years ago. These contextual factors that influence every technical decision are uniquely human knowledge.
 
-### Empathy and User Understanding
+### 6.4. Empathy and User Understanding
 
 The best software isn't just technically sound; it understands and serves human needs. AI can help implement features, but understanding why a user might prefer one workflow over another requires human empathy and experience.
 
 ---
 
-## Practical Strategies for AI-Assisted Development
+## 7. Practical Strategies for AI-Assisted Development
+
+```mermaid
+graph LR
+    A[Human Strengths] --> E[Effective AI-Assisted Dev]
+    B[AI Strengths] --> E
+    A --> A1[System design]
+    A --> A2[Ethical judgment]
+    A --> A3[Domain context]
+    A --> A4[Empathy]
+    B --> B1[Pattern recognition]
+    B --> B2[Boilerplate generation]
+    B --> B3[Code recall]
+    B --> B4[Tireless iteration]
+```
 
 Through months of experimentation, I've developed strategies for effectively working with AI assistants:
 
@@ -273,7 +302,46 @@ the most pragmatic approach?"
 
 ---
 
-## The Future We're Building Together
+## 8. The AI Code Review Feedback Loop
+
+One of the most powerful workflows is using AI for iterative code review. Unlike a one-shot suggestion, a feedback loop allows the assistant to refine its output based on test results, linting, and human commentary.
+
+```mermaid
+graph TD
+    Dev[Developer writes code] --> AIScan[AI scans for issues]
+    AIScan --> IssueFound{Issue found?}
+    IssueFound -->|Yes| Suggestion[AI proposes fix]
+    Suggestion --> HumanReview[Developer reviews fix]
+    HumanReview -->|Accept| Apply[Apply change]
+    HumanReview -->|Reject| AltRequest[Request alternative]
+    AltRequest --> AIScan
+    Apply --> Tests[Run test suite]
+    Tests -->|Failing| AIScan
+    Tests -->|Passing| Lint[Run linter]
+    Lint -->|Issues| AIScan
+    Lint -->|Clean| Merge[Ready to merge]
+    IssueFound -->|No| Merge
+```
+
+---
+
+## 9. Evolution of AI Coding Tools
+
+The journey from simple autocomplete to agentic collaboration spans roughly two decades of incremental breakthroughs.
+
+```mermaid
+graph LR
+    A[Early 2000s: IntelliSense] --> B[2010s: Snippet engines]
+    B --> C[2021: GitHub Copilot launch]
+    C --> D[2022: ChatGPT for code QA]
+    D --> E[2023: Cursor AI-native IDE]
+    E --> F[2024: Claude Code agentic mode]
+    F --> G[2025+: Full-repo agents]
+```
+
+---
+
+## 10. The Future We're Building Together
 
 As I write this, I'm simultaneously excited and contemplative about where we're heading. The next generation of AI assistants will likely be able to:
 
@@ -285,7 +353,7 @@ As I write this, I'm simultaneously excited and contemplative about where we're 
 
 But with these capabilities come responsibilities. We're not just users of these tools; we're shaping how they develop and how our industry evolves with them.
 
-### The Skills That Matter More Than Ever
+### 10.1. The Skills That Matter More Than Ever
 
 Ironically, as AI becomes better at writing code, certain human skills become more valuable:
 
@@ -297,7 +365,7 @@ Ironically, as AI becomes better at writing code, certain human skills become mo
 
 ---
 
-## A Personal Reflection: Embracing the Change
+## 11. A Personal Reflection: Embracing the Change
 
 Six months ago, I was skeptical. I worried that AI assistants would make developers lazy, that we'd lose our edge, that the craft I love would become mechanized. But my experience has been the opposite. These tools have rekindled my curiosity and pushed me to tackle more ambitious projects.
 
@@ -307,7 +375,451 @@ The key insight? AI assistants don't replace the need for engineering expertise 
 
 ---
 
-## Conclusion: The Collaborative Future
+## 12. AI Assistant Landscape: Tool Comparison
+
+The following diagram maps the major AI coding assistants by their primary integration model and key strength:
+
+```mermaid
+graph TD
+    Landscape[AI Coding Assistant Landscape] --> IDE[IDE-Integrated]
+    Landscape --> Agent[Agentic or CLI]
+    Landscape --> Enterprise[Enterprise-First]
+    IDE --> Copilot[GitHub Copilot - inline completions]
+    IDE --> Cursor[Cursor - AI-native IDE]
+    IDE --> Tabnine[Tabnine - local and private]
+    Agent --> ClaudeCode[Claude Code - repo-level reasoning]
+    Agent --> Devin[Devin - autonomous task agent]
+    Enterprise --> CodeWhisperer[Amazon CodeWhisperer - AWS security scan]
+    Enterprise --> CodyS[Sourcegraph Cody - codebase search]
+    Copilot --> Strength1[Speed and inline flow]
+    Cursor --> Strength2[Full-codebase context]
+    ClaudeCode --> Strength3[Architecture and review]
+    CodeWhisperer --> Strength4[Compliance and AWS]
+```
+
+---
+
+## 13. Ethical Decision Framework for AI-Generated Code
+
+When AI suggests code that raises intellectual property, bias, or quality concerns, this framework guides the review decision:
+
+```mermaid
+graph TD
+    AIOutput[AI suggests code] --> Understood{Developer fully understands it?}
+    Understood -->|No| Study[Study before accepting]
+    Study --> Understood
+    Understood -->|Yes| LicenseCheck{Potential license issue?}
+    LicenseCheck -->|Yes| Rewrite[Rewrite from understanding - do not paste]
+    LicenseCheck -->|No| BiasCheck{Cultural or accessibility bias?}
+    BiasCheck -->|Yes| Adjust[Adjust naming and assumptions]
+    BiasCheck -->|No| SecurityCheck{Security risk?}
+    SecurityCheck -->|Yes| HardenCode[Add validation and sanitization]
+    SecurityCheck -->|No| Annotate[Add attribution comment]
+    Rewrite --> Annotate
+    Adjust --> Annotate
+    HardenCode --> Annotate
+    Annotate --> Review[Peer review and merge]
+```
+
+---
+
+## 14. Developer Skill Shift in the AI Era
+
+AI coding assistants shift the value of individual skills. The diagram below shows which skills become more valuable and which become less differentiating:
+
+```mermaid
+graph LR
+    Skills[Developer Skills] --> Amplified[More Valuable with AI]
+    Skills --> Stable[Stable Value]
+    Skills --> Commoditized[Less Differentiating]
+    Amplified --> SysDesign[System architecture]
+    Amplified --> Decompose[Problem decomposition]
+    Amplified --> Ethics[Ethical judgment]
+    Amplified --> Prompting[Contextual prompting]
+    Stable --> CodeReview[Code review and critique]
+    Stable --> Testing[Test strategy]
+    Stable --> Domain[Domain expertise]
+    Commoditized --> Boilerplate[Writing boilerplate]
+    Commoditized --> PatternImpl[Implementing known patterns]
+    Commoditized --> DocSearch[Searching documentation]
+```
+
+---
+
+## 15. Incremental Refinement Workflow
+
+The conversation approach to AI-assisted development follows an iterative cycle from high-level design down to production-ready code:
+
+```mermaid
+stateDiagram-v2
+    [*] --> HighLevel
+    HighLevel: High-level design conversation
+    HighLevel --> Architecture: Agree on approach
+    Architecture: Architecture and trade-off review
+    Architecture --> Scaffold: Generate scaffolding
+    Scaffold: Scaffold code generated
+    Scaffold --> Refine: Add features iteratively
+    Refine: Incremental refinement loop
+    Refine --> Refine: Request next capability
+    Refine --> TestWrite: Sufficient functionality
+    TestWrite: Write and run tests
+    TestWrite --> Harden: Tests passing
+    Harden: Harden edge cases and security
+    Harden --> Merge: Human review complete
+    Merge --> [*]
+```
+
+---
+
+## 16. Prompt Engineering for Code Generation
+
+The quality of AI-generated code is directly proportional to the quality of the prompt. Generic requests produce generic code; precisely scoped prompts with contextual constraints produce production-ready output.
+
+### 16.1. The CRISPE Framework for Code Prompts
+
+A structured prompt framework that consistently improves output quality:
+
+- **C**ontext: what is the system / codebase / language
+- **R**ole: ask the AI to behave as an expert in a specific domain
+- **I**nstructions: the exact task with constraints
+- **S**pecifics: edge cases, performance requirements, error handling expectations
+- **P**roduction readiness: logging, observability, security, test coverage
+- **E**xample: provide input/output examples where possible
+
+```
+Context: We are building a TypeScript Express.js API backed by PostgreSQL via
+the `pg` library. Connection pooling is managed by `pg-pool`. Errors must be
+logged with `winston` and never leak stack traces to the client.
+
+Role: You are a senior backend engineer specializing in Node.js reliability
+and security.
+
+Instructions: Write a `getUserById` repository function.
+
+Specifics:
+- Input: `userId: string` (UUID format)
+- Returns: `Promise<User | null>` where User is defined in `types/user.ts`
+- Must validate UUID format before querying (throw 400 on invalid format)
+- Must handle database connection errors with a 503 response hint in the error
+- Must prevent SQL injection via parameterized queries only
+
+Production readiness:
+- Add structured winston log entries on error with `userId` redacted in the log
+- Return null (not an error) when the user does not exist
+
+Example: getUserById("550e8400-e29b-41d4-a716-446655440000") -> User object
+         getUserById("not-a-uuid") -> throws ValidationError
+```
+
+This level of specificity consistently produces code that requires minimal editing before merging.
+
+### 16.2. Iterative Prompt Patterns
+
+```javascript
+// Pattern 1: Scaffolding first, then hardening
+// Step 1 - get working logic
+"Write a function that batches an array into chunks of size n"
+
+// Step 2 - add robustness
+"Now add input validation, handle edge cases (n=0, empty array, n > array.length),
+and add JSDoc with parameter types and examples"
+
+// Step 3 - add observability
+"Add timing instrumentation using performance.now() so callers can measure
+how long large batch operations take"
+
+// Pattern 2: Explain then implement
+"Explain what a bloom filter is and when it outperforms a Set for membership
+testing. Then implement one in TypeScript with configurable size and hash count,
+including a false positive rate calculator."
+
+// Pattern 3: Review then rewrite
+"Here is my existing rate limiter implementation: [paste code]
+Review it for correctness, thread safety, and edge cases.
+Then rewrite it addressing the issues you found."
+```
+
+---
+
+## 17. Evaluating AI Code Quality: Metrics and Methods
+
+Accepting AI-generated code without measurement is a liability. These metrics provide objective signal on whether AI assistance is improving or degrading code health.
+
+### 17.1. Defect Injection Rate
+
+Track the percentage of bugs found in code review or in production that originated in AI-assisted commits versus human-only commits. Most teams using disciplined review report comparable or lower defect rates for AI-assisted code, but this only holds when the review process is enforced.
+
+```python
+# Simplified git analysis script to tag commit origins
+import subprocess
+import re
+
+def analyze_ai_commits(repo_path: str) -> dict:
+    """Analyze commits for AI attribution comments and correlate with bug fixes."""
+    result = subprocess.run(
+        ["git", "log", "--pretty=format:%H %s", "--all"],
+        cwd=repo_path, capture_output=True, text=True
+    )
+    commits = result.stdout.strip().split("\n")
+    ai_commits   = [c for c in commits if "AI-Assisted" in c or "Copilot" in c]
+    bug_fix_sha  = [c.split()[0] for c in commits if re.search(r"fix|bug|hotfix", c, re.I)]
+
+    return {
+        "total_commits":   len(commits),
+        "ai_commits":      len(ai_commits),
+        "bug_fix_commits": len(bug_fix_sha),
+    }
+```
+
+### 17.2. Cyclomatic Complexity Tracking
+
+AI models tend to generate deeply nested conditionals when not explicitly instructed otherwise. Tracking cyclomatic complexity over time reveals drift.
+
+```bash
+# Install complexity checker
+pip install radon
+
+# Check complexity of AI-assisted module
+radon cc src/ai_generated/ -s -a
+
+# Target: average complexity grade B (5-10) or better
+# Grade A: 1-5  (simple)
+# Grade B: 6-10 (moderate, acceptable)
+# Grade C: 11-15 (complex, warrants refactor)
+```
+
+### 17.3. Test Coverage Delta
+
+Measure whether AI-generated code comes with adequate test coverage before and after the AI writes tests on request.
+
+```bash
+# Run Jest with coverage and output to JSON for tracking
+npx jest --coverage --coverageReporters=json-summary
+
+# Parse summary.json to track coverage over time
+node -e "
+const s = require('./coverage/coverage-summary.json').total;
+console.log(JSON.stringify({
+  lines: s.lines.pct,
+  branches: s.branches.pct,
+  functions: s.functions.pct,
+}));
+"
+```
+
+### 17.4. Security Scan on AI Output
+
+Run static analysis immediately after accepting AI-generated code, before any commit:
+
+```bash
+# Python: Bandit security linter
+pip install bandit
+bandit -r src/ -ll  # report medium and high severity only
+
+# JavaScript/TypeScript: Semgrep
+semgrep --config=p/nodejs-security src/
+
+# Dependency vulnerabilities
+npm audit --audit-level=high
+```
+
+---
+
+## 18. Security Risks of AI-Generated Code
+
+AI coding assistants introduce a specific class of security risks that differ from traditional developer mistakes. Understanding them enables better review processes.
+
+### 18.1. Risk 1: Training Data Poisoning via Insecure Patterns
+
+AI models learn from public repositories, which contain significant amounts of insecure code. The model reproduces patterns it has seen frequently, including antipatterns like SQL string concatenation, hardcoded secrets, and missing input validation.
+
+```javascript
+// AI may suggest this pattern (INSECURE - SQL injection risk)
+const query = `SELECT * FROM users WHERE id = ${userId}`;
+
+// The secure version the reviewer must enforce
+const query = "SELECT * FROM users WHERE id = $1";
+const result = await db.query(query, [userId]);
+```
+
+### 18.2. Risk 2: Dependency Confusion and Supply Chain
+
+AI assistants sometimes hallucinate package names that do not exist on npm or PyPI. Attackers register malicious packages with these names, a technique called dependency confusion.
+
+```bash
+# Before running npm install on AI-suggested packages, verify they exist
+npm view <package-name> version
+
+# Check download count as a basic legitimacy signal
+npm view <package-name> downloads
+```
+
+### 18.3. Risk 3: Subtle Cryptographic Misuse
+
+Cryptographic implementations require precise parameter choices. AI often generates syntactically valid but cryptographically weak code.
+
+```python
+# AI may suggest (INSECURE - ECB mode reveals patterns)
+from Crypto.Cipher import AES
+cipher = AES.new(key, AES.MODE_ECB)
+
+# The correct choice for most use cases
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+nonce  = get_random_bytes(16)
+cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+ciphertext, tag = cipher.encrypt_and_digest(plaintext)
+```
+
+### 18.4. Security Review Checklist for AI Code
+
+```mermaid
+graph TD
+    AI_CODE[AI-Generated Code] --> INJ{SQL or Command Injection risk?}
+    INJ -->|Yes| PARAM[Enforce parameterized queries]
+    INJ -->|No| CRYPTO{Cryptographic operations?}
+    CRYPTO -->|Yes| CRYPTOCHECK[Verify algorithm and mode choice]
+    CRYPTO -->|No| DEPS{New dependencies introduced?}
+    DEPS -->|Yes| AUDIT[Run npm audit or pip-audit]
+    DEPS -->|No| SECRETS{Hardcoded secrets or tokens?}
+    SECRETS -->|Yes| REMOVE[Remove and use env vars]
+    SECRETS -->|No| VALID{Input validation present?}
+    VALID -->|Missing| ADDVAL[Add schema validation - Zod or Joi]
+    VALID -->|Present| APPROVE[Proceed to peer review]
+    PARAM --> APPROVE
+    CRYPTOCHECK --> APPROVE
+    AUDIT --> APPROVE
+    REMOVE --> APPROVE
+    ADDVAL --> APPROVE
+```
+
+---
+
+## 19. Building a Custom Coding Agent
+
+When off-the-shelf assistants don't fit specialized workflows - internal frameworks, proprietary APIs, custom code style guides - building a lightweight coding agent with the Anthropic SDK gives full control over context, tools, and output format.
+
+### 19.1. Minimal Coding Agent with Tool Use
+
+```python
+import anthropic
+import subprocess
+import os
+
+client = anthropic.Anthropic()
+
+tools = [
+    {
+        "name": "read_file",
+        "description": "Read the contents of a file in the project",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Relative path to the file"}
+            },
+            "required": ["path"],
+        },
+    },
+    {
+        "name": "run_tests",
+        "description": "Run the Jest test suite and return the output",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "pattern": {"type": "string", "description": "Test file pattern, e.g. 'src/utils'"}
+            },
+            "required": [],
+        },
+    },
+    {
+        "name": "write_file",
+        "description": "Write content to a file",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path":    {"type": "string"},
+                "content": {"type": "string"},
+            },
+            "required": ["path", "content"],
+        },
+    },
+]
+
+def handle_tool_call(tool_name: str, tool_input: dict) -> str:
+    if tool_name == "read_file":
+        with open(tool_input["path"]) as f:
+            return f.read()
+    if tool_name == "run_tests":
+        pattern = tool_input.get("pattern", "")
+        result = subprocess.run(
+            ["npx", "jest", pattern, "--no-coverage"],
+            capture_output=True, text=True, timeout=60
+        )
+        return result.stdout + result.stderr
+    if tool_name == "write_file":
+        with open(tool_input["path"], "w") as f:
+            f.write(tool_input["content"])
+        return f"Written {len(tool_input['content'])} chars to {tool_input['path']}"
+    return "Unknown tool"
+
+def run_agent(task: str) -> str:
+    messages = [{"role": "user", "content": task}]
+    while True:
+        response = client.messages.create(
+            model="claude-opus-4-5",
+            max_tokens=4096,
+            tools=tools,
+            messages=messages,
+        )
+        messages.append({"role": "assistant", "content": response.content})
+
+        if response.stop_reason == "end_turn":
+            text_blocks = [b.text for b in response.content if hasattr(b, "text")]
+            return "\n".join(text_blocks)
+
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                result = handle_tool_call(block.name, block.input)
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result,
+                })
+        messages.append({"role": "user", "content": tool_results})
+
+# Example invocation
+output = run_agent(
+    "Read src/utils/formatCurrency.ts, write a complete Jest test file for it "
+    "covering edge cases, save it to src/utils/formatCurrency.test.ts, "
+    "then run the tests and report whether they pass."
+)
+print(output)
+```
+
+### 19.2. Agent Architecture
+
+```mermaid
+graph TD
+    TASK[Developer describes task] --> AGENT[Coding Agent]
+    AGENT --> PLAN[Agent plans steps]
+    PLAN --> TOOL{Select tool}
+    TOOL --> READ[read_file]
+    TOOL --> WRITE[write_file]
+    TOOL --> TEST[run_tests]
+    TOOL --> SEARCH[search_codebase]
+    READ --> OBSERVE[Observe result]
+    WRITE --> OBSERVE
+    TEST --> OBSERVE
+    SEARCH --> OBSERVE
+    OBSERVE --> REFLECT{Task complete?}
+    REFLECT -->|No| TOOL
+    REFLECT -->|Yes| REPORT[Return summary to developer]
+```
+
+---
+
+## 20. Conclusion: The Collaborative Future
 
 As I finish writing this at 3 AM (yes, the irony isn't lost on me), I'm struck by how natural it feels to have AI as part of my development process. It's not about AI versus humans; it's about AI with humans, creating a synergy that pushes the boundaries of what we can build.
 
@@ -321,21 +833,21 @@ _What's your experience with AI coding assistants? Have they changed how you app
 
 ---
 
-## Resources for Your Journey
+## 21. Resources for Your Journey
 
-### Getting Started
+### 21.1. Getting Started
 
 - **Claude Code**: [claude.ai](https://claude.ai) - Best for complex reasoning and architectural discussions
 - **GitHub Copilot**: [copilot.github.com](https://copilot.github.com) - Ideal for IDE integration and rapid development
 - **Cursor**: [cursor.so](https://cursor.so) - Perfect for those wanting an AI-native development environment
 
-### Learning More
+### 21.2. Learning More
 
 - "The Pragmatic Programmer" (20th Anniversary Edition) - Still relevant, now more than ever
 - "A Philosophy of Software Design" by John Ousterhout - Essential reading for the AI era
 - Online communities: r/experienceddevs, HackerNews, Dev.to
 
-### Staying Grounded
+### 21.3. Staying Grounded
 
 Remember: AI is a powerful ally, but your creativity, judgment, and values are what make great software. Use AI to eliminate friction, not to eliminate thinking.
 

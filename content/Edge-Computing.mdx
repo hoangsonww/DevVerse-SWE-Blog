@@ -28,6 +28,20 @@ Edge computing brings computation closer to users by moving logic, storage, and 
 
 ## 1. Edge versus centralized cloud
 
+```mermaid
+graph TD
+    User[End User / Device] --> EdgePOP[Edge PoP - Nearest Region]
+    EdgePOP --> EdgeCompute[Edge Function / Cache]
+    EdgeCompute --> HitCheck{Cache Hit?}
+    HitCheck -->|Yes| FastResponse[Respond Immediately - low latency]
+    HitCheck -->|No| OriginFetch[Fetch from Origin Cloud]
+    OriginFetch --> CentralCloud[Centralized Cloud Region]
+    CentralCloud --> CoreServices[Core Services and Database]
+    CoreServices --> OriginFetch
+    OriginFetch --> EdgeCompute
+    EdgeCompute --> FastResponse
+```
+
 Centralized clouds optimize for scale and operational simplicity. Edge systems optimize for:
 
 - **Lower latency** by reducing physical distance.
@@ -73,6 +87,24 @@ Not all data belongs at the edge. Classify data into:
 
 Use TTLs, change feeds, and streaming replication to balance freshness and cost.
 
+The following diagram illustrates the data sync pipeline between edge nodes and the central cloud:
+
+```mermaid
+graph TD
+    Cloud[Central Cloud - source of truth] --> ChangeStream[Change Data Capture stream]
+    ChangeStream --> Replicator[Edge Replication Service]
+    Replicator --> EdgeUS[Edge Node - US East]
+    Replicator --> EdgeEU[Edge Node - EU West]
+    Replicator --> EdgeAP[Edge Node - AP Southeast]
+    EdgeUS --> LocalCache[Local hot cache - TTL 60s]
+    EdgeEU --> LocalCache
+    EdgeAP --> LocalCache
+    LocalCache -->|TTL expired| Replicator
+    UserWrite[User write at edge] --> EdgeUS
+    EdgeUS --> WriteBack[Write-back to Cloud - async]
+    WriteBack --> Cloud
+```
+
 ---
 
 ## 5. Consistency and conflict handling
@@ -96,6 +128,29 @@ Routing decisions determine perceived performance:
 - Split reads and writes when consistency is required.
 
 Define explicit latency budgets per request so teams can validate whether the edge is actually helping.
+
+The CDN request routing diagram below shows how Anycast and DNS-based routing directs users to the nearest PoP:
+
+```mermaid
+graph TD
+    User[User DNS lookup] --> DNS[Global DNS resolver]
+    DNS --> GeoCheck{Geolocation of user IP}
+    GeoCheck -->|North America| POPNA[PoP - North America]
+    GeoCheck -->|Europe| POPEU[PoP - Europe]
+    GeoCheck -->|Asia-Pacific| POPAP[PoP - Asia-Pacific]
+    POPNA --> EdgeFuncNA[Edge function execution]
+    POPEU --> EdgeFuncEU[Edge function execution]
+    POPAP --> EdgeFuncAP[Edge function execution]
+    EdgeFuncNA --> CacheHitNA{Cache hit?}
+    EdgeFuncEU --> CacheHitEU{Cache hit?}
+    EdgeFuncAP --> CacheHitAP{Cache hit?}
+    CacheHitNA -->|Yes| RespNA[Respond in under 20ms]
+    CacheHitNA -->|No| Origin[Origin cloud fetch]
+    CacheHitEU -->|Yes| RespEU[Respond in under 20ms]
+    CacheHitEU -->|No| Origin
+    CacheHitAP -->|Yes| RespAP[Respond in under 20ms]
+    CacheHitAP -->|No| Origin
+```
 
 ---
 
@@ -138,6 +193,20 @@ Track cost per region and build budgets into product planning.
 
 ## 10. Failure modes and fallbacks
 
+```mermaid
+graph TD
+    Request[Incoming Request] --> EdgeCheck{Edge Node Healthy?}
+    EdgeCheck -->|Yes| EdgeServe[Serve from Edge]
+    EdgeCheck -->|No| Failover[Route to Nearby PoP]
+    Failover --> AltPOP{Alt PoP Available?}
+    AltPOP -->|Yes| AltServe[Serve from Alt PoP]
+    AltPOP -->|No| CentralFallback[Fallback to Central Cloud]
+    CentralFallback --> CentralServe[Serve from Origin - higher latency]
+    EdgeServe --> Response[Return Response to User]
+    AltServe --> Response
+    CentralServe --> Response
+```
+
 Edge systems need explicit fallback paths:
 
 - If edge compute fails, route to centralized services.
@@ -148,7 +217,28 @@ Failover playbooks should be tested just like database failovers.
 
 ---
 
-## 11. Deployment and rollout strategy
+## 11. Edge Function Execution Lifecycle
+
+Edge functions have a distinct lifecycle compared to traditional server processes. Understanding startup behavior is critical for performance:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Cold: First request or after idle timeout
+    Cold --> Initializing: Runtime boots and imports modules
+    Initializing --> Warm: Handler ready to execute
+    Warm --> Executing: Request received
+    Executing --> Warm: Request complete - instance kept alive
+    Warm --> Idle: No requests for idle threshold
+    Idle --> Warm: New request arrives - fast resume
+    Idle --> [*]: Idle timeout exceeded - instance terminated
+    Executing --> Error: Unhandled exception
+    Error --> Warm: Error handled - instance reused
+    Error --> [*]: Fatal error - instance terminated
+```
+
+---
+
+## 12. Deployment and rollout strategy
 
 Shipping to the edge requires careful rollouts:
 
@@ -160,7 +250,7 @@ Treat edge rollouts like multi-region deployments, because they are.
 
 ---
 
-## 12. Use cases that benefit most
+## 13. Use cases that benefit most
 
 Edge-first architectures shine when:
 
@@ -171,7 +261,103 @@ Edge-first architectures shine when:
 
 ---
 
-## 13. Delivery checklist
+## 14. Edge Security Model
+
+Edge nodes sit outside the trusted core network. The security model must treat them as semi-trusted by design:
+
+```mermaid
+graph TD
+    EDGENODE[Edge Node] --> MTLS[Mutual TLS to Core Services]
+    EDGENODE --> SIGNEDCFG[Signed Configuration Bundle]
+    EDGENODE --> DATAMIN[Local Data Minimization]
+    MTLS --> CERTROT[Automated Certificate Rotation]
+    SIGNEDCFG --> IMMUTABLE[Immutable Config - no runtime writes]
+    DATAMIN --> REGION[Regional Access Controls]
+    CERTROT --> REVOKE[Rapid Revocation on Compromise]
+    REGION --> AUDIT[Audit Log to Central SIEM]
+    REVOKE --> AUDIT
+    AUDIT --> ALERT[Alert on Anomalous Access Pattern]
+```
+
+---
+
+## 15. Edge Deployment Rollout Sequence
+
+Progressive rollout prevents a bad edge deployment from reaching all regions simultaneously:
+
+```mermaid
+sequenceDiagram
+    participant Eng as Engineer
+    participant CI as CI Pipeline
+    participant CanaryPOP as Canary PoP - 5 percent traffic
+    participant FullEdge as All Edge PoPs
+    participant Origin as Origin Cloud
+
+    Eng->>CI: Merge feature branch
+    CI->>CI: Build and test edge function bundle
+    CI->>CanaryPOP: Deploy to single canary PoP
+    CanaryPOP-->>CI: Metrics - latency and error rate
+    CI->>CI: Evaluate canary SLOs for 30 minutes
+    alt SLOs pass
+        CI->>FullEdge: Progressive rollout to all PoPs
+        FullEdge-->>Eng: Deployment complete
+    else SLOs fail
+        CI->>CanaryPOP: Rollback canary to previous version
+        CI-->>Eng: Alert - rollback triggered
+        CanaryPOP->>Origin: Traffic falls back to origin
+    end
+```
+
+---
+
+## 16. IoT and Offline-First Edge Pattern
+
+IoT devices that operate in connectivity-degraded environments need a local-first processing model:
+
+```mermaid
+graph TD
+    DEVICE[IoT Device - sensor or camera] --> LOCALPROC[Local Edge Processor - on-device]
+    LOCALPROC --> LOCALSTORE[Local Event Buffer]
+    LOCALSTORE --> CONN{Network Available?}
+    CONN -->|Yes| SYNC[Sync to Edge Node]
+    CONN -->|No| LOCALSTORE
+    SYNC --> EDGENODE[Regional Edge Node]
+    EDGENODE --> FILTER[Filter and Aggregate Events]
+    FILTER --> URGENCY{High Urgency?}
+    URGENCY -->|Yes| REALTIME[Immediate Forward to Cloud]
+    URGENCY -->|No| BATCH[Batch Upload on Schedule]
+    REALTIME --> CLOUD[Central Cloud - processing and storage]
+    BATCH --> CLOUD
+```
+
+---
+
+## 17. Cost Attribution Model
+
+Tracking edge costs by dimension is essential for preventing runaway spend:
+
+```mermaid
+graph LR
+    EDGECOST[Edge Infrastructure Cost] --> REQ[Per-Request Execution Cost]
+    EDGECOST --> EGRESS[Data Egress Fee]
+    EDGECOST --> REPL[Warm Data Replication Cost]
+    REQ --> FN1[Function A - auth checks]
+    REQ --> FN2[Function B - personalization]
+    EGRESS --> REGION1[US East egress]
+    EGRESS --> REGION2[EU West egress]
+    REPL --> DS1[Dataset - product catalog]
+    REPL --> DS2[Dataset - user sessions]
+    FN1 --> BUDGET[Monthly Budget Tracker]
+    FN2 --> BUDGET
+    REGION1 --> BUDGET
+    REGION2 --> BUDGET
+    DS1 --> BUDGET
+    DS2 --> BUDGET
+```
+
+---
+
+## 18. Delivery checklist
 
 - Define latency budgets and regional SLAs early.
 - Separate stateless edge logic from stateful core services.
@@ -180,3 +366,284 @@ Edge-first architectures shine when:
 - Plan for fallback to centralized services when the edge fails.
 
 Edge computing is powerful when paired with clear data boundaries, resilient control planes, and rigorous observability.
+
+---
+
+## 19. Edge databases: Turso and Cloudflare D1
+
+Traditional cloud databases are centralized by design, creating latency mismatches when edge compute needs to read mutable state. Edge databases bring distributed SQLite replicas to edge PoPs, keeping reads local while funneling writes to a primary.
+
+### Turso: distributed SQLite with libSQL
+
+Turso is built on libSQL (a fork of SQLite) and replicates databases to hundreds of edge locations. Reads are served from the nearest replica; writes are forwarded to the primary region.
+
+```typescript
+// turso-edge.ts: read from the nearest edge replica
+import { createClient } from "@libsql/client";
+
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL!, // libsql://your-db.turso.io
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+});
+
+// This read resolves from the nearest replica - typically under 5ms
+export async function getProduct(productId: string) {
+  const result = await db.execute({
+    sql: "SELECT id, name, price, stock FROM products WHERE id = ?",
+    args: [productId],
+  });
+  return result.rows[0] ?? null;
+}
+
+// Write goes to primary - higher latency but strongly consistent
+export async function decrementStock(productId: string, quantity: number) {
+  await db.execute({
+    sql: `UPDATE products
+          SET stock = stock - ?
+          WHERE id = ? AND stock >= ?`,
+    args: [quantity, productId, quantity],
+  });
+}
+```
+
+### Cloudflare D1 with Workers
+
+Cloudflare D1 embeds a SQLite database per Cloudflare Worker, co-located with the edge function execution.
+
+```typescript
+// cloudflare-worker.ts: D1 query inside a Cloudflare Worker
+export interface Env {
+  DB: D1Database;
+  CACHE: KVNamespace;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const slug = url.pathname.slice(1);
+
+    // Check KV cache first - sub-millisecond
+    const cached = await env.CACHE.get(`article:${slug}`);
+    if (cached) {
+      return new Response(cached, {
+        headers: { "Content-Type": "application/json", "X-Cache": "HIT" },
+      });
+    }
+
+    // Miss: query D1 (co-located SQLite)
+    const article = await env.DB.prepare(
+      "SELECT title, content, published_at FROM articles WHERE slug = ?",
+    )
+      .bind(slug)
+      .first();
+
+    if (!article) {
+      return new Response("Not Found", { status: 404 });
+    }
+
+    const body = JSON.stringify(article);
+
+    // Store in KV for 5 minutes
+    await env.CACHE.put(`article:${slug}`, body, { expirationTtl: 300 });
+
+    return new Response(body, {
+      headers: { "Content-Type": "application/json", "X-Cache": "MISS" },
+    });
+  },
+};
+```
+
+```mermaid
+graph TD
+    USER[User Request] --> WORKER[Cloudflare Worker - nearest PoP]
+    WORKER --> KV{KV Cache hit?}
+    KV -- Yes --> KVRESP[Return from KV - under 1ms]
+    KV -- No --> D1[Query D1 - local SQLite replica]
+    D1 --> STORE[Store result in KV]
+    STORE --> RESP[Return response]
+    D1 -- Write needed --> PRIMARY[Forward write to D1 primary region]
+    PRIMARY --> REPLICATE[Replicate to edge replicas]
+```
+
+### Edge database tradeoffs
+
+| Dimension          | Turso              | Cloudflare D1      | Traditional Cloud DB       |
+| ------------------ | ------------------ | ------------------ | -------------------------- |
+| Read latency       | 2-10ms             | 1-5ms              | 20-100ms                   |
+| Write latency      | 50-200ms           | 50-150ms           | 5-50ms                     |
+| SQL compatibility  | SQLite subset      | SQLite subset      | Full Postgres or MySQL     |
+| Global replicas    | 500+               | 300+               | Multi-region (3-5 regions) |
+| Strong consistency | Primary reads only | Primary reads only | Configurable               |
+| Max DB size        | 9GB per DB         | 10GB per DB        | Unlimited                  |
+
+---
+
+## 20. Edge caching strategies with code
+
+Caching is the most impactful edge optimization. The challenge is matching cache keys, TTLs, and invalidation strategies to real data volatility.
+
+### Cloudflare Workers: cache API patterns
+
+```typescript
+// edge-cache.ts: layered edge cache with stale-while-revalidate
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    const cacheKey = new Request(request.url, {
+      headers: { "Cache-Control": "max-age=60" },
+    });
+    const cache = caches.default;
+
+    // Check the Cloudflare edge cache
+    let response = await cache.match(cacheKey);
+
+    if (response) {
+      const age = Date.now() - Date.parse(response.headers.get("Date") ?? "0");
+      const ttl = parseInt(response.headers.get("X-TTL") ?? "60") * 1000;
+
+      if (age < ttl) {
+        return response; // Fresh cache hit
+      }
+
+      // Stale: serve stale, revalidate in background
+      ctx.waitUntil(revalidate(request, env, cache, cacheKey));
+      return addHeader(response, "X-Cache-Status", "stale");
+    }
+
+    // Cache miss: fetch from origin
+    const freshResponse = await fetchFromOrigin(request, env);
+    ctx.waitUntil(cache.put(cacheKey, freshResponse.clone()));
+
+    return addHeader(freshResponse, "X-Cache-Status", "miss");
+  },
+};
+
+async function revalidate(
+  request: Request,
+  env: Env,
+  cache: Cache,
+  cacheKey: Request,
+): Promise<void> {
+  const fresh = await fetchFromOrigin(request, env);
+  await cache.put(cacheKey, fresh);
+}
+
+function addHeader(response: Response, key: string, value: string): Response {
+  const headers = new Headers(response.headers);
+  headers.set(key, value);
+  return new Response(response.body, { status: response.status, headers });
+}
+```
+
+### Cache key design
+
+Poorly designed cache keys either cause too many misses (defeating the purpose) or over-sharing (causing users to see each other's data).
+
+```typescript
+// cache-key.ts: construct cache keys that balance hit rate and correctness
+function buildCacheKey(request: Request, userId: string | null): string {
+  const url = new URL(request.url);
+
+  // Strip UTM and tracking parameters - they should not create new cache entries
+  const trackingParams = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "fbclid",
+    "gclid",
+  ];
+  trackingParams.forEach((p) => url.searchParams.delete(p));
+
+  // Sort remaining params for canonical key
+  url.searchParams.sort();
+
+  // Public pages: cache by URL only
+  if (!userId || url.pathname.startsWith("/public/")) {
+    return url.toString();
+  }
+
+  // User-specific pages: include user tier (not full user ID, to maintain hit rate)
+  // This caches one variant per tier rather than one per user
+  const userTier = getUserTier(userId); // e.g., "free", "pro", "enterprise"
+  return `${url.toString()}:tier:${userTier}`;
+}
+```
+
+```mermaid
+graph TD
+    REQ[Request arrives at edge] --> KEYDESIGN[Build cache key]
+    KEYDESIGN --> STRIP[Strip tracking params - utm, fbclid]
+    STRIP --> SORT[Sort remaining query params]
+    SORT --> AUTHCHECK{Authenticated request?}
+    AUTHCHECK -- No --> PUBKEY[Cache key = canonical URL]
+    AUTHCHECK -- Yes --> TIERKEY[Cache key = URL plus user tier]
+    PUBKEY --> LOOKUP[Look up in edge cache]
+    TIERKEY --> LOOKUP
+    LOOKUP --> HIT{Cache hit?}
+    HIT -- Yes --> SERVE[Serve from edge - sub-5ms]
+    HIT -- No --> ORIGIN[Fetch from origin - store result]
+```
+
+---
+
+## 21. Edge AI inference
+
+Running small ML models at the edge reduces round-trip latency for inference-heavy features like content classification, spam detection, sentiment scoring, and personalization. Cloudflare Workers AI, Vercel AI SDK with edge runtime, and ONNX on Deno Deploy all enable sub-10ms inference without a round-trip to a GPU cluster.
+
+```typescript
+// Cloudflare Workers AI: text classification at the edge
+export interface Env {
+  AI: Ai;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const { text } = await request.json<{ text: string }>();
+
+    // Run text classification on Cloudflare's edge GPU network
+    const result = await env.AI.run("@cf/huggingface/distilbert-sst-2-int8", {
+      text,
+    });
+
+    // result: [{ label: "POSITIVE", score: 0.92 }, { label: "NEGATIVE", score: 0.08 }]
+    const topLabel = result.sort((a, b) => b.score - a.score)[0];
+
+    return Response.json({
+      sentiment: topLabel.label,
+      confidence: topLabel.score,
+      // Total inference time at edge: 8-15ms vs 80-200ms to central GPU
+    });
+  },
+};
+```
+
+### Edge AI deployment considerations
+
+| Model Size             | Edge Runtime                | Latency  | Use Case                                |
+| ---------------------- | --------------------------- | -------- | --------------------------------------- |
+| Under 50MB (distilled) | Cloudflare Workers AI       | 5-20ms   | Classification, embeddings, sentiment   |
+| 50-200MB (quantized)   | Deno Deploy, Fastly Compute | 15-50ms  | NER, intent detection, small generation |
+| 200MB+                 | Regional serverless         | 50-200ms | Summarization, moderate generation      |
+| 1B+ parameters         | Central GPU cluster         | 200ms-2s | Full LLM generation                     |
+
+```mermaid
+graph TD
+    USECASE[Inference Use Case] --> LATENCY{Latency budget}
+    LATENCY -- Under 20ms --> EDGEAI[Edge AI - distilled model at CDN PoP]
+    LATENCY -- 20-100ms --> REGIONAL[Regional serverless - quantized model]
+    LATENCY -- Over 100ms --> CENTRAL[Central GPU cluster - full model]
+    EDGEAI --> DISTILLED[DistilBERT, TinyLlama, MobileNet]
+    REGIONAL --> QUANTIZED[LLaMA-3.2-1B-Instruct GGUF, Phi-3-mini]
+    CENTRAL --> FULL[GPT-4o, Claude-3.5, Llama-3-70B]
+```
+
+---
+
+## 22. Conclusion
+
+Edge computing has matured from a CDN cache optimization into a full application execution tier. The combination of globally distributed serverless runtimes, edge-native databases, and on-device AI inference unlocks latency profiles that were impossible with centralized cloud architectures even five years ago.
+
+The critical success factors remain consistent across every edge use case: keep stateless logic at the edge and stateful sources of truth in centralized systems, design explicit cache key strategies, instrument every PoP with consistent telemetry, and build fallback paths to origin before deploying. The edge is not a replacement for the cloud - it is a specialized tier that makes the last mile between your infrastructure and your users as fast as physics allows.

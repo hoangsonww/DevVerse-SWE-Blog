@@ -49,6 +49,31 @@ A well-designed pipeline typically includes four main layers, as seen in the ref
 
 This architecture enforces separation of concerns, allowing each layer to scale independently and evolve without disrupting the entire ecosystem.
 
+```mermaid
+graph LR
+    subgraph Data Sources
+        S1[Databases]
+        S2[APIs]
+        S3[Event Streams]
+    end
+    subgraph AI/ML Layer
+        ING[Ingestion] --> CLEAN[Cleaning]
+        CLEAN --> FE[Feature Engineering]
+        FE --> TRAIN[Model Training]
+        TRAIN --> REG[Model Registry]
+    end
+    subgraph Backend
+        REG --> SERVE[Model Serving API]
+        SERVE --> DB[(Application DB)]
+    end
+    subgraph Frontend
+        DB --> UI[React Dashboard]
+    end
+    S1 --> ING
+    S2 --> ING
+    S3 --> ING
+```
+
 ---
 
 ## 2. Data Ingestion
@@ -83,6 +108,22 @@ This architecture enforces separation of concerns, allowing each layer to scale 
 - Data flows in real-time (seconds or milliseconds of latency).
 - Ideal for IoT sensors, clickstream data, or financial transaction feeds.
 - Technologies: **Apache Kafka**, **Apache Flink**, **AWS Kinesis**, **Spark Structured Streaming**.
+
+The following diagram compares ETL and ELT approaches and when to use each:
+
+```mermaid
+graph TD
+    subgraph ETL
+        E1[Extract from Source] --> E2[Transform in Staging Area]
+        E2 --> E3[Load Clean Data to Warehouse]
+    end
+    subgraph ELT
+        L1[Extract from Source] --> L2[Load Raw Data to Warehouse]
+        L2 --> L3[Transform Inside Warehouse using SQL]
+    end
+    ETL --> T1[Best for complex transformations and limited warehouse compute]
+    ELT --> T2[Best for cloud warehouses like BigQuery or Snowflake with elastic compute]
+```
 
 ### 2.3 Best Practices for Data Ingestion
 
@@ -170,6 +211,21 @@ A **feature store** centralizes the definition, storage, and serving of features
 - **Reusability**: Different models can reuse existing features.
 - **Examples**: Tecton, Feast, AWS SageMaker Feature Store.
 
+The feature store architecture shows how features flow from computation to both training and real-time serving:
+
+```mermaid
+graph TD
+    RAW[Raw Data Sources] --> FP[Feature Pipeline]
+    FP --> OFFLINE[Offline Store - S3 or Parquet]
+    FP --> ONLINE[Online Store - Redis or DynamoDB]
+    OFFLINE --> TRAIN[Model Training]
+    ONLINE --> INFER[Real-Time Inference]
+    TRAIN --> MODEL[Trained Model]
+    MODEL --> INFER
+    INFER --> APP[Application Response]
+    Note1[Same feature logic for training and serving] -.-> FP
+```
+
 ### 4.3 Data Versioning
 
 - **Git-like Data Repositories**: Tools such as DVC (Data Version Control) or LakeFS for storing data lineage.
@@ -220,6 +276,23 @@ with mlflow.start_run(run_name="baseline-rf"):
 
 - **Packaging**: Serialize models to **ONNX**, **joblib**, or **pickle**.
 - **Registry**: MLflow Model Registry, AWS SageMaker Model Registry, or custom solutions for version control and promotion stages (Staging → Production → Archived).
+
+The model training pipeline illustrates the stages from raw experiment to a production-ready model:
+
+```mermaid
+graph TD
+    DATA[Versioned Dataset] --> SPLIT[Train - Validation - Test Split]
+    SPLIT --> TRAIN[Model Training]
+    TRAIN --> TUNE[Hyperparameter Tuning]
+    TUNE --> EVAL{Metrics pass threshold?}
+    EVAL -->|No| TRAIN
+    EVAL -->|Yes| PACKAGE[Package Model - ONNX or joblib]
+    PACKAGE --> REGISTER[Model Registry - MLflow]
+    REGISTER --> STAGE[Staging Environment]
+    STAGE --> VALIDATE{Integration tests pass?}
+    VALIDATE -->|No| REGISTER
+    VALIDATE -->|Yes| PROD[Production Deployment]
+```
 
 ---
 
@@ -306,6 +379,23 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 - **Git-Based Workflows**: Each commit triggers a pipeline that builds, tests, and (optionally) deploys the app.
 - **Tools**: Jenkins, GitHub Actions, GitLab CI, CircleCI.
 - **Stages**:
+
+The CI/CD pipeline for ML models extends the standard software pipeline with model-specific validation steps:
+
+```mermaid
+graph LR
+    COMMIT[Code Commit] --> LINT[Lint and Unit Tests]
+    LINT --> BUILD[Build Docker Image]
+    BUILD --> DATA_VAL[Data Validation]
+    DATA_VAL --> TRAIN_CI[Training Run in CI]
+    TRAIN_CI --> MODEL_EVAL{Model metrics acceptable?}
+    MODEL_EVAL -->|No| FAIL[Fail Pipeline]
+    MODEL_EVAL -->|Yes| PUSH[Push Image to Registry]
+    PUSH --> DEPLOY_STAGE[Deploy to Staging]
+    DEPLOY_STAGE --> INT_TEST[Integration Tests]
+    INT_TEST --> DEPLOY_PROD[Deploy to Production]
+    DEPLOY_PROD --> MONITOR[Monitor and Alert]
+```
 
 1. **Build**: Compile code, run linters, build Docker images.
 2. **Test**: Unit tests, integration tests, coverage reports.
@@ -410,7 +500,98 @@ jobs:
 
 ---
 
-## 12. Putting It All Together: A Sample Workflow
+## 12. Data Quality Gate
+
+A data quality gate ensures bad data is stopped before it corrupts downstream models or analytics:
+
+```mermaid
+graph TD
+    INGEST[Raw Data Batch] --> SCHEMA[Schema Validation]
+    SCHEMA -->|Schema mismatch| QUARANTINE[Quarantine Store - dead letter]
+    SCHEMA -->|Schema valid| NULL[Null and Missing Check]
+    NULL -->|Exceeds null threshold| QUARANTINE
+    NULL -->|Pass| RANGE[Range and Outlier Check]
+    RANGE -->|Anomalous values| FLAG[Flag for Manual Review]
+    RANGE -->|Pass| DEDUP[Deduplication Check]
+    DEDUP -->|Duplicates found| DEDUP_CLEAN[Remove Duplicates]
+    DEDUP -->|No duplicates| CERTIFIED[Certified Clean Dataset]
+    DEDUP_CLEAN --> CERTIFIED
+    FLAG --> CERTIFIED
+    QUARANTINE --> ALERT[Alert Data Engineering Team]
+```
+
+---
+
+## 13. Microservice Communication Patterns
+
+The backend layer uses multiple communication strategies depending on latency and reliability requirements:
+
+```mermaid
+graph LR
+    AUTHSVC[Auth Service] -->|REST - sync| GATEWAY[API Gateway]
+    INFSVC[Inference Service] -->|gRPC - low latency| GATEWAY
+    NOTIFYSVC[Notification Service] -->|Kafka - async| BROKER[Message Broker]
+    GATEWAY -->|Routes request| CLIENT[Frontend or External Client]
+    BROKER --> NOTIFYSVC
+    INFSVC -->|Reads features| FEATSTORE[Feature Store - Redis]
+    AUTHSVC -->|Reads users| USERDB[(User DB)]
+    INFSVC -->|Writes predictions| PREDDB[(Prediction DB)]
+    PREDDB --> GATEWAY
+```
+
+---
+
+## 14. Model Drift Detection and Retraining Loop
+
+Automated drift detection and retraining closes the model lifecycle loop in production:
+
+```mermaid
+graph TD
+    PROD[Production Model - live inference] --> MONITOR[Drift Monitor]
+    MONITOR --> DATADRIFT{Input Distribution Shifted?}
+    DATADRIFT -->|No| MONITOR
+    DATADRIFT -->|Yes| LABELING[Collect and Label Recent Data]
+    LABELING --> RETRAIN[Trigger Retraining Pipeline]
+    RETRAIN --> COMPARE[Compare New Model vs Champion]
+    COMPARE --> BETTER{New Model Wins?}
+    BETTER -->|No| MONITOR
+    BETTER -->|Yes| STAGE[Promote to Staging]
+    STAGE --> INTTEST[Run Integration Tests]
+    INTTEST --> SWAP[Swap Production Model]
+    SWAP --> PROD
+```
+
+---
+
+## 15. Canary Deployment for ML Models
+
+Canary deployment allows gradual traffic shifting to validate new models before full promotion:
+
+```mermaid
+sequenceDiagram
+    participant Traffic as Live Traffic
+    participant LB as Load Balancer
+    participant Champion as Champion Model v1 - 90 percent
+    participant Canary as Canary Model v2 - 10 percent
+    participant Metrics as Metrics Collector
+
+    Traffic->>LB: Inference request
+    LB->>Champion: Route 90 percent of requests
+    LB->>Canary: Route 10 percent of requests
+    Champion-->>LB: Prediction and latency
+    Canary-->>LB: Prediction and latency
+    LB->>Metrics: Log both model responses
+    Metrics->>Metrics: Compare accuracy and p99 latency
+    alt Canary metrics acceptable
+        Metrics-->>LB: Promote canary to 50 percent
+    else Canary degrades
+        Metrics-->>LB: Roll back canary to zero percent
+    end
+```
+
+---
+
+## 16. Putting It All Together: A Sample Workflow
 
 1. **Data Ingestion**: Airflow schedules a daily batch ingestion job from MySQL and a continuous stream from Kafka.
 2. **Data Processing**: Spark jobs clean and transform the data, storing results in Parquet format in S3.
@@ -429,7 +610,235 @@ jobs:
 
 ---
 
-## 13. Conclusion
+## 17. Data Mesh Architecture
+
+As data platforms grow, a single centralized data platform team becomes a bottleneck. **Data mesh** decentralizes ownership: each business domain owns its own data as a product, with the platform team providing self-serve infrastructure.
+
+```mermaid
+graph TD
+    subgraph Data Mesh
+        subgraph Orders Domain
+            OD[Orders Data Product]
+            OT[Orders Pipeline Team]
+        end
+        subgraph Customers Domain
+            CD[Customers Data Product]
+            CT[Customer Analytics Team]
+        end
+        subgraph Recommendations Domain
+            RD[Recs Data Product]
+            RT[ML Platform Team]
+        end
+    end
+    subgraph Self-Serve Platform
+        CATALOG[Data Catalog]
+        COMPUTE[Compute Infrastructure]
+        GOVERN[Governance and Lineage]
+    end
+    OD --> CATALOG
+    CD --> CATALOG
+    RD --> CATALOG
+    CATALOG --> |Discovery| RT
+    CATALOG --> |Discovery| CT
+    COMPUTE --> OT
+    COMPUTE --> CT
+    COMPUTE --> RT
+```
+
+The four pillars of data mesh are domain ownership, data as a product, self-serve data infrastructure, and federated computational governance. Each domain team treats its datasets as first-class products with SLAs, documentation, and versioned contracts.
+
+### 14.1 Data Contracts
+
+A data contract is a formal agreement between a data producer and its consumers specifying schema, semantics, SLA, and quality guarantees. When the producer changes the schema without updating the contract, downstream consumers break silently. Contracts prevent this.
+
+```yaml
+# data-contract.yaml - Orders domain
+apiVersion: datacontract.com/v0.9.2
+id: orders-daily-v2
+info:
+  title: Orders Daily Snapshot
+  owner: orders-team@company.com
+  version: 2.1.0
+  sla:
+    freshness: 2 hours
+    availability: 99.5%
+
+models:
+  orders:
+    fields:
+      order_id:
+        type: string
+        required: true
+        unique: true
+      customer_id:
+        type: string
+        required: true
+      total_amount:
+        type: number
+        minimum: 0
+      created_at:
+        type: timestamp
+        required: true
+    quality:
+      - type: not_null
+        columns: [order_id, customer_id, created_at]
+      - type: freshness
+        column: created_at
+        warn_after: 1h
+        error_after: 3h
+```
+
+```python
+# Validate a dataset against its contract using soda-core
+from soda.scan import Scan
+
+scan = Scan()
+scan.set_data_source_name("orders_warehouse")
+scan.add_configuration_yaml_file("soda_config.yaml")
+scan.add_sodacl_yaml_str("""
+checks for orders:
+  - missing_count(order_id) = 0
+  - min(total_amount) >= 0
+  - freshness(created_at) < 2h
+""")
+scan.execute()
+print(scan.get_scan_results())
+```
+
+### 14.2 Real-Time Feature Serving
+
+The gap between training-time features and inference-time features is a common source of model degradation. A real-time feature serving system eliminates training-serving skew by computing and serving features through the same code path.
+
+```mermaid
+sequenceDiagram
+    participant APP as Application
+    participant FS as Feature Server
+    participant ONLINE as Online Store - Redis
+    participant OFFLINE as Offline Store - S3
+    participant PIPE as Feature Pipeline
+
+    PIPE->>OFFLINE: Batch compute historical features
+    PIPE->>ONLINE: Stream-compute recent features
+    APP->>FS: Request features for entity_id=42
+    FS->>ONLINE: Get latest features for entity_id=42
+    ONLINE-->>FS: Return feature vector
+    FS-->>APP: {age_bucket: 3, days_since_last_order: 2, ...}
+    APP->>APP: Call model.predict(features)
+```
+
+```python
+# Feature serving with Feast
+from feast import FeatureStore
+from datetime import datetime
+
+store = FeatureStore(repo_path=".")
+
+# Real-time lookup - hits the online store (Redis)
+feature_vector = store.get_online_features(
+    features=[
+        "customer_features:days_since_last_order",
+        "customer_features:lifetime_value",
+        "customer_features:preferred_category",
+    ],
+    entity_rows=[{"customer_id": "cust_42"}],
+).to_dict()
+
+print(feature_vector)
+# {"days_since_last_order": [2], "lifetime_value": [1450.0], ...}
+```
+
+---
+
+## 18. Data Quality Monitoring with Great Expectations
+
+Catching bad data at ingestion prevents corrupted models and misleading analytics. **Great Expectations** (GX) is the most widely adopted open-source data quality framework. It lets you define expectations as code, run validations in your pipeline, and publish data documentation automatically.
+
+### 15.1 Defining Expectations
+
+```python
+import great_expectations as gx
+
+context = gx.get_context()
+
+# Define a validator for a Pandas DataFrame
+df = pd.read_parquet("s3://data-lake/orders/2025-03-01.parquet")
+validator = context.sources.pandas_default.read_dataframe(df)
+
+# Expectations are assertions about data shape and content
+validator.expect_column_to_exist("order_id")
+validator.expect_column_values_to_not_be_null("order_id")
+validator.expect_column_values_to_be_unique("order_id")
+validator.expect_column_values_to_not_be_null("customer_id")
+validator.expect_column_values_to_be_between(
+    column="total_amount",
+    min_value=0,
+    max_value=100_000,
+)
+validator.expect_column_values_to_match_strftime_format(
+    column="created_at",
+    strftime_format="%Y-%m-%d %H:%M:%S",
+)
+
+results = validator.validate()
+print(f"Success: {results.success}")
+print(f"Failures: {results.statistics[‘unsuccessful_expectations’]}")
+```
+
+### 15.2 Data Quality Gate in Airflow
+
+Integrate GX validations as an Airflow task so that downstream tasks only run if data quality passes.
+
+```python
+from airflow import DAG
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from datetime import datetime, timedelta
+
+def run_data_quality_check(**context):
+    import great_expectations as gx
+    ctx = gx.get_context()
+    checkpoint = ctx.get_checkpoint("orders_daily_checkpoint")
+    result = checkpoint.run()
+    if not result.success:
+        raise ValueError(f"Data quality check failed: {result}")
+
+with DAG("orders_pipeline", start_date=datetime(2025, 1, 1), schedule="@daily") as dag:
+    ingest = PythonOperator(task_id="ingest_orders", python_callable=ingest_orders_fn)
+    quality_gate = PythonOperator(
+        task_id="data_quality_check",
+        python_callable=run_data_quality_check,
+    )
+    transform = PythonOperator(task_id="transform_orders", python_callable=transform_fn)
+    train = PythonOperator(task_id="retrain_model", python_callable=train_fn)
+
+    ingest >> quality_gate >> transform >> train
+```
+
+```mermaid
+graph TD
+    INGEST[Ingest Raw Data] --> GX[Run Great Expectations Checkpoint]
+    GX --> PASS{All Expectations Pass?}
+    PASS -->|Yes| TRANSFORM[Transform and Feature Engineer]
+    PASS -->|No| ALERT[Alert Data Team via Slack or PagerDuty]
+    ALERT --> QUARANTINE[Move to Quarantine Bucket]
+    TRANSFORM --> TRAIN[Train or Score Model]
+    QUARANTINE --> REVIEW[Manual Review and Root Cause]
+```
+
+### 15.3 Data Observability Metrics
+
+Beyond schema validation, modern data observability platforms monitor five pillars: freshness, volume, distribution, schema, and lineage. Tools like Monte Carlo, Bigeye, and open-source alternatives like Elementary track these automatically.
+
+| Pillar       | What to Monitor                      | Alert Condition                |
+| ------------ | ------------------------------------ | ------------------------------ |
+| Freshness    | Time since last update               | Stale beyond SLA threshold     |
+| Volume       | Row count per batch                  | Drop or spike above baseline   |
+| Distribution | Column statistics (mean, nulls)      | Drift from historical baseline |
+| Schema       | Column names and types               | Unexpected addition or removal |
+| Lineage      | Upstream and downstream dependencies | Upstream failure propagation   |
+
+---
+
+## 19. Conclusion
 
 Building a **truly end-to-end data pipeline** is a complex endeavor that touches on data engineering, software development, machine learning, and DevOps. By carefully **segmenting** your architecture into a data processing layer, model training pipeline, backend microservices, and a frontend layer - then wrapping it all in robust DevOps practices - you create a **modular**, **scalable**, and **maintainable** ecosystem.
 
@@ -440,13 +849,13 @@ Building a **truly end-to-end data pipeline** is a complex endeavor that touches
 3. **Automate CI/CD**: Consistent, automated deployments reduce human error and accelerate development.
 4. **Monitor and Alert**: Visibility into performance metrics, logs, and distributed traces is crucial for diagnosing issues quickly.
 5. **Security and Compliance**: Encrypt data, control access, and regularly scan for vulnerabilities.
-6. **Iterate Continuously**: Data pipelines are never “finished.” Regularly refine ingestion, transformation, modeling, and deployment strategies.
+6. **Iterate Continuously**: Data pipelines are never "finished." Regularly refine ingestion, transformation, modeling, and deployment strategies.
 
-By following the best practices outlined here, you’ll be well on your way to designing a data pipeline that not only meets current needs but also adapts to future requirements - handling ever-growing data volumes, new data sources, evolving ML models, and more sophisticated user-facing applications.
+By following the best practices outlined here, you'll be well on your way to designing a data pipeline that not only meets current needs but also adapts to future requirements - handling ever-growing data volumes, new data sources, evolving ML models, and more sophisticated user-facing applications.
 
 ---
 
-## Further Reading & Resources
+## 20. Further Reading & Resources
 
 - **Data Engineering**:
 
@@ -456,7 +865,7 @@ By following the best practices outlined here, you’ll be well on your way to d
 
 - **MLOps**:
 
-  - [Google Cloud’s MLOps Whitepaper](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)
+  - [Google Cloud's MLOps Whitepaper](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)
   - [MLflow Docs](https://mlflow.org/docs/latest/index.html)
   - [Feast (Feature Store)](https://docs.feast.dev/)
 
@@ -478,4 +887,4 @@ By following the best practices outlined here, you’ll be well on your way to d
   - [Terraform](https://developer.hashicorp.com/terraform/docs)
   - [Prometheus & Grafana](https://prometheus.io/docs/introduction/overview/)
 
-By integrating these tools and following these strategies, you’ll have a powerful, end-to-end data pipeline capable of driving real-time insights and unlocking the full potential of your organization’s data.
+By integrating these tools and following these strategies, you'll have a powerful, end-to-end data pipeline capable of driving real-time insights and unlocking the full potential of your organization's data.

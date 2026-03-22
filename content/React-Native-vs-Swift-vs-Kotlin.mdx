@@ -23,11 +23,31 @@ Mobile app development requires balancing rapid iteration with deep platform int
 - **Swift:** Apple’s native language using SwiftUI (or UIKit) for high‑performance iOS apps.
 - **Kotlin:** Android’s native language leveraging Jetpack Compose (or traditional XML layouts) with powerful coroutine support.
 
+```mermaid
+graph TD
+    subgraph RN [React Native]
+        A[JavaScript Code] --> B[Hermes JS Engine]
+        B --> C[JS Bridge / Fabric]
+        C --> D[Native iOS Modules]
+        C --> E[Native Android Modules]
+    end
+    subgraph SW [Swift - iOS]
+        F[Swift Source] --> G[AOT Compiler]
+        G --> H[SwiftUI Runtime]
+        H --> I[UIKit Layer]
+    end
+    subgraph KT [Kotlin - Android]
+        J[Kotlin Source] --> K[Kotlin Compiler]
+        K --> L[Jetpack Compose Runtime]
+        L --> M[Android View System]
+    end
+```
+
 ---
 
 ## 1. Architectural Deep Dive
 
-### React Native
+### 1.1. React Native
 
 React Native leverages a JavaScript engine (Hermes on Android or JavaScriptCore on iOS) that runs your app’s business logic. It then communicates with native UI components via a bridge. In its latest iteration (Fabric), the bridge is re‑architected to allow synchronous layout updates.
 
@@ -60,7 +80,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-### Swift (iOS Native)
+### 1.2. Swift (iOS Native)
 
 Swift compiles ahead-of‑time (AOT), and with SwiftUI, you write declarative UI code that the compiler converts into efficient render trees. Swift’s concurrency model with `async/await` and actors is built into the language.
 
@@ -96,7 +116,7 @@ struct ContentView: View {
 }
 ```
 
-### Kotlin (Android Native)
+### 1.3. Kotlin (Android Native)
 
 Kotlin for Android, especially with Jetpack Compose, offers a modern approach to building UIs. Compose compiles Kotlin code into an efficient UI runtime, while coroutines enable smooth asynchronous programming.
 
@@ -146,6 +166,22 @@ fun CounterApp() {
 }
 ```
 
+One concrete difference between the frameworks is iteration speed. React Native's Fast Refresh re-evaluates JavaScript in under a second, while Swift and Kotlin require incremental AOT compilation:
+
+```mermaid
+graph LR
+    A[Code Change Saved] --> B{Framework}
+    B --> C[React Native - Fast Refresh]
+    B --> D[Swift - Xcode Preview]
+    B --> E[Kotlin - Compose Preview]
+    C --> F[JS Re-evaluated in Hermes - under 1 second]
+    D --> G[Incremental AOT Compile - 2 to 5 seconds]
+    E --> H[Incremental Kotlin Compile - 2 to 6 seconds]
+    F --> I[Live update on device or emulator]
+    G --> I
+    H --> I
+```
+
 ---
 
 ## 2. Performance & Profiling Benchmarks
@@ -181,13 +217,13 @@ _Note:_ Detailed flame charts and instrumentation screenshots were captured usin
 
 ## 3. Memory, Battery, and Storage Footprint
 
-### Memory & Binary Size
+### 3.1. Memory & Binary Size
 
 - **React Native:** Typically larger due to the JS runtime and bundled libraries (approx. 12–15 MB binary size).
 - **Swift:** Native binary sizes around 5–7 MB with aggressive linker optimizations.
 - **Kotlin:** Binary sizes around 6–8 MB using ProGuard/R8 for code shrinking.
 
-### Battery & Performance Optimizations
+### 3.2. Battery & Performance Optimizations
 
 - **React Native:** Hermes enables bytecode caching to reduce memory overhead. Use tools like Flipper for real‑time performance debugging.
 - **Swift:** Use Instruments to profile memory allocations and energy impact. SwiftUI’s diff‑algorithm reduces unnecessary re‑rendering.
@@ -197,7 +233,7 @@ _Note:_ Detailed flame charts and instrumentation screenshots were captured usin
 
 ## 4. Developer Workflow & Tooling
 
-### Environment Setup & Iteration
+### 4.1. Environment Setup & Iteration
 
 - **React Native:**
 - Environment: Node.js, npm/yarn, Watchman.
@@ -224,7 +260,7 @@ _Note:_ Detailed flame charts and instrumentation screenshots were captured usin
 
 ## 5. UI/UX Implementation Patterns
 
-### Advanced Animations & Transitions
+### 5.1. Advanced Animations & Transitions
 
 - **React Native:** Use libraries like `react-native-reanimated` and `Lottie` for complex animations.
 
@@ -312,6 +348,21 @@ fun AnimatedBox() {
 }
 ```
 
+The following diagram shows how JavaScript calls cross the bridge to reach platform-specific APIs on both iOS and Android:
+
+```mermaid
+graph TD
+    A[React Native JavaScript Layer] --> B[JS Bridge - serialized messages]
+    B --> C[iOS Native Side]
+    B --> D[Android Native Side]
+    C --> E[Swift or ObjC Module]
+    D --> F[Kotlin Module]
+    E --> G[Platform API - Camera Biometrics Location]
+    F --> G
+    G --> H[Result Serialized Back to JS]
+    H --> A
+```
+
 ---
 
 ## 6. Native Module Bridging & Interoperability
@@ -363,7 +414,7 @@ export async function multiplyNumbers(a: number, b: number): Promise<number> {
 }
 ```
 
-### Android Native Module (Kotlin)
+### 6.1. Android Native Module (Kotlin)
 
 1. **Kotlin Module:**
 
@@ -412,7 +463,7 @@ class MyReactPackage : ReactPackage {
 
 ## 7. Testing Strategies & Coverage
 
-### React Native Testing
+### 7.1. React Native Testing
 
 - **Unit Testing:** Using Jest for JavaScript code.
 - **End-to-End Testing:** Using Detox for automated testing of the entire app flow.
@@ -431,7 +482,7 @@ it("renders correctly", () => {
 });
 ```
 
-### Swift Testing
+### 7.2. Swift Testing
 
 - **XCTest:** Use XCTest for unit tests and UI tests.
 - **Snapshot Testing:** Frameworks like iOSSnapshotTestCase for visual diff testing.
@@ -450,7 +501,7 @@ class ContentViewTests: XCTestCase {
 }
 ```
 
-### Kotlin Testing
+### 7.3. Kotlin Testing
 
 - **JUnit & Espresso:** For unit and UI tests.
 - **UI Automator:** For integration tests across activities.
@@ -475,9 +526,41 @@ class MainActivityTest {
 }
 ```
 
+Each platform uses a dedicated CI runner and test toolchain, all converging on a shared pass/fail gate:
+
+```mermaid
+graph TD
+    A[Code Push to Main Branch] --> B[CI Triggered]
+    B --> C[React Native - Ubuntu Runner]
+    B --> D[iOS Build - macOS Runner]
+    B --> E[Android Build - Ubuntu Runner]
+    C --> F[Jest Unit Tests]
+    D --> G[Xcode Build and XCTest]
+    E --> H[Gradle Build and Espresso Tests]
+    F --> I{All Tests Pass?}
+    G --> I
+    H --> I
+    I -- Yes --> J[Distribute via TestFlight and Firebase]
+    I -- No --> K[Block Merge and Notify Team]
+```
+
 ---
 
 ## 8. CI/CD Pipelines & Release Automation
+
+The following diagram shows the state lifecycle of a mobile app screen navigating between routes:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Mounted
+    Mounted --> Active: Screen focused
+    Active --> Background: User navigates away
+    Background --> Active: User returns
+    Active --> Paused: App minimized
+    Paused --> Active: App foregrounded
+    Background --> Unmounted: Navigator removes screen
+    Unmounted --> [*]
+```
 
 Below is a sample GitHub Actions YAML file that builds, tests, and deploys both iOS and Android apps.
 
@@ -522,15 +605,52 @@ jobs:
         run: yarn test
 ```
 
+Each framework has its own state primitive, but all three follow the same reactive model: a UI event mutates state, which triggers a targeted re-render:
+
+```mermaid
+graph TD
+    A[UI Event - User Tap] --> B{Framework}
+    B --> C[React Native]
+    B --> D[SwiftUI]
+    B --> E[Jetpack Compose]
+    C --> F[useState or Redux or Zustand store]
+    D --> G[State or StateObject or ObservableObject]
+    E --> H[remember with mutableStateOf or ViewModel]
+    F --> I[Re-render JS components via reconciler]
+    G --> J[SwiftUI diffing engine re-renders body]
+    H --> K[Compose recomposition of changed nodes]
+    I --> L[Updated Native View]
+    J --> L
+    K --> L
+```
+
 ---
 
 ## 9. Security & Compliance
 
-### Mobile Security Considerations
+### 9.1. Mobile Security Considerations
 
 - **OWASP Mobile Top 10:** Implement proper input validation, secure storage (Keychain on iOS, Keystore on Android), and network certificate pinning.
 - **Encryption:** Use HTTPS, SSL pinning, and native APIs (SecKey on iOS, Android’s Keystore).
 - **CI/CD Secrets:** Leverage GitHub Actions’ secret storage and fastlane match for iOS certificate management.
+
+The platform security model routes sensitive data through hardware-backed credential storage before it reaches the network:
+
+```mermaid
+graph LR
+    A[Sensitive Data] --> B{Platform}
+    B --> C[iOS]
+    B --> D[Android]
+    C --> E[Keychain Services]
+    D --> F[Android Keystore]
+    E --> G[Biometric Auth - Face ID or Touch ID]
+    F --> H[BiometricPrompt API]
+    G --> I[Encrypted Token Storage]
+    H --> I
+    A --> J[Network Transport]
+    J --> K[SSL Certificate Pinning]
+    K --> L[HTTPS Enforced]
+```
 
 ---
 
@@ -554,6 +674,24 @@ Consider these examples:
 - **Enterprise App:** A financial services company chose Swift and Kotlin to ensure low‑latency and maximum security. Their adoption of native frameworks resulted in a 25% improvement in user engagement.
 - **Hybrid Approach:** Some teams use React Native for the bulk of the UI while writing critical features (like payment processing) in native code, blending both approaches seamlessly.
 
+The end-to-end release pipeline from a tagged commit to a live store update follows a consistent pattern across both platforms:
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant CI as CI System
+    participant Store as App Store / Play Store
+    participant User as End User
+
+    Dev->>CI: Push tag to release branch
+    CI->>CI: Run unit and integration tests
+    CI->>CI: Build signed iOS IPA and Android AAB
+    CI->>Store: Upload to TestFlight and Play Internal Track
+    Store-->>Dev: Build processing complete
+    Dev->>Store: Promote to production
+    Store-->>User: Update available via auto-update
+```
+
 ---
 
 ## 12. Decision Matrix & Recommendations
@@ -568,6 +706,278 @@ Consider these examples:
 - High performance requirements, heavy animations, or GPU‑intensive tasks.
 - Apps that demand deep platform integration and where ultimate control of the user experience is paramount.
 
+```mermaid
+graph LR
+    A[Project Requirements] --> B{Cross-platform needed?}
+    B --> C[Yes - React Native]
+    B --> D[No]
+    D --> E{Target platform?}
+    E --> F[iOS only - Swift]
+    E --> G[Android only - Kotlin]
+    E --> H[Both - React Native or Two Native Apps]
+    C --> I{Performance critical?}
+    I --> J[Add Native Modules]
+    I --> K[Pure JS is sufficient]
+```
+
 **Final Recommendation:** For mobile teams with a limited budget or tight deadlines, React Native provides an excellent starting point. However, for long‑term, high‑performance, and security‑sensitive projects, investing in native Swift and Kotlin development is the best choice.
 
 ---
+
+## 13. React Native New Architecture: Fabric and TurboModules
+
+React Native's original architecture had a fundamental limitation: all communication between JavaScript and native code had to cross an asynchronous, serialized bridge. The **New Architecture** (released stable in React Native 0.74+) eliminates the bridge entirely through two key components.
+
+```mermaid
+graph TD
+    subgraph Old Architecture
+        JS_OLD[JS Thread] -->|Async JSON Bridge| NATIVE_OLD[Native Thread]
+        NATIVE_OLD -->|Async JSON Bridge| JS_OLD
+        BRIDGE_OVERHEAD[Serialization overhead on every call]
+    end
+    subgraph New Architecture
+        JS_NEW[JS Thread] -->|JSI - Direct C++ binding| NATIVE_NEW[Native Thread]
+        NATIVE_NEW -->|Synchronous or Async| JS_NEW
+        JSI[JavaScript Interface - no serialization]
+    end
+```
+
+### 13.1 Fabric: The New Renderer
+
+Fabric is the new UI rendering system. It replaces the asynchronous shadow tree with a C++-based renderer that runs synchronously on multiple threads. This eliminates jank during layout and animation.
+
+Key benefits:
+
+- **Synchronous layout**: UI can query layout metrics without waiting for a round trip.
+- **Concurrent features**: React 18's concurrent mode (Suspense, transitions) works correctly on mobile.
+- **Shared C++ core**: iOS and Android share the same rendering logic, reducing platform-specific bugs.
+
+```tsx
+// Fabric-compatible layout hook - reads layout synchronously
+import { useLayoutEffect, useRef, useState } from "react";
+import { View, Text } from "react-native";
+
+function MeasuredCard({ title }: { title: string }) {
+  const ref = useRef<View>(null);
+  const [width, setWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    // With Fabric, this measurement is synchronous
+    ref.current?.measure((_x, _y, w) => setWidth(w));
+  });
+
+  return (
+    <View ref={ref} style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
+      <Text>
+        {title} - measured width: {width}px
+      </Text>
+    </View>
+  );
+}
+```
+
+### 13.2 TurboModules: Lazy-Loaded Native Modules
+
+Old native modules were all initialized at startup, inflating cold launch time. TurboModules load lazily and communicate via the JavaScript Interface (JSI) without serialization.
+
+```kotlin
+// Kotlin TurboModule example
+class NativeCryptoModule(reactApplicationContext: ReactApplicationContext) :
+    NativeCryptoModuleSpec(reactApplicationContext) {
+
+  override fun getName() = NAME
+
+  // Called directly via JSI - no JSON serialization
+  override fun hashSHA256(input: String, promise: Promise) {
+    val digest = MessageDigest.getInstance("SHA-256")
+    val hash = digest.digest(input.toByteArray()).joinToString("") { "%02x".format(it) }
+    promise.resolve(hash)
+  }
+
+  companion object {
+    const val NAME = "NativeCryptoModule"
+  }
+}
+```
+
+```tsx
+// TypeScript spec file generated by Codegen
+import type { TurboModule } from "react-native";
+import { TurboModuleRegistry } from "react-native";
+
+export interface Spec extends TurboModule {
+  hashSHA256(input: string): Promise<string>;
+}
+
+export default TurboModuleRegistry.getEnforcing<Spec>("NativeCryptoModule");
+```
+
+---
+
+## 14. Expo Managed Workflow: From Zero to App Store
+
+Expo provides a managed build and deploy workflow that removes the need to maintain native Xcode and Android Studio projects for most use cases. The managed workflow handles native configuration through `app.json` and Expo Config Plugins.
+
+```mermaid
+graph LR
+    CODE[React Native + Expo SDK] --> EAS[EAS Build Service]
+    EAS --> IOS_BUILD[iOS .ipa - macOS runners]
+    EAS --> ANDROID_BUILD[Android .aab - Linux runners]
+    IOS_BUILD --> TESTFLIGHT[TestFlight]
+    ANDROID_BUILD --> PLAY[Play Internal Track]
+    TESTFLIGHT --> APPSTORE[App Store]
+    PLAY --> PLAYSTORE[Google Play]
+```
+
+### 14.1 EAS Build Configuration
+
+```json
+// eas.json
+{
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "APP_ENV": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": { "simulator": false },
+      "env": { "APP_ENV": "staging" }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": { "APP_ENV": "production" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": { "appleId": "dev@example.com", "ascAppId": "1234567890" },
+      "android": { "serviceAccountKeyPath": "./gc-service-account.json" }
+    }
+  }
+}
+```
+
+### 14.2 Expo Config Plugins
+
+When a third-party SDK requires native code changes (like modifying `AndroidManifest.xml` or `Info.plist`), Config Plugins apply those changes automatically during the managed build.
+
+```typescript
+// app.config.ts - applying a Config Plugin
+import { ExpoConfig, ConfigContext } from "expo/config";
+
+export default ({ config }: ConfigContext): ExpoConfig => ({
+  ...config,
+  name: "MyApp",
+  plugins: [
+    [
+      "expo-camera",
+      { cameraPermission: "Allow $(PRODUCT_NAME) to access camera." },
+    ],
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/notification-icon.png",
+        color: "#ffffff",
+        defaultChannel: "default",
+      },
+    ],
+    "./plugins/withCustomPermissions.ts",
+  ],
+});
+```
+
+### 14.3 Over-the-Air Updates with EAS Update
+
+Expo's OTA update mechanism allows JavaScript and asset updates to ship without an App Store review cycle. Only native code changes require a new binary submission.
+
+```bash
+# Ship a hotfix to production users without App Store review
+npx eas update --branch production --message "Fix checkout crash"
+```
+
+---
+
+## 15. Kotlin Multiplatform: Shared Business Logic
+
+Kotlin Multiplatform (KMP) takes a different approach than React Native. Instead of running JavaScript on both platforms, KMP compiles Kotlin code to native binaries for each target while sharing the business logic layer. The UI remains fully native on each platform.
+
+```mermaid
+graph TD
+    subgraph Shared KMP Module
+        BL[Business Logic - Kotlin]
+        REPO[Repository Layer]
+        API[API Client - Ktor]
+        DB[Local DB - SQLDelight]
+    end
+    subgraph Android
+        AND_UI[Jetpack Compose UI]
+        AND_VM[ViewModel]
+    end
+    subgraph iOS
+        IOS_UI[SwiftUI]
+        IOS_VM[ObservableObject]
+    end
+    AND_VM --> BL
+    IOS_VM --> BL
+    BL --> REPO
+    REPO --> API
+    REPO --> DB
+```
+
+### 15.1 Shared Repository in KMP
+
+```kotlin
+// commonMain/data/UserRepository.kt
+class UserRepository(
+    private val apiClient: HttpClient,
+    private val localDb: Database,
+) {
+    suspend fun getUser(id: String): User {
+        // Check local cache first
+        val cached = localDb.userQueries.getById(id).executeAsOneOrNull()
+        if (cached != null) return cached.toUser()
+
+        // Fetch from API - runs on both Android and iOS
+        val remote = apiClient.get<UserDto>("/users/$id")
+        localDb.userQueries.insert(remote.toEntity())
+        return remote.toUser()
+    }
+}
+```
+
+```swift
+// iOS - consuming the shared KMP module via Swift package
+import shared  // the compiled KMP framework
+
+@MainActor
+class UserViewModel: ObservableObject {
+    private let repository = UserRepository(
+        apiClient: HttpClientProvider().client,
+        localDb: DatabaseProvider().database
+    )
+
+    @Published var user: User?
+
+    func load(userId: String) {
+        Task {
+            user = try await repository.getUser(id: userId)
+        }
+    }
+}
+```
+
+### 15.2 When to Choose KMP vs React Native
+
+| Consideration | React Native                   | Kotlin Multiplatform                        |
+| ------------- | ------------------------------ | ------------------------------------------- |
+| Shared UI     | Yes (same components)          | No (native UI per platform)                 |
+| Shared logic  | Yes (JS)                       | Yes (Kotlin compiles to native)             |
+| Performance   | Good (Fabric), not peak native | Near-identical to full native               |
+| Team language | JavaScript / TypeScript        | Kotlin + Swift                              |
+| iOS feel      | Requires effort                | Perfect - SwiftUI is native                 |
+| Maturity      | High (2015)                    | Growing rapidly (2023+)                     |
+| Best for      | Startups, shared UI teams      | Quality-focused apps, existing native teams |

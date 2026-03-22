@@ -7,7 +7,9 @@ export interface RelatedPostItem {
   title: string;
   description?: string;
   excerpt?: string;
+  topics?: string[];
   readingMinutes?: number;
+  viewCount?: number;
 }
 
 export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
@@ -35,7 +37,9 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
               slug={p.slug}
               title={p.title}
               description={p.description || p.excerpt || ""}
+              topics={p.topics}
               readingTimeMinutes={p.readingMinutes}
+              viewCount={p.viewCount}
             />
           </div>
         ))}
@@ -70,6 +74,7 @@ export default function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
         .fade-in-card {
           opacity: 0;
           animation: fadeIn 0.5s ease forwards;
+          height: 100%;
         }
         @keyframes fadeIn {
           to {

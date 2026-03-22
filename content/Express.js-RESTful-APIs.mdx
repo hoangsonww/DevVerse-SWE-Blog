@@ -19,7 +19,21 @@ export default function APIContent({ children }) {
 
 In modern web development, **RESTful APIs** are the backbone of communication between the client and server. One of the most popular frameworks for building these APIs is [Express.js](https://expressjs.com/), a minimal and flexible Node.js web application framework. In this article, we’ll dive deep into creating a RESTful API using Express.js, exploring its key components such as routing, middleware, error handling, and security best practices.
 
-## What is a RESTful API?
+## 1. What is a RESTful API?
+
+```mermaid
+graph LR
+    Client[Client] -->|GET /users| Server[Express Server]
+    Client -->|POST /users| Server
+    Client -->|PUT /users/:id| Server
+    Client -->|DELETE /users/:id| Server
+    Server -->|200 OK - JSON| Client
+    Server -->|201 Created - JSON| Client
+    Server -->|404 Not Found| Client
+    Server -->|500 Server Error| Client
+    Server --> DB[Database]
+    DB --> Server
+```
 
 A RESTful API (Representational State Transfer) is an architectural style for designing networked applications. It uses standard HTTP methods like `GET`, `POST`, `PUT`, and `DELETE` to interact with resources, and it leverages the stateless nature of HTTP for scalability and simplicity.
 
@@ -30,7 +44,9 @@ A RESTful API (Representational State Transfer) is an architectural style for de
 - **Resource-Based:** Everything is treated as a resource (e.g., users, posts, products).
 - **Client-Server Architecture:** Separates the user interface concerns from the data storage concerns.
 
-## Why Express.js?
+---
+
+## 2. Why Express.js?
 
 Express.js is renowned for its simplicity and minimalism, making it a go-to choice for developers looking to create APIs quickly. Its robust set of features includes:
 
@@ -38,7 +54,9 @@ Express.js is renowned for its simplicity and minimalism, making it a go-to choi
 - **Middleware Support:** A powerful mechanism to handle request processing, logging, authentication, etc.
 - **Extensibility:** Integrates seamlessly with databases, templating engines, and other third-party libraries.
 
-## Setting Up Your Express.js Project
+---
+
+## 3. Setting Up Your Express.js Project
 
 Before diving into the code, ensure you have [Node.js](https://nodejs.org/) installed on your machine. Then, initialize your project and install Express.js:
 
@@ -50,7 +68,9 @@ npm init -y
 npm install express
 ```
 
-## Creating a Basic Express Server
+---
+
+## 4. Creating a Basic Express Server
 
 Let's start by creating a simple server. Create a file named `server.js` and add the following code:
 
@@ -74,7 +94,9 @@ app.listen(port, () => {
 
 This basic setup initializes an Express application, sets up a JSON parser middleware, defines a simple route, and starts the server.
 
-## Defining API Routes
+---
+
+## 5. Defining API Routes
 
 A RESTful API revolves around various endpoints. Let's create a set of routes to manage a resource - say, **users**.
 
@@ -160,7 +182,22 @@ app.listen(port, () => {
 });
 ```
 
-## Middleware and Error Handling
+---
+
+## 6. Middleware and Error Handling
+
+```mermaid
+graph TD
+    Client[HTTP Request from Client] --> Logger[Logging Middleware]
+    Logger --> Auth[Auth Middleware]
+    Auth --> BodyParser[Body Parser Middleware]
+    BodyParser --> RateLimit[Rate Limiter Middleware]
+    RateLimit --> Router[Route Handler]
+    Router --> Response[Send HTTP Response]
+    Router --> ErrHandler[Error Handler Middleware]
+    Auth -->|Unauthorized| ErrHandler
+    ErrHandler --> ErrorResponse[Send Error Response]
+```
 
 Middleware functions in Express are functions that have access to the request object, response object, and the next middleware in the request-response cycle. They are essential for tasks like logging, authentication, and error handling.
 
@@ -201,7 +238,31 @@ app.use((err, req, res, next) => {
 });
 ```
 
-## Security Best Practices
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant Auth as Auth Middleware
+    participant Route as Route Handler
+    participant DB as Database
+
+    Client->>Auth: POST /login with credentials
+    Auth->>DB: Lookup user by email
+    DB-->>Auth: User record
+    Auth->>Auth: Verify password hash
+    Auth-->>Client: 200 OK with JWT token
+    Client->>Route: GET /users with Bearer token
+    Route->>Auth: Validate JWT signature
+    Auth-->>Route: Decoded user payload
+    Route->>DB: Query authorized resources
+    DB-->>Route: Result set
+    Route-->>Client: 200 OK with JSON data
+    Client->>Route: DELETE /users/99 with expired token
+    Auth-->>Client: 401 Unauthorized
+```
+
+---
+
+## 7. Security Best Practices
 
 When building RESTful APIs, it's crucial to incorporate security best practices:
 
@@ -221,7 +282,29 @@ const helmet = require("helmet");
 app.use(helmet());
 ```
 
-## Testing Your API
+```mermaid
+graph TD
+    A[Incoming Request] --> B[Route Handler]
+    B --> C{Throws Error?}
+    C -->|No| D[Send Success Response]
+    C -->|Yes - Sync| E[Express Catches Sync Error]
+    C -->|Yes - Async| F[next called with error]
+    E --> G[Error Handler Middleware]
+    F --> G
+    G --> H{Error Type}
+    H -->|Validation Error| I[400 Bad Request]
+    H -->|Auth Error| J[401 or 403 Response]
+    H -->|Not Found| K[404 Not Found]
+    H -->|Unhandled| L[500 Internal Server Error]
+    I --> M[Log and Respond to Client]
+    J --> M
+    K --> M
+    L --> M
+```
+
+---
+
+## 8. Testing Your API
 
 Automated testing is vital for ensuring your API behaves as expected. Tools like [Jest](https://jestjs.io/) and [Supertest](https://www.npmjs.com/package/supertest) are popular choices for testing Node.js APIs.
 
@@ -269,9 +352,387 @@ Run the tests with:
 npm test
 ```
 
-## Conclusion
+```mermaid
+graph LR
+    A[User Resource] --> B[GET /users - list all]
+    A --> C[POST /users - create]
+    A --> D[GET /users/:id - read one]
+    A --> E[PUT /users/:id - update]
+    A --> F[DELETE /users/:id - remove]
+    B --> G[200 OK with array]
+    C --> H[201 Created with new resource]
+    D --> I[200 OK or 404 Not Found]
+    E --> J[200 OK or 404 Not Found]
+    F --> K[204 No Content]
+```
+
+---
+
+## 9. Project Structure
+
+A well-organized Express project separates concerns across layers to keep code maintainable as it grows:
+
+```mermaid
+graph TD
+    ROOT[Project Root] --> APP[app.js - entry point]
+    ROOT --> ROUTES[routes/]
+    ROOT --> CONTROLLERS[controllers/]
+    ROOT --> SERVICES[services/]
+    ROOT --> MODELS[models/]
+    ROOT --> MIDDLEWARE[middleware/]
+    ROOT --> CONFIG[config/]
+    ROOT --> TESTS[tests/]
+    ROUTES --> R1[users.js]
+    ROUTES --> R2[products.js]
+    CONTROLLERS --> C1[usersController.js]
+    CONTROLLERS --> C2[productsController.js]
+    SERVICES --> S1[usersService.js - business logic]
+    MODELS --> M1[User.js - DB schema]
+    MIDDLEWARE --> MW1[auth.js]
+    MIDDLEWARE --> MW2[rateLimit.js]
+```
+
+---
+
+## 10. Request Validation Lifecycle
+
+Input validation should happen as early as possible in the middleware chain before any business logic executes:
+
+```mermaid
+graph TD
+    REQ[Incoming Request] --> SCHEMA[Schema Validator - express-validator or Joi]
+    SCHEMA -->|Validation errors found| ERRRESP[400 Bad Request with field errors]
+    SCHEMA -->|Validation passes| SANITIZE[Sanitize Inputs - strip HTML and trim]
+    SANITIZE --> AUTH[Authentication Check]
+    AUTH -->|No valid token| UNAUTH[401 Unauthorized]
+    AUTH -->|Token valid| AUTHZ[Authorization Check]
+    AUTHZ -->|Insufficient role| FORBIDDEN[403 Forbidden]
+    AUTHZ -->|Authorized| HANDLER[Route Handler]
+    HANDLER --> DB[(Database)]
+    DB --> RESP[200 or 201 Response]
+```
+
+---
+
+## 11. Pagination and Filtering Pattern
+
+APIs that return collections need consistent pagination to avoid returning unbounded result sets:
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant API as Express API
+    participant DB as Database
+
+    Client->>API: GET /products?page=2 and limit=20 and sort=price and filter=category:shoes
+    API->>API: Parse and validate query params
+    API->>DB: SELECT with LIMIT 20 OFFSET 20 WHERE category equals shoes ORDER BY price
+    DB-->>API: 20 rows and total count 150
+    API-->>Client: 200 OK with items array and pagination meta
+    Note over Client,API: meta includes total 150 and page 2 and totalPages 8 and hasNext true
+    Client->>API: GET /products?page=3 and limit=20 and sort=price and filter=category:shoes
+    API->>DB: SELECT with LIMIT 20 OFFSET 40
+    DB-->>API: next 20 rows
+    API-->>Client: 200 OK with next page
+```
+
+---
+
+## 12. API Versioning Strategy
+
+Versioning keeps older clients working while allowing the API to evolve:
+
+```mermaid
+graph LR
+    CLIENT[API Client] --> GATEWAY[Express Router]
+    GATEWAY --> V1[v1 Router - /api/v1]
+    GATEWAY --> V2[v2 Router - /api/v2]
+    V1 --> V1USERS[GET /api/v1/users - original schema]
+    V1 --> V1ORDERS[GET /api/v1/orders]
+    V2 --> V2USERS[GET /api/v2/users - extended schema]
+    V2 --> V2ORDERS[GET /api/v2/orders]
+    V2 --> V2NEW[GET /api/v2/recommendations - new endpoint]
+    V1USERS --> DB[(Database)]
+    V2USERS --> DB
+    V2NEW --> DB
+```
+
+---
+
+## 13. TypeScript Express Setup
+
+JavaScript’s lack of compile-time safety becomes a real pain point as APIs grow. Converting your Express project to TypeScript catches type errors before they hit production.
+
+```bash
+npm install --save-dev typescript @types/node @types/express ts-node-dev
+npx tsc --init
+```
+
+```typescript
+// src/types/express.d.ts — extend the Request type with custom properties
+import { JwtPayload } from "jsonwebtoken";
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload & { id: string; roles: string[] };
+    }
+  }
+}
+```
+
+```typescript
+// src/routes/users.ts
+import { Router, Request, Response, NextFunction } from "express";
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+let users: User[] = [
+  { id: 1, name: "Alice", email: "alice@example.com" },
+  { id: 2, name: "Bob", email: "bob@example.com" },
+];
+
+const router = Router();
+
+router.get("/", (_req: Request, res: Response) => {
+  res.json(users);
+});
+
+router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) return next(new Error("Invalid ID format"));
+
+  const user = users.find((u) => u.id === id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  res.json(user);
+});
+
+export default router;
+```
+
+```typescript
+// src/app.ts
+import express from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import usersRouter from "./routes/users";
+
+const app = express();
+
+app.use(helmet());
+app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/", limiter);
+
+app.use("/api/v1/users", usersRouter);
+
+export default app;
+```
+
+---
+
+## 14. OpenAPI / Swagger Integration
+
+Documenting your API with OpenAPI (formerly Swagger) makes it self-describing. The `swagger-jsdoc` and `swagger-ui-express` packages generate a live UI from JSDoc comments.
+
+```bash
+npm install swagger-jsdoc swagger-ui-express
+npm install --save-dev @types/swagger-jsdoc @types/swagger-ui-express
+```
+
+```typescript
+// src/swagger.ts
+import swaggerJsdoc from "swagger-jsdoc";
+
+const options: swaggerJsdoc.Options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Users API",
+      version: "1.0.0",
+      description: "A simple Express users API",
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+  },
+  apis: ["./src/routes/*.ts"],
+};
+
+export const swaggerSpec = swaggerJsdoc(options);
+```
+
+```typescript
+/**
+ * @openapi
+ * /api/v1/users:
+ *   get:
+ *     summary: List all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of user objects
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: ‘#/components/schemas/User’
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/", authenticate, (_req, res) => {
+  res.json(users);
+});
+```
+
+Mount the UI in `app.ts`:
+
+```typescript
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./swagger";
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+```
+
+Navigate to `http://localhost:3000/api-docs` to see the interactive documentation.
+
+```mermaid
+graph LR
+    DEV[Developer writes JSDoc annotations] --> JSDOC[swagger-jsdoc parses comments]
+    JSDOC --> SPEC[OpenAPI 3.0 JSON spec]
+    SPEC --> SWAGGERUI[swagger-ui-express renders UI]
+    SPEC --> CODEGEN[Client SDK generation - openapi-generator]
+    SPEC --> TESTING[Contract testing - Prism mock server]
+    SWAGGERUI --> BROWSER[Interactive docs at /api-docs]
+    CODEGEN --> TSDK[TypeScript SDK]
+    CODEGEN --> PYTHONSDK[Python SDK]
+```
+
+---
+
+## 15. Graceful Shutdown and Health Check Endpoints
+
+Production APIs must handle `SIGTERM` gracefully so Kubernetes or Docker can drain connections before killing the process.
+
+```typescript
+// src/server.ts
+import http from "http";
+import app from "./app";
+
+const PORT = process.env.PORT ?? 3000;
+const server = http.createServer(app);
+
+// Health check endpoint — used by load balancers and Kubernetes readiness probes
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", uptime: process.uptime(), timestamp: Date.now() });
+});
+
+app.get("/ready", async (_req, res) => {
+  try {
+    // Check database connectivity
+    await db.raw("SELECT 1");
+    res.json({ status: "ready" });
+  } catch {
+    res.status(503).json({ status: "unavailable" });
+  }
+});
+
+let isShuttingDown = false;
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received — starting graceful shutdown");
+  isShuttingDown = true;
+
+  server.close((err) => {
+    if (err) {
+      console.error("Error during shutdown", err);
+      process.exit(1);
+    }
+    console.log("All connections closed — process exiting");
+    process.exit(0);
+  });
+
+  // Force exit after 30 s if connections do not drain
+  setTimeout(() => {
+    console.error("Forced shutdown after timeout");
+    process.exit(1);
+  }, 30_000);
+});
+
+// Reject new requests during shutdown
+app.use((_req, res, next) => {
+  if (isShuttingDown) {
+    res.setHeader("Connection", "close");
+    return res.status(503).json({ error: "Service shutting down" });
+  }
+  next();
+});
+
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+```
+
+```mermaid
+sequenceDiagram
+    participant K8s as Kubernetes
+    participant Pod as Node.js Pod
+    participant LB as Load Balancer
+    participant Client
+
+    K8s->>Pod: Send SIGTERM
+    Pod->>Pod: Set isShuttingDown = true
+    Pod->>LB: Stop accepting new connections
+    LB->>Client: Route new requests to other pods
+    Note over Pod: In-flight requests continue processing
+    Pod->>Pod: server.close() waits for open sockets
+    Pod->>K8s: Process exits 0 (clean)
+    K8s->>K8s: Remove pod from service endpoints
+```
+
+### Production Anti-Patterns
+
+- **Returning stack traces in error responses.** Log the stack server-side; send a safe generic message to clients. Exposing internals helps attackers.
+- **Synchronous file I/O in request handlers.** `fs.readFileSync` blocks the event loop. Use `fs.promises.readFile` or stream the file.
+- **Missing `await` on async middleware.** Unhandled promise rejections bypass Express’s error handler. Use a wrapper: `const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);`
+- **Storing sensitive config in code.** Use environment variables loaded through `dotenv` in development and secret management (AWS Secrets Manager, Vault) in production.
+- **Skipping rate limiting on auth endpoints.** `/login` and `/register` are primary targets for credential stuffing. Apply stricter limits (e.g., 10 req/15 min per IP) than general API endpoints.
+
+---
+
+## 16. Conclusion
 
 Building a RESTful API with Express.js is a rewarding endeavor that provides a scalable and efficient way to interact with your application’s data. By understanding the basics of Express.js, leveraging middleware, handling errors gracefully, and applying security best practices, you can create robust APIs ready for production.
+
+TypeScript, OpenAPI documentation, graceful shutdown handling, and structured project organization are not optional extras — they are the difference between a prototype and a production-grade service. Adopting these patterns early in a project makes the codebase easier to maintain, test, and hand off to other engineers.
+
+**Key Takeaways:**
+
+- Adopt TypeScript from the start to catch contract violations at compile time.
+- Generate OpenAPI docs from JSDoc comments so documentation always stays current with the code.
+- Implement `/health` and `/ready` endpoints to integrate cleanly with orchestrators like Kubernetes.
+- Handle `SIGTERM` for graceful draining before process exit — essential for zero-downtime rolling deployments.
+- Apply the `asyncHandler` wrapper to every async route to ensure unhandled rejections reach the centralized error middleware.
 
 Whether you are building a small project or a large-scale application, mastering these techniques will enhance your web development skills and prepare you for more complex challenges in the world of API design.
 

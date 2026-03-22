@@ -56,6 +56,7 @@ interface Article {
 
 interface ArticlesListProps {
   articles: Article[];
+  viewCounts?: Record<string, number>;
   showSearch?: boolean;
   showCarousel?: boolean;
 }
@@ -69,6 +70,7 @@ interface ArticleVisitRecord {
 
 export default function ArticlesList({
   articles,
+  viewCounts: serverViewCounts,
   showSearch = true,
   showCarousel = true,
 }: ArticlesListProps) {
@@ -85,6 +87,7 @@ export default function ArticlesList({
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [visitHistory, setVisitHistory] = useState<ArticleVisitRecord[]>([]);
+  const viewCounts = serverViewCounts ?? {};
 
   // State for the currently selected topics and how many articles to show.
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -168,7 +171,9 @@ export default function ArticlesList({
             slug={article.slug}
             title={article.title}
             description={article.description || article.excerpt}
+            topics={article.topics}
             readingTimeMinutes={article.readingMinutes}
+            viewCount={viewCounts[article.slug]}
           />
         </div>
       )),
@@ -555,7 +560,9 @@ export default function ArticlesList({
                         slug={article.slug}
                         title={article.title}
                         description={article.description || article.excerpt}
+                        topics={article.topics}
                         readingTimeMinutes={article.readingMinutes}
+                        viewCount={viewCounts[article.slug]}
                       />
                     </div>
                   ))}
@@ -605,7 +612,13 @@ export default function ArticlesList({
       )}
 
       {/* Dynamic Article Count */}
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "1rem",
+          marginTop: "1.5rem",
+        }}
+      >
         {totalFiltered > 0 ? (
           <p>
             Showing <strong>1 – {totalDisplayed}</strong> of{" "}
@@ -642,46 +655,43 @@ export default function ArticlesList({
       <style jsx>{`
         .search-filter-shell {
           margin-bottom: 2.5rem;
-          padding: 1.75rem;
-          border-radius: 18px;
+          padding: 1.5rem 1.75rem;
+          border-radius: 16px;
           border: 1px solid var(--border-color);
-          background: linear-gradient(
-            135deg,
-            rgba(15, 118, 110, 0.08),
-            rgba(0, 0, 0, 0)
-          );
-          box-shadow: 0 24px 40px rgba(15, 23, 42, 0.08);
+          background: var(--container-background);
         }
 
         .search-filter-header {
           display: flex;
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 0.75rem;
           justify-content: space-between;
           align-items: flex-start;
         }
 
         .search-filter-kicker {
           text-transform: uppercase;
-          letter-spacing: 0.18em;
-          font-size: 0.7rem;
+          letter-spacing: 0.2em;
+          font-size: 0.68rem;
           font-weight: 700;
           color: var(--link-color);
           margin: 0;
         }
 
         .search-filter-title {
-          margin: 0.4rem 0 0.4rem;
-          font-size: 1.6rem;
+          margin: 0.3rem 0 0.3rem;
+          font-size: 1.4rem;
+          font-weight: 700;
           color: var(--text-color);
         }
 
         .search-filter-subtitle {
           margin: 0;
           color: var(--text-color);
-          opacity: 0.75;
-          max-width: 520px;
-          line-height: 1.6;
+          opacity: 0.65;
+          max-width: 480px;
+          line-height: 1.55;
+          font-size: 0.95rem;
         }
 
         .filter-tip {
@@ -754,14 +764,14 @@ export default function ArticlesList({
         }
 
         .search-field {
-          margin-top: 1.5rem;
+          margin-top: 1.25rem;
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          padding: 0.85rem 1rem;
-          border-radius: 14px;
+          padding: 0.75rem 1rem;
+          border-radius: 12px;
           border: 1px solid var(--border-color);
-          background: var(--container-background);
+          background: var(--background-color);
           transition:
             border-color 0.2s ease,
             box-shadow 0.2s ease;
@@ -769,7 +779,7 @@ export default function ArticlesList({
 
         .search-field.focused {
           border-color: var(--link-color);
-          box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.15);
+          box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.12);
         }
 
         .search-icon {
@@ -806,32 +816,33 @@ export default function ArticlesList({
         .filter-topics {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.75rem;
-          margin-top: 1.5rem;
+          gap: 0.5rem;
+          margin-top: 1.25rem;
           align-items: center;
         }
 
         .topic-btn {
-          padding: 0.45rem 0.95rem;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 112, 243, 0.25);
-          background-color: rgba(0, 112, 243, 0.08);
+          padding: 0.35rem 0.8rem;
+          border-radius: 8px;
+          border: 1px solid var(--border-color);
+          background-color: var(--background-color);
           color: var(--text-color);
           cursor: pointer;
           transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease,
-            background-color 0.2s ease,
-            border-color 0.2s ease;
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            color 0.15s ease;
           font: inherit;
+          font-size: 0.82rem;
           display: inline-flex;
           align-items: center;
-          gap: 0.45rem;
-          font-weight: 600;
+          gap: 0.35rem;
+          font-weight: 500;
         }
 
         .topic-btn svg {
-          font-size: 0.85rem;
+          font-size: 0.75rem;
+          opacity: 0.6;
         }
 
         .topic-btn.selected {
@@ -840,22 +851,25 @@ export default function ArticlesList({
           border-color: var(--link-color);
         }
 
+        .topic-btn.selected svg {
+          opacity: 1;
+        }
+
         .topic-btn.clear-btn {
-          background-color: rgba(239, 68, 68, 0.12);
-          border-color: rgba(239, 68, 68, 0.4);
-          color: #b91c1c;
+          background-color: rgba(239, 68, 68, 0.08);
+          border-color: rgba(239, 68, 68, 0.3);
+          color: #dc2626;
         }
 
         .topic-btn.more-btn {
           border-style: dashed;
           background-color: transparent;
+          opacity: 0.7;
         }
 
         .topic-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
           border-color: var(--link-color);
-          background-color: rgba(0, 112, 243, 0.16);
+          background-color: rgba(0, 112, 243, 0.08);
         }
 
         .topic-btn.selected:hover {
@@ -863,9 +877,12 @@ export default function ArticlesList({
         }
 
         .topic-btn.clear-btn:hover {
-          background-color: rgba(239, 68, 68, 0.18);
-          border-color: rgba(239, 68, 68, 0.6);
-          color: #991b1b;
+          background-color: rgba(239, 68, 68, 0.14);
+          border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        :global(.dark) .topic-btn.clear-btn {
+          color: #f87171;
         }
 
         .load-more-btn {
@@ -958,13 +975,7 @@ export default function ArticlesList({
           padding: 1.75rem;
           border-radius: 22px;
           border: 1px solid var(--border-color);
-          background:
-            radial-gradient(
-              circle at top left,
-              rgba(15, 118, 110, 0.18),
-              transparent 55%
-            ),
-            linear-gradient(135deg, rgba(0, 112, 243, 0.08), rgba(0, 0, 0, 0));
+          background: transparent;
           position: relative;
         }
 
@@ -1113,6 +1124,7 @@ export default function ArticlesList({
         .fade-in-card {
           opacity: 0;
           animation: fadeIn 0.5s ease forwards;
+          height: 100%;
         }
 
         @keyframes fadeIn {
