@@ -52,7 +52,36 @@ BERT has transformed the landscape of NLP by allowing models to be pre-trained o
 
 ## 2. Overview of BERT Architecture
 
+```mermaid
+graph TD
+    PretrainedBERT[Pretrained BERT Model] --> AddHead[Add Classification Head]
+    AddHead --> LoadData[Load Labeled Dataset]
+    LoadData --> Tokenize[Tokenize with WordPiece]
+    Tokenize --> Finetune[Fine-Tune on Task]
+    Finetune --> Evaluate[Evaluate on Validation Set]
+    Evaluate --> Metrics{Metrics Acceptable?}
+    Metrics -->|No| TuneHyper[Adjust Hyperparameters]
+    TuneHyper --> Finetune
+    Metrics -->|Yes| Save[Save Model and Tokenizer]
+    Save --> Deploy[Deploy for Inference]
+```
+
 ### 2.1. BERT’s Transformer Architecture
+
+```mermaid
+graph LR
+    Input[Input Text] --> Tokenizer[WordPiece Tokenizer]
+    Tokenizer --> CLS[CLS Token]
+    Tokenizer --> Tokens[Word Tokens]
+    Tokenizer --> SEP[SEP Token]
+    CLS --> Encoder[BERT Encoder Layers]
+    Tokens --> Encoder
+    SEP --> Encoder
+    Encoder --> CLSOut[CLS Output Vector]
+    CLSOut --> Classifier[Linear Classifier]
+    Classifier --> Softmax[Softmax]
+    Softmax --> Label[Sentiment Label]
+```
 
 BERT is based on the transformer model, which uses self-attention mechanisms to capture contextual relationships between words in a sentence. Key architectural features include:
 
@@ -68,6 +97,25 @@ BERT is pre-trained using two primary objectives:
 - **Next Sentence Prediction (NSP):** Trains the model to determine if one sentence logically follows another.
 
 These objectives equip BERT with a robust understanding of language semantics and syntactic relationships.
+
+The diagram below compares the pre-training and fine-tuning phases:
+
+```mermaid
+graph TD
+    subgraph PreTraining
+        LargeCorpus[Large Unlabeled Corpus] --> MLM[Masked Language Modeling]
+        LargeCorpus --> NSP[Next Sentence Prediction]
+        MLM --> BERTWeights[BERT Pretrained Weights]
+        NSP --> BERTWeights
+    end
+    subgraph FineTuning
+        BERTWeights --> AddHead[Add Task-Specific Head]
+        LabeledData[Small Labeled Dataset] --> AddHead
+        AddHead --> FinetuneAll[Fine-Tune All Layers]
+        FinetuneAll --> TaskModel[Task-Specific Model]
+    end
+    TaskModel --> Inference[Inference on New Text]
+```
 
 ### 2.3. Tokenization
 
@@ -109,6 +157,29 @@ def tokenize_function(example):
         truncation=True,
         max_length=128  # Adjust based on your dataset
     )
+```
+
+### 2.4. Self-Attention Mechanism
+
+BERT's power comes from multi-head self-attention, which lets every token attend to every other token in the sequence simultaneously:
+
+```mermaid
+graph LR
+    Token1[Token: The] --> Q1[Query vector]
+    Token2[Token: movie] --> Q2[Query vector]
+    Token3[Token: was] --> Q3[Query vector]
+    Token4[Token: great] --> Q4[Query vector]
+    Q1 --> Attn[Attention Score Matrix]
+    Q2 --> Attn
+    Q3 --> Attn
+    Q4 --> Attn
+    K1[Key: The] --> Attn
+    K2[Key: movie] --> Attn
+    K3[Key: was] --> Attn
+    K4[Key: great] --> Attn
+    Attn --> Softmax[Softmax - attention weights]
+    Softmax --> WeightedSum[Weighted Sum of Value vectors]
+    WeightedSum --> ContextVec[Contextual Token Representations]
 ```
 
 ### 3.3. Data Augmentation Techniques
@@ -261,6 +332,25 @@ Techniques like LIME (Local Interpretable Model-agnostic Explanations) or SHAP (
 
 ## 7. Advanced Topics and Future Directions
 
+### 7.0. Model Compression Decision Tree
+
+Before deploying fine-tuned BERT, evaluate whether compression is necessary based on your inference environment:
+
+```mermaid
+graph TD
+    Deploy[Ready to Deploy?] --> DeviceCheck{Target device?}
+    DeviceCheck -->|Cloud GPU| FullBERT[Deploy full BERT-base or BERT-large]
+    DeviceCheck -->|Mobile or Edge| Compress{Compression strategy}
+    Compress --> Distill[Knowledge Distillation - DistilBERT or TinyBERT]
+    Compress --> Quantize[Quantization - INT8 weights]
+    Compress --> Prune[Pruning - remove low-weight attention heads]
+    Distill --> AccCheck{Accuracy acceptable?}
+    Quantize --> AccCheck
+    Prune --> AccCheck
+    AccCheck -->|Yes| LightModel[Deploy compressed model]
+    AccCheck -->|No| FullBERT
+```
+
 ### 7.1. Domain Adaptation and Further Pre-Training
 
 When working in specialized domains (e.g., legal, medical), consider further pre-training BERT on domain-specific corpora before fine-tuning on sentiment analysis data.
@@ -292,13 +382,384 @@ Deploy pipelines that periodically re-train or update models as new data becomes
 
 ---
 
-## 9. Conclusion
+### 8.1 BERT for Named Entity Recognition
 
-Fine-tuning BERT for sentiment analysis is a powerful method for building state-of-the-art NLP systems. By carefully preparing your data, selecting appropriate hyperparameters, and employing robust training and evaluation practices, you can leverage BERT’s deep contextual understanding to achieve excellent performance on sentiment classification tasks. As the field continues to evolve, integrating advanced techniques such as model interpretability, domain adaptation, and continuous learning will further enhance your applications.
+BERT’s bidirectional context makes it equally powerful for sequence labeling tasks like Named Entity Recognition (NER), where the model must classify each token in a sentence into categories such as `PERSON`, `ORG`, `LOC`, or `O` (outside any entity).
+
+### 8.2. Architecture Change for NER
+
+Instead of pooling the `[CLS]` vector, we project every token’s hidden state through a linear classification head. The output shape becomes `(batch_size, sequence_length, num_labels)`.
+
+```python
+from transformers import BertForTokenClassification, BertTokenizerFast
+import torch
+
+label_list = ["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"]
+id2label  = {i: l for i, l in enumerate(label_list)}
+label2id  = {l: i for i, l in enumerate(label_list)}
+
+model = BertForTokenClassification.from_pretrained(
+    "bert-base-cased",
+    num_labels=len(label_list),
+    id2label=id2label,
+    label2id=label2id,
+)
+tokenizer = BertTokenizerFast.from_pretrained("bert-base-cased")
+```
+
+### 8.3. Handling Sub-Word Tokens in NER Labels
+
+WordPiece splits words like `"Washington"` into `["Washington"]` but `"PyTorch"` into `["Py", "##Torch"]`. Label alignment must set continuation sub-words to `-100` so they are ignored in loss computation.
+
+```python
+def align_labels_with_tokens(labels, word_ids):
+    new_labels = []
+    current_word = None
+    for word_id in word_ids:
+        if word_id is None:
+            new_labels.append(-100)
+        elif word_id != current_word:
+            current_word = word_id
+            new_labels.append(labels[word_id])
+        else:
+            # Sub-word continuation: ignore in loss
+            label = labels[word_id]
+            # Convert B- tag to I- for sub-word pieces
+            if label % 2 == 1:
+                label += 1
+            new_labels.append(label)
+    return new_labels
+```
+
+### 8.4. NER Inference Example
+
+```python
+sentence = "Elon Musk founded SpaceX in Hawthorne, California."
+inputs = tokenizer(sentence, return_tensors="pt", return_offsets_mapping=True)
+with torch.no_grad():
+    logits = model(**{k: v for k, v in inputs.items() if k != "offset_mapping"}).logits
+
+predictions = logits.argmax(dim=-1)[0].tolist()
+tokens      = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
+for token, pred in zip(tokens, predictions):
+    if token not in ("[CLS]", "[SEP]"):
+        print(f"{token:<20} {id2label[pred]}")
+# Elon                 B-PER
+# Musk                 I-PER
+# founded              O
+# Space                B-ORG
+# ##X                  I-ORG
+```
+
+### 8.5. NER vs Sentiment: Architecture Comparison
+
+```mermaid
+graph LR
+    BERT[Shared BERT Encoder] --> CLS[CLS Vector]
+    BERT --> TOKENS[Per-Token Hidden States]
+    CLS --> SENTIMENT[Linear Layer - 2 classes - Sentiment]
+    TOKENS --> NER[Linear Layer - 7 classes per token - NER]
+    SENTIMENT --> SOFTMAX1[Softmax - Pos or Neg]
+    NER --> SOFTMAX2[Softmax per token - B-PER, I-ORG etc]
+```
 
 ---
 
-## 10. Further Resources
+Beyond single-label sentiment, BERT adapts naturally to multi-label tasks where an input may carry several emotion categories simultaneously.
+
+### 8.6. Multi-Label Classification with BERT
+
+Standard sentiment analysis is a multi-class problem (one label per input). Multi-label classification assigns one or more labels simultaneously - for example, tagging a review as both `angry` and `disappointed`.
+
+The key change is replacing `CrossEntropyLoss` with `BCEWithLogitsLoss` and interpreting outputs with a sigmoid threshold rather than argmax.
+
+```python
+import torch
+import torch.nn as nn
+from transformers import BertModel
+
+class BertMultiLabel(nn.Module):
+    def __init__(self, num_labels: int, dropout: float = 0.1):
+        super().__init__()
+        self.bert    = BertModel.from_pretrained("bert-base-uncased")
+        self.dropout = nn.Dropout(dropout)
+        self.clf     = nn.Linear(self.bert.config.hidden_size, num_labels)
+
+    def forward(self, input_ids, attention_mask, labels=None):
+        outputs    = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+        pooled     = self.dropout(outputs.pooler_output)
+        logits     = self.clf(pooled)
+        loss = None
+        if labels is not None:
+            loss = nn.BCEWithLogitsLoss()(logits, labels.float())
+        return {"loss": loss, "logits": logits}
+
+# Training loop snippet
+THRESHOLD = 0.5
+model = BertMultiLabel(num_labels=6)
+optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
+
+for batch in train_loader:
+    out = model(**batch)
+    out["loss"].backward()
+    optimizer.step()
+    optimizer.zero_grad()
+
+# Inference
+with torch.no_grad():
+    logits = model(input_ids, attention_mask)["logits"]
+    probs  = torch.sigmoid(logits)
+    preds  = (probs > THRESHOLD).int()
+```
+
+### 8.7. Multi-Label Evaluation Metrics
+
+For multi-label tasks, per-label precision, recall, and F1 are computed independently and then averaged:
+
+```python
+from sklearn.metrics import classification_report
+import numpy as np
+
+label_names = ["joy", "anger", "sadness", "fear", "surprise", "disgust"]
+print(classification_report(
+    y_true.numpy(),
+    y_pred.numpy(),
+    target_names=label_names,
+    zero_division=0,
+))
+```
+
+---
+
+When production latency budgets are tight, knowledge distillation compresses the fine-tuned BERT into a smaller student model with acceptable accuracy trade-offs.
+
+### 8.8. Knowledge Distillation: Compressing BERT with DistilBERT
+
+Production deployments often cannot afford BERT-base’s 110M parameters and ~65ms per-inference latency on CPU. Knowledge distillation transfers the "soft" probability distribution learned by a large teacher model into a smaller student model, preserving most accuracy at a fraction of the cost.
+
+### 8.9. Distillation Loss
+
+The student is trained on a combination of the hard label cross-entropy loss and a KL-divergence loss against the teacher’s soft probabilities:
+
+```python
+import torch
+import torch.nn.functional as F
+
+def distillation_loss(
+    student_logits: torch.Tensor,
+    teacher_logits: torch.Tensor,
+    true_labels:    torch.Tensor,
+    temperature:    float = 4.0,
+    alpha:          float = 0.5,
+) -> torch.Tensor:
+    # Soft targets from teacher
+    soft_targets   = F.softmax(teacher_logits / temperature, dim=-1)
+    soft_student   = F.log_softmax(student_logits / temperature, dim=-1)
+    distill_loss   = F.kl_div(soft_student, soft_targets, reduction="batchmean") * (temperature ** 2)
+
+    # Hard labels
+    hard_loss = F.cross_entropy(student_logits, true_labels)
+
+    return alpha * distill_loss + (1.0 - alpha) * hard_loss
+```
+
+### 8.10. DistilBERT Fine-Tuning on Distillation Objective
+
+```python
+from transformers import (
+    BertForSequenceClassification,
+    DistilBertForSequenceClassification,
+)
+
+teacher = BertForSequenceClassification.from_pretrained("./fine-tuned-bert-sst2")
+teacher.eval()
+
+student = DistilBertForSequenceClassification.from_pretrained(
+    "distilbert-base-uncased", num_labels=2
+)
+
+optimizer = torch.optim.AdamW(student.parameters(), lr=3e-5)
+
+for batch in train_loader:
+    with torch.no_grad():
+        teacher_out = teacher(**batch)
+
+    student_out = student(**batch)
+    loss = distillation_loss(
+        student_logits=student_out.logits,
+        teacher_logits=teacher_out.logits,
+        true_labels=batch["labels"],
+    )
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+```
+
+### 8.11. Size, Speed, and Accuracy Trade-offs
+
+| Model      | Parameters | CPU Inference (ms) | SST-2 Accuracy |
+| ---------- | ---------- | ------------------ | -------------- |
+| BERT-large | 340M       | ~320ms             | 94.9%          |
+| BERT-base  | 110M       | ~65ms              | 93.5%          |
+| DistilBERT | 66M        | ~25ms              | 91.3%          |
+| TinyBERT   | 14M        | ~8ms               | 88.1%          |
+
+### 8.12. Distillation Pipeline
+
+```mermaid
+graph TD
+    TEACHER[Teacher - Fine-tuned BERT-base] --> INFER[Forward pass on training batch]
+    INFER --> SOFT[Soft probability distribution - temperature scaled]
+    STUDENT[Student - DistilBERT] --> STUDENT_OUT[Student logits]
+    SOFT --> KL[KL Divergence Loss]
+    STUDENT_OUT --> KL
+    STUDENT_OUT --> CE[Cross Entropy with Hard Labels]
+    KL --> TOTAL[Total Loss = alpha x KL + 1-alpha x CE]
+    CE --> TOTAL
+    TOTAL --> BACKPROP[Backpropagate into Student Only]
+    BACKPROP --> STUDENT
+```
+
+---
+
+Choosing the right architecture matters as much as the training strategy. BERT and GPT represent two fundamentally different training philosophies, and the task at hand should drive the selection.
+
+### 8.13. BERT vs GPT: Choosing the Right Architecture
+
+Choosing between them depends on your specific downstream task.
+
+| Dimension              | BERT (Encoder-Only)                 | GPT (Decoder-Only)              |
+| ---------------------- | ----------------------------------- | ------------------------------- |
+| Pre-training objective | Masked Language Modeling + NSP      | Causal Language Modeling        |
+| Context direction      | Bidirectional                       | Left-to-right only              |
+| Best for               | Classification, NER, QA             | Text generation, completion     |
+| Fine-tuning style      | Add task head, fine-tune all layers | Prompt engineering or fine-tune |
+| Token representation   | Full context per token              | Tokens only see past context    |
+| Model size (base)      | 110M params                         | 117M params (GPT-2)             |
+
+```mermaid
+graph TD
+    INPUT[Input: The movie was great] --> BERT[BERT Encoder]
+    INPUT --> GPT[GPT Decoder]
+    BERT --> BIDIR[Bidirectional - each token sees all others]
+    GPT --> UNIDIR[Unidirectional - each token sees only prior tokens]
+    BIDIR --> CLASSIFY[Classification head on CLS token]
+    UNIDIR --> GENERATE[Generate next token autoregressively]
+    CLASSIFY --> SENTIMENT[Sentiment: Positive]
+    GENERATE --> TEXT[Text: ...and I recommend it to everyone]
+```
+
+**When to use BERT:** You have labeled examples for classification, NER, question answering, or semantic similarity. BERT’s bidirectional attention produces richer token representations for understanding tasks.
+
+**When to use GPT:** You need generative capabilities, summarization, or can leverage zero-shot or few-shot prompting without labeled training data.
+
+---
+
+## 9. Training Loop State Machine
+
+The fine-tuning training loop cycles through epochs and evaluates at each checkpoint:
+
+```mermaid
+graph TD
+    LoadModel[Load pretrained BERT weights] --> LoadData[Load and tokenize dataset]
+    LoadData --> TrainEpoch[Forward pass on batch]
+    TrainEpoch --> ComputeLoss[Compute cross-entropy loss]
+    ComputeLoss --> Backprop[Backpropagate gradients]
+    Backprop --> ClipGrad[Clip gradients if above threshold]
+    ClipGrad --> UpdateWeights[Update weights via AdamW]
+    UpdateWeights --> NextBatch{More batches?}
+    NextBatch -->|Yes| TrainEpoch
+    NextBatch -->|No - epoch complete| Evaluate[Run on validation set]
+    Evaluate --> EarlyStopping{Val loss improved?}
+    EarlyStopping -->|Yes| SaveCheckpoint[Save best model]
+    SaveCheckpoint --> TrainEpoch
+    EarlyStopping -->|No| StopCheck{Max epochs reached?}
+    StopCheck -->|No| TrainEpoch
+    StopCheck -->|Yes| Deploy[Deploy model]
+```
+
+---
+
+## 10. Sentiment Analysis Inference Pipeline
+
+After fine-tuning, deploying BERT for production inference follows this pipeline:
+
+```mermaid
+graph TD
+    RawText[Raw input text] --> Clean[Text cleaning - remove HTML and noise]
+    Clean --> Tokenize[WordPiece tokenization]
+    Tokenize --> PadTrunc[Pad or truncate to max length 128]
+    PadTrunc --> InputIDs[Create input IDs tensor]
+    PadTrunc --> AttMask[Create attention mask tensor]
+    InputIDs --> BERTModel[Fine-tuned BERT model]
+    AttMask --> BERTModel
+    BERTModel --> CLSVec[Extract CLS token vector]
+    CLSVec --> Linear[Linear classification head]
+    Linear --> Logits[Raw logits - 2 classes]
+    Logits --> Softmax[Softmax to probabilities]
+    Softmax --> Label{Argmax class}
+    Label -->|Class 0| Negative[Negative sentiment]
+    Label -->|Class 1| Positive[Positive sentiment]
+    Softmax --> Confidence[Confidence score returned]
+```
+
+---
+
+## 11. BERT Variants Comparison
+
+Several BERT variants trade model size for speed and accuracy. This diagram maps the key trade-offs:
+
+```mermaid
+graph LR
+    Variants[BERT Variants] --> Large[BERT-large - 340M params]
+    Variants --> Base[BERT-base - 110M params]
+    Variants --> Distil[DistilBERT - 66M params]
+    Variants --> Tiny[TinyBERT - 14M params]
+    Large --> LargeAcc[Highest accuracy]
+    Large --> LargeSpeed[Slowest inference]
+    Base --> BaseAcc[Strong accuracy]
+    Base --> BaseSpeed[Moderate inference]
+    Distil --> DistilAcc[97 pct of BERT-base accuracy]
+    Distil --> DistilSpeed[60 pct faster than BERT-base]
+    Tiny --> TinyAcc[Lower accuracy]
+    Tiny --> TinySpeed[Fastest - mobile and edge ready]
+    Large --> GPU[Requires GPU in production]
+    Distil --> CPU[Runs well on CPU]
+    Tiny --> CPU
+```
+
+---
+
+## 12. Evaluation Metrics Relationships
+
+The standard classification metrics for sentiment analysis and how they relate to the confusion matrix:
+
+```mermaid
+graph TD
+    ConfMatrix[Confusion Matrix] --> TP[True Positives]
+    ConfMatrix --> TN[True Negatives]
+    ConfMatrix --> FP[False Positives]
+    ConfMatrix --> FN[False Negatives]
+    TP --> Precision[Precision = TP divided by TP plus FP]
+    TP --> Recall[Recall = TP divided by TP plus FN]
+    TN --> Accuracy[Accuracy = TP plus TN divided by all samples]
+    Precision --> F1[F1 = 2 times Precision times Recall divided by Precision plus Recall]
+    Recall --> F1
+    TP --> ROC[ROC Curve - TPR vs FPR across thresholds]
+    FP --> ROC
+    FN --> ROC
+    ROC --> AUC[AUC Score - overall model quality]
+```
+
+---
+
+## 13. Conclusion
+
+Fine-tuning BERT for sentiment analysis is a powerful method for building state-of-the-art NLP systems. By carefully preparing your data, selecting appropriate hyperparameters, and employing robust training and evaluation practices, you can leverage BERT's deep contextual understanding to achieve excellent performance on sentiment classification tasks. As the field continues to evolve, integrating advanced techniques such as model interpretability, domain adaptation, and continuous learning will further enhance your applications.
+
+---
+
+## 14. Further Resources
 
 - **Hugging Face Transformers Documentation:** [https://huggingface.co/transformers](https://huggingface.co/transformers)
 - **BERT Research Paper:** ["BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"](https://arxiv.org/abs/1810.04805)

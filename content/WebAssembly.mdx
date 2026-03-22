@@ -54,6 +54,20 @@ WebAssembly is a low-level, binary instruction format designed for efficient exe
 
 ## 3. Architecture and Core Concepts
 
+```mermaid
+graph TD
+    A[C or C++ or Rust Source Code] --> B[Compiler - Emscripten or wasm-pack]
+    B --> C[.wasm Binary Module]
+    C --> D[Browser Fetches .wasm File]
+    D --> E[Streaming Compilation - JIT]
+    E --> F[Wasm Module Instance]
+    F --> G[Export Functions to JavaScript]
+    G --> H[JS Calls Wasm Functions]
+    H --> I[Wasm Reads and Writes Linear Memory]
+    I --> J[Result Returned to JS]
+    J --> K[Browser Renders Output]
+```
+
 Understanding the underlying architecture of WebAssembly is key to leveraging its power. Here, we explore the core components and concepts that define Wasm.
 
 ### 3.1 Modules
@@ -65,6 +79,21 @@ Understanding the underlying architecture of WebAssembly is key to leveraging it
   Modules are organized into sections (such as type, import, function, memory, and export sections) that define how the module behaves and interacts with its environment.
 
 ### 3.2 Linear Memory
+
+The Wasm linear memory model shows how the module, JavaScript, and the host share and isolate memory:
+
+```mermaid
+graph TD
+    HOST[Host Environment - Browser or Node]
+    HOST --> JSHEAP[JavaScript Heap]
+    HOST --> WASMLINEAR[Wasm Linear Memory - ArrayBuffer]
+    WASMLINEAR --> STACK[Stack - function call frames]
+    WASMLINEAR --> HEAP2[Heap - malloc allocations]
+    WASMLINEAR --> GLOBALS[Globals - module-level data]
+    JSHEAP --> JSOBJ[JS Objects and Closures]
+    WASMLINEAR -. "Shared via SharedArrayBuffer" .-> WORKER[Web Worker Instance]
+    JSHEAP -. "No direct access to Wasm memory" .-> NOTE[Isolation boundary]
+```
 
 - **Concept:**
   WebAssembly uses a single, contiguous block of memory known as linear memory. This memory is separate from the JavaScript heap and is managed explicitly by the module.
@@ -129,6 +158,18 @@ WebAssembly brings several key benefits to web development, making it an attract
 ---
 
 ## 5. Integration with JavaScript
+
+```mermaid
+graph LR
+    A[JavaScript Application] --> B[fetch .wasm file]
+    B --> C[WebAssembly.instantiate]
+    C --> D[Wasm Module Exports]
+    D --> E[Call Exported Function from JS]
+    E --> F[Wasm Executes in Sandbox]
+    F --> G[Write Result to Linear Memory]
+    G --> H[JS Reads Result]
+    H --> A
+```
 
 One of the most powerful aspects of WebAssembly is its ability to work alongside JavaScript. This section details how developers can integrate Wasm into their existing JavaScript applications.
 
@@ -201,6 +242,29 @@ Beyond the basics, several advanced topics are crucial for harnessing the full p
 
 ### 6.3 Multithreading and Parallelism
 
+The threading model shows how a Wasm module spawns workers and coordinates via shared memory:
+
+```mermaid
+graph TD
+    MAIN[Main Thread - Wasm Module] --> SAB[SharedArrayBuffer]
+    MAIN --> W1[Web Worker 1 - Wasm Instance]
+    MAIN --> W2[Web Worker 2 - Wasm Instance]
+    MAIN --> W3[Web Worker 3 - Wasm Instance]
+    SAB --> W1
+    SAB --> W2
+    SAB --> W3
+    W1 --> ATOMIC[Atomics API - compare-and-swap]
+    W2 --> ATOMIC
+    W3 --> ATOMIC
+    ATOMIC --> SAB
+    W1 --> RESULT[Partial Result 1]
+    W2 --> RESULT2[Partial Result 2]
+    W3 --> RESULT3[Partial Result 3]
+    RESULT --> MERGE[Main Thread Merges Results]
+    RESULT2 --> MERGE
+    RESULT3 --> MERGE
+```
+
 - **Web Workers:**
   WebAssembly can work with Web Workers to perform parallel computations, enabling multi-threaded processing in the browser.
 
@@ -220,6 +284,42 @@ Beyond the basics, several advanced topics are crucial for harnessing the full p
 ## 7. The WebAssembly Ecosystem
 
 The growing ecosystem around WebAssembly is one of its greatest strengths, providing a rich set of tools, frameworks, and communities.
+
+The WebAssembly System Interface (WASI) extends Wasm beyond the browser by providing standardized system call access:
+
+```mermaid
+graph LR
+    WASM[Wasm Module] --> WASI[WASI Interface Layer]
+    WASI --> FS[Filesystem Access]
+    WASI --> NET[Network Sockets]
+    WASI --> ENV[Environment Variables]
+    WASI --> CLOCK[Clocks and Timers]
+    WASI --> RAND[Random Number Generator]
+    FS --> OS[Host OS - Linux or macOS or Windows]
+    NET --> OS
+    ENV --> OS
+    CLOCK --> OS
+    RAND --> OS
+    WASM -. "Sandboxed - explicit capability grants only" .-> WASI
+```
+
+The table section in a Wasm module enables indirect function calls, which is how function pointers and virtual dispatch work in Wasm:
+
+```mermaid
+graph TD
+    MODULE[Wasm Module] --> TYPES[Type Section - function signatures]
+    MODULE --> IMPORTS[Import Section - host functions]
+    MODULE --> FUNCS[Function Section - type indices]
+    MODULE --> TABLE[Table Section - function references]
+    MODULE --> MEM[Memory Section - linear memory pages]
+    MODULE --> EXPORTS[Export Section - public surface]
+    MODULE --> CODE[Code Section - function bodies]
+    TABLE --> INDIRECT[call_indirect instruction]
+    INDIRECT --> DISPATCH[Runtime Type Check then Dispatch]
+    DISPATCH --> F1[Function 0]
+    DISPATCH --> F2[Function 1]
+    DISPATCH --> F3[Function N]
+```
 
 ### 7.1 Tooling and Compilers
 
@@ -281,6 +381,22 @@ WebAssembly is already making a significant impact across various industries. He
 - **Data Visualization:**
   Complex data visualizations that require real-time interaction and rendering can use Wasm to offload intensive calculations from JavaScript.
 
+WebAssembly is no longer limited to browsers. The following diagram shows how the same Wasm binary runs across different host environments via WASI and embedder APIs:
+
+```mermaid
+graph LR
+    BINARY[Single .wasm Binary] --> BROWSER[Browser - V8 or SpiderMonkey]
+    BINARY --> NODE[Node.js - V8 embedder]
+    BINARY --> WASMTIME[Wasmtime - standalone runtime]
+    BINARY --> FERMYON[Fermyon Spin - serverless]
+    BINARY --> EDGE[Cloudflare Workers - edge runtime]
+    BROWSER --> WEBAPI[Web APIs via JS glue]
+    NODE --> NODEAPI[Node.js APIs via JS glue]
+    WASMTIME --> WASIAPI[WASI syscall interface]
+    FERMYON --> WASIAPI
+    EDGE --> EDGEAPI[Workers runtime APIs]
+```
+
 ### 8.4 Cryptography and Security
 
 - **Encryption/Decryption:**
@@ -294,6 +410,24 @@ WebAssembly is already making a significant impact across various industries. He
 ## 9. Performance and Optimization Strategies
 
 Achieving optimal performance with WebAssembly involves several strategies:
+
+JavaScript and WebAssembly handle a compute-intensive task through very different execution paths:
+
+```mermaid
+graph TD
+    TASK[Compute-Intensive Task] --> JSPATH[JavaScript Path]
+    TASK --> WASMPATH[WebAssembly Path]
+    JSPATH --> PARSE[Parse JS Source Text]
+    PARSE --> INTERP[Interpreter - slow start]
+    INTERP --> JIT[JIT Compile Hot Functions]
+    JIT --> JSOUT[Optimized Machine Code]
+    WASMPATH --> FETCH[Fetch Binary .wasm]
+    FETCH --> STREAM[Streaming Compile - parallel]
+    STREAM --> VALIDATE[Validate Module]
+    VALIDATE --> WASMOUT[Near-Native Machine Code]
+    JSOUT --> RESULT[Result Returned to App]
+    WASMOUT --> RESULT
+```
 
 ### 9.1 Code Optimization
 
@@ -325,6 +459,23 @@ Achieving optimal performance with WebAssembly involves several strategies:
 
 Despite its many advantages, WebAssembly faces some challenges and is the subject of ongoing research and development.
 
+The component model proposal allows Wasm modules to be composed into higher-level components with typed interfaces, enabling language-agnostic interoperability:
+
+```mermaid
+graph TD
+    RUST[Rust Component] --> WIT[WIT Interface Definition]
+    CPP[C++ Component] --> WIT
+    PYTHON[Python Component] --> WIT
+    WIT --> LINK[Component Linker]
+    LINK --> COMPOSED[Composed Application]
+    COMPOSED --> HOST[Host Runtime - Wasmtime or WAMR]
+    HOST --> RUN[Execution]
+    WIT --> BINDGEN[Binding Generator]
+    BINDGEN --> RUST
+    BINDGEN --> CPP
+    BINDGEN --> PYTHON
+```
+
 ### 10.1 Current Limitations
 
 - **Debugging Complexity:**
@@ -349,6 +500,348 @@ Despite its many advantages, WebAssembly faces some challenges and is the subjec
 
 - **Broader Ecosystem Integration:**
   WebAssembly is expected to play a larger role in server-side environments and IoT devices, further blurring the lines between web and native applications.
+
+---
+
+The WebAssembly System Interface (WASI) is a standardized API that grants Wasm modules access to OS resources - filesystem, network sockets, environment variables, clocks - without compromising the sandbox model.
+
+### 10.3. WASI Deep Dive: Filesystem Access and System Calls
+
+Unlike browser Wasm that communicates via JavaScript glue, WASI runs under runtimes like Wasmtime, WasmEdge, or Fermyon Spin and communicates directly with the host OS through capability-based permissions.
+
+### 10.4. Filesystem Access with WASI in Rust
+
+```rust
+// src/main.rs - compiled to wasm32-wasi target
+use std::fs;
+use std::io::{self, Read, Write};
+
+fn main() -> io::Result<()> {
+    // WASI preopened directory: passed as --dir flag to the runtime
+    let mut content = String::new();
+    let mut file = fs::File::open("/preopened/input.txt")?;
+    file.read_to_string(&mut content)?;
+
+    let processed = content.to_uppercase();
+
+    let mut out = fs::File::create("/preopened/output.txt")?;
+    out.write_all(processed.as_bytes())?;
+
+    println!("Processed {} bytes", content.len());
+    Ok(())
+}
+```
+
+```bash
+# Compile to WASI target
+cargo build --target wasm32-wasi --release
+
+# Run with Wasmtime, granting only the /tmp directory
+wasmtime run \
+  --dir /tmp::/preopened \
+  target/wasm32-wasi/release/my-processor.wasm
+```
+
+The `--dir /tmp::/preopened` flag is a capability grant: the module sees `/preopened` as a virtual path backed by `/tmp` on the host. Without this grant, any filesystem call raises a permission error - the module cannot touch anything else on the system.
+
+### 10.5. WASI Capability Grant Model
+
+```mermaid
+graph TD
+    RUNTIME[Wasmtime Runtime] --> CAPS[Capability Grant at Startup]
+    CAPS --> FS[--dir flag - specific directories]
+    CAPS --> ENV[--env flag - specific env vars]
+    CAPS --> NET[--tcplisten flag - specific ports]
+    FS --> MODULE[Wasm Module]
+    ENV --> MODULE
+    NET --> MODULE
+    MODULE --> FSATTEMPT{Access /etc/passwd?}
+    FSATTEMPT -- Not granted --> DENY[WASI returns ENOTCAPABLE]
+    FSATTEMPT -- Granted dir --> ALLOW[OS syscall proceeds]
+    MODULE --> NETCALL{Open TCP socket?}
+    NETCALL -- Not granted --> DENY2[WASI returns ENOTCAPABLE]
+```
+
+### 10.6. WASI Environment Variables and Args
+
+```rust
+use std::env;
+
+fn main() {
+    // Read environment variables passed via --env
+    let db_url = env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite://default.db".into());
+    let port   = env::var("PORT").unwrap_or_else(|_| "8080".into());
+
+    // Read command-line args
+    let args: Vec<String> = env::args().collect();
+    println!("Running on port {} with db={}", port, db_url);
+    println!("Args: {:?}", &args[1..]);
+}
+```
+
+```bash
+wasmtime run \
+  --env DATABASE_URL=postgres://localhost/mydb \
+  --env PORT=3000 \
+  target/wasm32-wasi/release/server.wasm -- --verbose
+```
+
+---
+
+The Wasm Component Model is a proposal that standardizes how Wasm modules compose with each other and with the host. It introduces the **WebAssembly Interface Types (WIT)** definition language and a component linker that allows modules written in different languages to call each other through typed interfaces, without manual memory serialization.
+
+### 10.7. WIT Interface Definition
+
+```wit
+// math.wit
+package devverse:math@1.0.0;
+
+interface calculator {
+    add: func(a: f64, b: f64) -> f64;
+    multiply: func(a: f64, b: f64) -> f64;
+    factorial: func(n: u32) -> u64;
+}
+
+world math-world {
+    export calculator;
+}
+```
+
+### 10.8. Implementing a WIT Interface in Rust
+
+```rust
+// src/lib.rs
+wit_bindgen::generate!({
+    world: "math-world",
+    path: "math.wit",
+});
+
+struct Calculator;
+
+impl Guest for Calculator {
+    fn add(a: f64, b: f64) -> f64 { a + b }
+    fn multiply(a: f64, b: f64) -> f64 { a * b }
+    fn factorial(n: u32) -> u64 {
+        (1..=n as u64).product()
+    }
+}
+
+export!(Calculator);
+```
+
+```bash
+# Build as a Wasm component
+cargo component build --release
+
+# Compose with another component using wasm-tools
+wasm-tools compose \
+  -d target/wasm32-wasip1/release/math.wasm \
+  app-component.wasm \
+  -o composed.wasm
+```
+
+### 10.9. Component Model Composition Flow
+
+```mermaid
+graph TD
+    RUSTCOMP[Rust Component - math.wit impl] --> LINK[wasm-tools compose]
+    PYCOMP[Python Component - data processing] --> LINK
+    JSCOMP[JS Component - UI logic] --> LINK
+    WIT[Shared .wit interface files] --> BINDGEN[Binding Generator per language]
+    BINDGEN --> RUSTCOMP
+    BINDGEN --> PYCOMP
+    BINDGEN --> JSCOMP
+    LINK --> COMPOSED[Composed .wasm application]
+    COMPOSED --> HOST[Wasmtime or WAMR runtime]
+    HOST --> RUN[Execute with capability grants]
+```
+
+The key benefit over traditional linking is language independence: the Rust component, Python component, and JavaScript component communicate through typed WIT interfaces without knowing each other’s implementation details. The runtime validates all interface calls, providing type safety across language boundaries.
+
+---
+
+Wasm’s portability and sandboxing make it ideal for server-side execution. Fermyon Spin is a serverless framework that runs Wasm components as HTTP handlers, similar to AWS Lambda but with microsecond cold starts and true multi-tenant isolation.
+
+### 10.10. Building an HTTP Handler with Spin (Rust)
+
+```toml
+# Cargo.toml
+[dependencies]
+spin-sdk = "2"
+
+[lib]
+crate-type = ["cdylib"]
+```
+
+```rust
+// src/lib.rs
+use spin_sdk::http::{IntoResponse, Request, Response};
+use spin_sdk::http_component;
+
+#[http_component]
+fn handle_request(req: Request) -> anyhow::Result<impl IntoResponse> {
+    let body = format!(
+        "Hello from Wasm! Path: {}, Method: {}",
+        req.uri().path(),
+        req.method(),
+    );
+    Ok(Response::builder()
+        .status(200)
+        .header("content-type", "text/plain")
+        .body(body)
+        .build())
+}
+```
+
+```toml
+# spin.toml
+spin_manifest_version = 2
+
+[application]
+name    = "my-spin-app"
+version = "0.1.0"
+
+[[trigger.http]]
+route   = "/api/..."
+component = "handler"
+
+[component.handler]
+source = "target/wasm32-wasip1/release/handler.wasm"
+allowed_outbound_hosts = ["https://api.example.com"]
+
+[component.handler.variables]
+api_key = "{{ api_key }}"
+```
+
+```bash
+# Build and run locally
+cargo build --target wasm32-wasip1 --release
+spin up
+
+# Deploy to Fermyon Cloud
+spin deploy
+```
+
+### 10.11. Wasmtime Embedding in a Rust Server
+
+For full control, Wasmtime can be embedded directly in any Rust application. This pattern is used by databases (WasmEdge for serverless DB extensions), proxies (Envoy), and plugin systems.
+
+```rust
+use wasmtime::*;
+use wasmtime_wasi::WasiCtxBuilder;
+
+fn run_wasm_plugin(wasm_bytes: &[u8], input: &str) -> anyhow::Result<String> {
+    let engine = Engine::default();
+    let mut linker: Linker<wasmtime_wasi::WasiCtx> = Linker::new(&engine);
+    wasmtime_wasi::add_to_linker(&mut linker, |cx| cx)?;
+
+    let wasi_ctx = WasiCtxBuilder::new()
+        .inherit_stdout()
+        .env("INPUT", input)?
+        .build();
+
+    let mut store = Store::new(&engine, wasi_ctx);
+    let module  = Module::from_binary(&engine, wasm_bytes)?;
+    let instance = linker.instantiate(&mut store, &module)?;
+
+    let run = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
+    run.call(&mut store, ())?;
+
+    Ok("Plugin executed successfully".into())
+}
+```
+
+### 10.12. Cold Start Comparison: Lambda vs Spin
+
+| Runtime                   | Language   | Cold Start (p50) | Memory Floor |
+| ------------------------- | ---------- | ---------------- | ------------ |
+| AWS Lambda (Node.js)      | JavaScript | 150-400ms        | 128 MB       |
+| AWS Lambda (Python)       | Python     | 200-600ms        | 128 MB       |
+| AWS Lambda (Java)         | Java       | 800-2000ms       | 256 MB       |
+| Fermyon Spin (Wasm)       | Rust/Go/JS | 1-5ms            | 1 MB         |
+| Cloudflare Workers (Wasm) | Rust/JS    | Sub-millisecond  | 128 MB       |
+
+The orders-of-magnitude difference in cold start comes from Wasm’s AOT compilation and the component model’s lack of a language runtime overhead.
+
+---
+
+Running ML model inference in Wasm enables client-side inference (privacy-preserving, no network round trip) and portable server-side inference without GPU dependencies for lightweight models.
+
+### 10.13. ONNX Runtime with WebAssembly
+
+ONNX Runtime Web compiles ONNX models to Wasm and can leverage WebGL or WebGPU for GPU acceleration.
+
+```html
+<!-- index.html -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+```
+
+```javascript
+// inference.js
+import * as ort from "onnxruntime-web";
+
+async function runInference(imageTensor) {
+  // Configure ONNX Runtime to use Wasm backend
+  ort.env.wasm.wasmPaths = "/wasm/";
+
+  const session = await ort.InferenceSession.create("./model.onnx", {
+    executionProviders: ["wasm"], // or ["webgl"] for GPU
+    graphOptimizationLevel: "all",
+  });
+
+  const feeds = {
+    input: new ort.Tensor("float32", imageTensor, [1, 3, 224, 224]),
+  };
+  const results = await session.run(feeds);
+
+  const output = results["output"].data;
+  const topClass = Array.from(output).indexOf(Math.max(...output));
+  return topClass;
+}
+```
+
+### 10.14. Rust + WebAssembly for Edge Inference with WASI-NN
+
+WASI-NN is a WASI proposal that provides a standard interface for neural network inference, allowing Wasm modules to use the host’s ML runtime (TensorFlow Lite, OpenVINO, etc.) without bundling the ML framework inside the Wasm binary.
+
+```rust
+// src/lib.rs
+use wasi_nn::{ExecutionTarget, GraphBuilder, GraphEncoding, TensorType};
+
+pub fn classify_image(image_bytes: &[u8]) -> anyhow::Result<Vec<f32>> {
+    // Load a pre-converted TFLite model from the preopened directory
+    let graph = GraphBuilder::new(GraphEncoding::Tensorflow, ExecutionTarget::CPU)
+        .build_from_files(["/models/mobilenet_v2.tflite"])?;
+
+    let mut ctx = graph.init_execution_context()?;
+
+    // Set input tensor (preprocessed image pixels)
+    ctx.set_input(0, TensorType::F32, &[1, 224, 224, 3], image_bytes)?;
+    ctx.compute()?;
+
+    // Read output probabilities
+    let mut output = vec![0f32; 1001];
+    ctx.get_output(0, &mut output)?;
+    Ok(output)
+}
+```
+
+### 10.15. Wasm AI Inference Architecture
+
+```mermaid
+graph TD
+    USER[User - image or text input] --> BROWSER[Browser]
+    BROWSER --> WASMORT[ONNX Runtime Web - Wasm backend]
+    WASMORT --> MODEL[Quantized ONNX Model - downloaded once]
+    MODEL --> INFER[Client-side Inference - no server round trip]
+    INFER --> RESULT[Prediction displayed instantly]
+    RESULT --> PRIVATE[Data never leaves user device]
+
+    SERVER[Server-Side Path] --> WASINN[WASI-NN Runtime - WasmEdge]
+    WASINN --> TFLITE[TFLite or OpenVINO backend]
+    TFLITE --> SERVERINFER[Server inference - shared model cache]
+    SERVERINFER --> RESPONSE[JSON response to client]
+```
 
 ---
 

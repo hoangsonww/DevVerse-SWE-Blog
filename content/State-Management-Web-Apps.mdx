@@ -19,6 +19,24 @@ export default function StateManagementArticle({ children }) {
 
 In modern web development, managing application state effectively is essential. As applications grow in complexity, maintaining predictable, performant, and scalable state becomes a challenge that no longer can be solved by local component state alone. In this comprehensive guide, we dive deep into three popular state management libraries for React - **Redux**, **Zustand**, and **Jotai**. We’ll examine their architectures, performance considerations, developer experience, and ideal use cases, so you can choose the best tool for your project.
 
+```mermaid
+graph TD
+    subgraph Redux
+        A[Action Dispatched] --> B[Middleware - Thunk or Saga]
+        B --> C[Reducer - Pure Function]
+        C --> D[Single Global Store]
+        D --> E[Connected Components Re-render]
+    end
+    subgraph Zustand
+        F[Hook Call - set] --> G[Zustand Store]
+        G --> H[Subscribed Components Re-render]
+    end
+    subgraph Jotai
+        I[useAtom Hook] --> J[Atom - Discrete State Unit]
+        J --> K[Only Subscribed Component Re-renders]
+    end
+```
+
 ---
 
 ## 1. The Role of State Management in Modern Web Applications
@@ -162,6 +180,20 @@ Jotai is particularly well-suited for projects that benefit from modular state m
 
 ## 5. Comparative Analysis
 
+```mermaid
+graph LR
+    A[Project Scale] --> B{App Size}
+    B --> C[Large - Redux]
+    B --> D[Medium - Zustand]
+    B --> E[Small or Fine-grained - Jotai]
+    C --> F[DevTools and Time Travel Debugging]
+    C --> G[Middleware - Thunk or Saga]
+    D --> H[Minimal Boilerplate]
+    D --> I[Selective Subscriptions]
+    E --> J[Atomic State Units]
+    E --> K[Concurrent Mode Ready]
+```
+
 ### 5.1 API Complexity and Learning Curve
 
 - **Redux**: Offers a well-defined, albeit verbose, pattern. Its learning curve is steep, especially for newcomers to concepts like immutability and middleware.
@@ -190,10 +222,39 @@ Jotai is particularly well-suited for projects that benefit from modular state m
 
 ## 6. Advanced Patterns and Ecosystem Integration
 
+```mermaid
+graph TD
+    A[Redux Store] --> B[Provider wraps App]
+    B --> C[Context Value Available]
+    C --> D[Component A - useSelector]
+    C --> E[Component B - useSelector]
+    C --> F[Component C - useDispatch]
+    F --> G[Dispatch Action]
+    G --> H[Middleware - Thunk]
+    H --> I[Reducer Processes Action]
+    I --> A
+    A --> D
+    A --> E
+```
+
 ### 6.1 Middleware and Side Effects
 
 - **Redux**: Leverages middleware like Redux Thunk or Redux Saga to handle asynchronous operations, which is vital for complex side-effect management.
 - **Zustand & Jotai**: Typically rely on React’s built-in hooks and custom side-effect patterns, though community solutions are emerging to handle more advanced use cases.
+
+```mermaid
+graph LR
+    A[Dispatch Action] --> B[Logger Middleware]
+    B --> C[Async Middleware - Thunk or Saga]
+    C --> D{Is Function?}
+    D -- Yes --> E[Execute Async Logic]
+    E --> F[Dispatch Result Action]
+    D -- No --> G[Pass to Next Middleware]
+    F --> G
+    G --> H[Reducer]
+    H --> I[New State]
+    I --> J[Notify Subscribers]
+```
 
 ### 6.2 Debugging Tools
 
@@ -208,9 +269,73 @@ All three libraries provide robust TypeScript support:
 - **Zustand**: Offers a straightforward API that works seamlessly with TypeScript.
 - **Jotai**: Embraces TypeScript’s strengths with minimal configuration, though its atomic design may require some additional type annotations in complex scenarios.
 
+```mermaid
+graph TD
+    A[Base Atom - countAtom] --> B[Derived Atom - doubleCount]
+    A --> C[Derived Atom - isEven]
+    B --> D[Component X renders doubled value]
+    C --> E[Component Y renders parity]
+    A --> F[Component Z reads raw count]
+    G[User increments count] --> A
+    A --> H[Only subscribed components re-render]
+```
+
 ---
 
 ## 7. Real-World Considerations
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Loading : dispatch fetchData
+    Loading --> Success : data received
+    Loading --> Error : request failed
+    Success --> Idle : reset
+    Error --> Idle : retry
+    Error --> Loading : retry action dispatched
+```
+
+```mermaid
+graph TD
+    A[Component Mounts] --> B[Reads from Store]
+    B --> C{Is Data Stale?}
+    C -- No --> D[Render with Cached State]
+    C -- Yes --> E[Dispatch Fetch Action]
+    E --> F[Thunk Calls API]
+    F --> G[Loading State Set]
+    G --> H[Component Shows Spinner]
+    F --> I[API Responds]
+    I --> J[Success Action Dispatched]
+    J --> K[Reducer Updates Store]
+    K --> L[Component Re-renders with Data]
+```
+
+```mermaid
+graph LR
+    A[Redux Toolkit] --> B[createSlice]
+    A --> C[createAsyncThunk]
+    A --> D[createEntityAdapter]
+    B --> E[Auto Action Creators]
+    B --> F[Immer-powered Reducer]
+    C --> G[pending - fulfilled - rejected]
+    D --> H[Normalized State Shape]
+    H --> I[selectAll - selectById]
+```
+
+```mermaid
+graph TD
+    A[Zustand Store] --> B[Slice A - auth]
+    A --> C[Slice B - cart]
+    A --> D[Slice C - ui]
+    B --> E[useAuthStore]
+    C --> F[useCartStore]
+    D --> G[useUIStore]
+    E --> H[LoginComponent]
+    F --> I[CartComponent]
+    G --> J[ModalComponent]
+    H --> K[Only re-renders on auth change]
+    I --> L[Only re-renders on cart change]
+```
 
 When choosing a state management library, consider:
 
@@ -220,15 +345,500 @@ When choosing a state management library, consider:
 
 ---
 
-## 8. Conclusion
-
 State management is a critical aspect of modern web applications, and the landscape offers several compelling solutions. **Redux** remains the go-to choice for large applications with complex state interactions and a need for extensive middleware and debugging tools. In contrast, **Zustand** and **Jotai** offer refreshing alternatives that reduce boilerplate and improve performance by adopting a more granular, hook-based approach.
 
 Ultimately, the best choice depends on your specific project needs, team expertise, and future scalability plans. By understanding the architectural differences, performance trade-offs, and developer experiences offered by Redux, Zustand, and Jotai, you can make an informed decision that aligns perfectly with your application’s requirements.
 
+By integrating these insights and examples, you are now equipped to choose and implement the state management solution that best fits your modern web application’s needs. Whether you lean towards the time-tested patterns of Redux or the innovative, minimalist approaches of Zustand and Jotai, effective state management will empower you to build more scalable, maintainable, and performant applications.
+
 ---
 
-## Further Reading & Resources
+## 8. Server state with TanStack Query
+
+Client state (what the UI is doing) and server state (data from an API) are fundamentally different problems. Libraries like Redux, Zustand, and Jotai are designed for client state. TanStack Query (formerly React Query) is designed specifically for server state: fetching, caching, synchronizing, and updating remote data.
+
+```mermaid
+graph TD
+    CLIENT[Client State] --> LOCAL[What the UI is doing]
+    SERVER[Server State] --> REMOTE[Data owned by the server]
+    LOCAL --> TOOLS1[Redux - Zustand - Jotai]
+    REMOTE --> TOOLS2[TanStack Query - SWR]
+    LOCAL --> EXAMPLES1[Modal open state - form dirty state - selected tab]
+    REMOTE --> EXAMPLES2[User profile - product list - order history]
+    TOOLS2 --> CACHE[Automatic caching and background refetch]
+    TOOLS2 --> DEDUP[Request deduplication]
+    TOOLS2 --> STALE[Stale-while-revalidate strategy]
+```
+
+### 8.1. TanStack Query in practice
+
+```tsx
+// product-list.tsx: server state with TanStack Query
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+}
+
+// Typed query key factory - prevents key collisions across the app
+const productKeys = {
+  all: ["products"] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...productKeys.all, "list", filters] as const,
+  detail: (id: string) => [...productKeys.all, "detail", id] as const,
+};
+
+// Fetching with automatic caching, background refetch, and error handling
+function useProducts(categoryId: string) {
+  return useQuery({
+    queryKey: productKeys.list({ categoryId }),
+    queryFn: () =>
+      fetch(`/api/products?category=${categoryId}`).then((r) => r.json()),
+    staleTime: 60_000, // Data is fresh for 60 seconds
+    gcTime: 5 * 60_000, // Cache entry survives 5 minutes after unmount
+    refetchOnWindowFocus: true,
+  });
+}
+
+// Optimistic mutation: update UI immediately, roll back on error
+function useUpdateStock(productId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newStock: number) =>
+      fetch(`/api/products/${productId}/stock`, {
+        method: "PATCH",
+        body: JSON.stringify({ stock: newStock }),
+      }),
+
+    // Optimistic update before the server responds
+    onMutate: async (newStock) => {
+      await queryClient.cancelQueries({
+        queryKey: productKeys.detail(productId),
+      });
+      const previous = queryClient.getQueryData<Product>(
+        productKeys.detail(productId),
+      );
+
+      queryClient.setQueryData<Product>(productKeys.detail(productId), (old) =>
+        old ? { ...old, stock: newStock } : old,
+      );
+
+      return { previous };
+    },
+
+    // On error: roll back to the previous value
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          productKeys.detail(productId),
+          context.previous,
+        );
+      }
+    },
+
+    // Always refetch after mutation to reconcile with server
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: productKeys.detail(productId),
+      });
+    },
+  });
+}
+```
+
+### 8.2. TanStack Query versus Redux for server state
+
+| Concern                        | Redux                  | TanStack Query                         |
+| ------------------------------ | ---------------------- | -------------------------------------- |
+| Fetching                       | Manual (thunks, sagas) | Built-in                               |
+| Caching                        | Manual                 | Automatic with configurable stale time |
+| Background refetch             | Not included           | Built-in                               |
+| Loading and error states       | Manual reducers        | Built-in per-query status              |
+| Optimistic updates             | Manual rollback logic  | `onMutate` / `onError` callbacks       |
+| Pagination and infinite scroll | Manual                 | `useInfiniteQuery` built-in            |
+| Deduplication                  | Manual                 | Automatic - shared query key           |
+
+The practical recommendation: use TanStack Query for any data that comes from an API, and reserve Redux, Zustand, or Jotai for local UI state that does not have a server counterpart.
+
+---
+
+## 9. URL state management
+
+URL search parameters are a form of global state that survives page refreshes, can be bookmarked, and can be shared. For filters, sorting, pagination, and view modes, URL state is often the most appropriate home.
+
+```tsx
+// url-state.tsx: synchronize filter state with URL search params
+import { useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+
+interface FilterState {
+  category: string | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  sortBy: "price_asc" | "price_desc" | "newest" | null;
+  page: number;
+}
+
+function useURLFilterState(): [
+  FilterState,
+  (updates: Partial<FilterState>) => void,
+] {
+  const searchParams = useSearchParams();
+
+  const state: FilterState = {
+    category: searchParams.get("category"),
+    minPrice: searchParams.get("min_price")
+      ? Number(searchParams.get("min_price"))
+      : null,
+    maxPrice: searchParams.get("max_price")
+      ? Number(searchParams.get("max_price"))
+      : null,
+    sortBy: (searchParams.get("sort") as FilterState["sortBy"]) ?? null,
+    page: Number(searchParams.get("page") ?? 1),
+  };
+
+  const setFilters = useCallback(
+    (updates: Partial<FilterState>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (updates.category !== undefined) {
+        updates.category
+          ? params.set("category", updates.category)
+          : params.delete("category");
+      }
+      if (updates.page !== undefined) {
+        updates.page > 1
+          ? params.set("page", String(updates.page))
+          : params.delete("page");
+      }
+      if (updates.sortBy !== undefined) {
+        updates.sortBy
+          ? params.set("sort", updates.sortBy)
+          : params.delete("sort");
+      }
+
+      // Use history.pushState for shallow navigation
+      window.history.pushState(null, "", `?${params.toString()}`);
+    },
+    [searchParams],
+  );
+
+  return [state, setFilters];
+}
+```
+
+### 9.1. When to use URL state vs. other state homes
+
+| State Type                  | Recommended Home                | Reason                                   |
+| --------------------------- | ------------------------------- | ---------------------------------------- |
+| Filter and sort preferences | URL params                      | Bookmarkable, shareable, survives reload |
+| Current page number         | URL params                      | Shareable deep link                      |
+| Modal open/close            | Local component state           | Not worth polluting the URL              |
+| Selected list item          | Local component state           | Transient, not shareable                 |
+| Shopping cart               | Zustand or Redux + localStorage | Needs persistence across tabs            |
+| User authentication         | Zustand or Context              | Global but not shareable                 |
+| API response data           | TanStack Query                  | Server-owned, needs caching              |
+| Form field values           | React Hook Form (local)         | Not global, needs rich validation        |
+
+---
+
+## 10. State machines with XState
+
+Complex UI flows - multi-step forms, upload wizards, document approval chains - often have states that branch based on conditions and need to express what transitions are legal. A flat boolean `isLoading` approach quickly becomes unmaintainable. XState models these flows as explicit finite state machines.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Uploading : upload action triggered
+    Uploading --> Processing : file transfer complete
+    Uploading --> UploadFailed : network error
+    Processing --> Complete : server confirms success
+    Processing --> ProcessingFailed : server returns error
+    UploadFailed --> Idle : retry
+    ProcessingFailed --> Idle : retry
+    Complete --> [*]
+```
+
+```typescript
+// upload-machine.ts: XState v5 file upload state machine
+import { createMachine, assign } from "xstate";
+
+interface UploadContext {
+  fileName: string | null;
+  progress: number;
+  error: string | null;
+  fileUrl: string | null;
+}
+
+const uploadMachine = createMachine({
+  id: "upload",
+  initial: "idle",
+  context: {
+    fileName: null,
+    progress: 0,
+    error: null,
+    fileUrl: null,
+  } as UploadContext,
+
+  states: {
+    idle: {
+      on: {
+        UPLOAD: {
+          target: "uploading",
+          actions: assign({
+            fileName: ({ event }) => event.fileName,
+            progress: 0,
+            error: null,
+          }),
+        },
+      },
+    },
+
+    uploading: {
+      on: {
+        PROGRESS: {
+          actions: assign({ progress: ({ event }) => event.percent }),
+        },
+        UPLOAD_COMPLETE: { target: "processing" },
+        ERROR: {
+          target: "uploadFailed",
+          actions: assign({ error: ({ event }) => event.message }),
+        },
+      },
+    },
+
+    processing: {
+      on: {
+        PROCESSING_COMPLETE: {
+          target: "complete",
+          actions: assign({ fileUrl: ({ event }) => event.url }),
+        },
+        ERROR: {
+          target: "processingFailed",
+          actions: assign({ error: ({ event }) => event.message }),
+        },
+      },
+    },
+
+    uploadFailed: {
+      on: { RETRY: "idle" },
+    },
+
+    processingFailed: {
+      on: { RETRY: "idle" },
+    },
+
+    complete: {
+      type: "final",
+    },
+  },
+});
+
+export { uploadMachine };
+```
+
+```tsx
+// upload-component.tsx: consuming the state machine in React
+import { useMachine } from "@xstate/react";
+import { uploadMachine } from "./upload-machine";
+
+export function FileUploader() {
+  const [state, send] = useMachine(uploadMachine);
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    send({ type: "UPLOAD", fileName: file.name });
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          send({
+            type: "PROGRESS",
+            percent: Math.round((e.loaded / e.total) * 100),
+          });
+        }
+      });
+      xhr.addEventListener("load", () => send({ type: "UPLOAD_COMPLETE" }));
+      xhr.addEventListener("error", () =>
+        send({ type: "ERROR", message: "Upload failed" }),
+      );
+      xhr.open("POST", "/api/upload");
+      xhr.send(formData);
+    } catch (err) {
+      send({ type: "ERROR", message: String(err) });
+    }
+  };
+
+  return (
+    <div>
+      {state.matches("idle") && (
+        <input type="file" onChange={handleFileChange} />
+      )}
+      {state.matches("uploading") && (
+        <progress value={state.context.progress} max={100} />
+      )}
+      {state.matches("processing") && <p>Processing file on server...</p>}
+      {state.matches("complete") && (
+        <a href={state.context.fileUrl!}>Download file</a>
+      )}
+      {(state.matches("uploadFailed") || state.matches("processingFailed")) && (
+        <div>
+          <p>Error: {state.context.error}</p>
+          <button onClick={() => send({ type: "RETRY" })}>Retry</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 11. Persistence strategies
+
+State that must survive page refreshes requires a persistence layer. The choice of persistence mechanism depends on the sensitivity of the data, its size, and whether it should be shared across tabs or devices.
+
+### 11.1. Zustand with persistence middleware
+
+```typescript
+// persisted-store.ts: Zustand store with localStorage persistence
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+interface UserPreferences {
+  theme: "light" | "dark" | "system";
+  language: string;
+  compactMode: boolean;
+  setTheme: (theme: UserPreferences["theme"]) => void;
+  setLanguage: (lang: string) => void;
+  toggleCompactMode: () => void;
+}
+
+export const usePreferencesStore = create<UserPreferences>()(
+  persist(
+    (set) => ({
+      theme: "system",
+      language: "en",
+      compactMode: false,
+      setTheme: (theme) => set({ theme }),
+      setLanguage: (language) => set({ language }),
+      toggleCompactMode: () =>
+        set((state) => ({ compactMode: !state.compactMode })),
+    }),
+    {
+      name: "user-preferences",
+      storage: createJSONStorage(() => localStorage),
+      // Only persist certain fields - exclude derived or sensitive state
+      partialize: (state) => ({
+        theme: state.theme,
+        language: state.language,
+        compactMode: state.compactMode,
+      }),
+    },
+  ),
+);
+```
+
+### 11.2. Persistence options comparison
+
+| Storage          | Max Size            | Shared Across Tabs | Survives Browser Close | Use For                               |
+| ---------------- | ------------------- | ------------------ | ---------------------- | ------------------------------------- |
+| `localStorage`   | 5-10MB              | Yes                | Yes                    | User preferences, UI settings         |
+| `sessionStorage` | 5-10MB              | No                 | No                     | Temporary form progress, session data |
+| `IndexedDB`      | Hundreds of MB      | Yes                | Yes                    | Offline data, large datasets          |
+| Cookie           | 4KB                 | Yes                | Configurable           | Server-readable session tokens        |
+| URL params       | Practical limit 2KB | Via link sharing   | Yes                    | Filter state, pagination              |
+
+---
+
+## 12. Migrating between state libraries
+
+Migrating a large codebase from one state library to another is a surgical process. A big-bang rewrite that changes all state management at once creates unacceptable risk. The practical approach is incremental extraction.
+
+```mermaid
+graph TD
+    START[Legacy Redux codebase] --> IDENTIFY[Identify a bounded slice to migrate first]
+    IDENTIFY --> CREATE[Create new Zustand or Jotai store for that slice]
+    CREATE --> BRIDGE[Add compatibility bridge - read from new store, dispatch to old]
+    BRIDGE --> MIGRATE[Migrate components in that slice one by one]
+    MIGRATE --> VERIFY[Verify behavior with integration tests]
+    VERIFY --> REMOVE[Remove old Redux slice after full migration]
+    REMOVE --> REPEAT[Repeat for next slice]
+    REPEAT --> COMPLETE[Fully migrated when all slices are extracted]
+```
+
+```typescript
+// migration-bridge.ts: compatibility layer during Redux-to-Zustand migration
+// This lets new code use Zustand while old code still dispatches to Redux
+
+import { create } from "zustand";
+import { store as reduxStore } from "./redux/store";
+import type { RootState } from "./redux/store";
+
+interface CartStore {
+  items: CartItem[];
+  total: number;
+  addItem: (item: CartItem) => void;
+  removeItem: (itemId: string) => void;
+}
+
+// New Zustand store for the cart slice
+export const useCartStore = create<CartStore>((set) => ({
+  items: reduxStore.getState().cart.items, // Initialize from Redux
+  total: reduxStore.getState().cart.total,
+
+  addItem: (item) => {
+    // Update Zustand state
+    set((state) => ({
+      items: [...state.items, item],
+      total: state.total + item.price,
+    }));
+    // Also dispatch to Redux for components not yet migrated
+    reduxStore.dispatch({ type: "cart/addItem", payload: item });
+  },
+
+  removeItem: (itemId) => {
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== itemId),
+      total:
+        state.total - (state.items.find((i) => i.id === itemId)?.price ?? 0),
+    }));
+    reduxStore.dispatch({ type: "cart/removeItem", payload: itemId });
+  },
+}));
+
+// Subscribe Redux to Zustand for reverse sync
+useCartStore.subscribe((state) => {
+  // This keeps Redux DevTools accurate during the migration period
+  if (reduxStore.getState().cart.items !== state.items) {
+    reduxStore.dispatch({ type: "cart/syncFromZustand", payload: state });
+  }
+});
+```
+
+---
+
+## 13. Conclusion
+
+State management in modern web applications is not a solved problem with a single correct answer. The right approach emerges from understanding the category of state you are managing. Server state belongs in TanStack Query, not Redux. URL-serializable state belongs in search parameters. Complex flow state belongs in XState. User preferences that need persistence belong in a persisted Zustand store.
+
+The progression from Redux toward smaller, more focused tools reflects a broader maturation in the React ecosystem. Redux was built when the alternatives were far worse. Today, the combination of TanStack Query for server data, Zustand or Jotai for client state, XState for complex flows, and URL params for shareable state covers the vast majority of real-world requirements with less code and better performance than a single global Redux store ever could.
+
+---
+
+## 14. Further Reading & Resources
 
 - **Redux**:
   - [Redux Documentation](https://redux.js.org/)
@@ -241,5 +851,3 @@ Ultimately, the best choice depends on your specific project needs, team experti
   - [Jotai Documentation](https://jotai.org/)
 - **React**:
   - [React Official Documentation](https://reactjs.org/docs/getting-started.html)
-
-By integrating these insights and examples, you are now equipped to choose and implement the state management solution that best fits your modern web application’s needs. Whether you lean towards the time-tested patterns of Redux or the innovative, minimalist approaches of Zustand and Jotai, effective state management will empower you to build more scalable, maintainable, and performant applications.

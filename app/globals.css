@@ -63,6 +63,12 @@ a:hover {
   text-decoration: underline;
 }
 
+a.interactive-card-link,
+a.interactive-card-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
 .chat-cta {
   display: inline-flex;
   align-items: center;

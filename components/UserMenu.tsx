@@ -5,6 +5,7 @@ import { supabase } from "@/supabase/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FiUser } from "react-icons/fi";
 import { toast } from "react-toastify";
+import Tooltip from "./Tooltip";
 import { createPortal } from "react-dom";
 
 const UserMenu: React.FC = () => {
@@ -184,13 +185,16 @@ const UserMenu: React.FC = () => {
 
   return (
     <div className="user-menu-wrapper" ref={menuRef}>
-      <div
-        className="icon-wrapper"
-        onClick={() => setMenuOpen((prev) => !prev)}
-        ref={triggerRef}
-      >
-        <FiUser size={24} />
-      </div>
+      <Tooltip text={user ? "Account Menu" : "Sign In"} position="bottom">
+        <div
+          className="icon-wrapper"
+          onClick={() => setMenuOpen((prev) => !prev)}
+          ref={triggerRef}
+          aria-label={user ? "Account Menu" : "Sign In"}
+        >
+          <FiUser size={24} />
+        </div>
+      </Tooltip>
 
       {menuOpen &&
         portalContainer &&

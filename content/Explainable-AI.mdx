@@ -65,6 +65,24 @@ Explainable AI empowers users by demystifying the decision-making process of com
 
 ## 3. Technical Foundations of Explainable AI
 
+```mermaid
+graph TD
+    Input[Raw Input Data] --> Model[Trained ML Model]
+    Model --> Prediction[Model Prediction]
+    Prediction --> XAIMethod{XAI Method}
+    XAIMethod -->|Model-Agnostic| LIME[LIME - Local Surrogate]
+    XAIMethod -->|Model-Agnostic| SHAP[SHAP - Shapley Values]
+    XAIMethod -->|Model-Specific| DecisionTree[Decision Tree Path]
+    XAIMethod -->|Deep Learning| GradCAM[Grad-CAM Saliency Map]
+    XAIMethod -->|Deep Learning| LRP[Layer-wise Relevance Prop]
+    LIME --> Explanation[Human-Readable Explanation]
+    SHAP --> Explanation
+    DecisionTree --> Explanation
+    GradCAM --> Explanation
+    LRP --> Explanation
+    Explanation --> Stakeholder[Stakeholder Decision]
+```
+
 The technical strategies for achieving model interpretability fall into two broad categories: model-agnostic and model-specific approaches. Each has its own strengths, limitations, and ideal use cases.
 
 ### 3.1 Model-Agnostic Approaches
@@ -169,6 +187,18 @@ While XAI holds great promise, several challenges remain that complicate its wid
 
 ### 4.1 Trade-Off Between Accuracy and Interpretability
 
+```mermaid
+graph LR
+    LinearModel[Linear Model] -->|High interpretability| InterpHigh[Interpretable]
+    DecisionTree[Decision Tree] --> InterpMed[Moderate Interpretability]
+    RandomForest[Random Forest] --> InterpLow[Low Interpretability]
+    NeuralNet[Deep Neural Network] -->|Low interpretability| InterpVeryLow[Black Box]
+    LinearModel -->|Lower accuracy| AccLow[Lower Accuracy]
+    DecisionTree --> AccMed[Moderate Accuracy]
+    RandomForest --> AccHigh[High Accuracy]
+    NeuralNet -->|Higher accuracy| AccVeryHigh[Highest Accuracy]
+```
+
 - **Complexity vs. Transparency:**
   High-performing models, such as deep neural networks, often achieve their success through layers of abstraction that hinder straightforward interpretation. Simplifying these models to make them interpretable can sometimes compromise their accuracy.
 
@@ -195,6 +225,23 @@ While XAI holds great promise, several challenges remain that complicate its wid
 
 In medical applications, explainability is critical for ensuring that AI-driven diagnoses and treatment recommendations are safe and effective. For instance, saliency maps in radiology can pinpoint the exact regions in an X-ray or MRI that led to a particular diagnosis, allowing clinicians to validate the AI’s findings.
 
+```mermaid
+graph TD
+    A[AI Decision Output] --> B{Regulatory Context}
+    B -->|GDPR Article 22| C[Right to Explanation Required]
+    B -->|Internal Audit| D[Model Documentation Required]
+    B -->|No Regulation| E[Explanation Optional but Recommended]
+    C --> F[Generate Local Explanation for Individual]
+    D --> G[Generate Global Explanation for Model]
+    E --> G
+    F --> H[Review by Domain Expert]
+    G --> H
+    H --> I{Explanation Adequate?}
+    I -->|Yes| J[Decision Approved and Logged]
+    I -->|No| K[Escalate to Human Review]
+    K --> L[Override or Correct Decision]
+```
+
 ### 5.2 Finance: Credit Scoring and Risk Management
 
 Financial institutions employ AI for credit scoring, fraud detection, and risk management. Transparent models help auditors understand why certain applications are approved or denied, ensuring that lending practices are fair and compliant with regulatory standards. Techniques such as SHAP are used to highlight risk factors, contributing to more equitable decision-making.
@@ -208,6 +255,22 @@ For self-driving cars and other autonomous systems, safety is paramount. Explain
 ## 6. Future Directions in Explainable AI
 
 The field of Explainable AI is rapidly evolving, and several promising research directions may help overcome current limitations:
+
+```mermaid
+graph LR
+    A[Single Prediction] --> B[Local Explanation Scope]
+    C[Entire Dataset] --> D[Global Explanation Scope]
+    B --> E[LIME - perturb one instance]
+    B --> F[SHAP Local - one instance Shapley]
+    D --> G[SHAP Global - aggregate all instances]
+    D --> H[Partial Dependence Plot]
+    D --> I[Feature Importance Ranking]
+    E --> J[Which features drove this prediction]
+    F --> J
+    G --> K[Which features matter across all predictions]
+    H --> K
+    I --> K
+```
 
 ### 6.1 Interactive and Adaptive Explanations
 
@@ -227,6 +290,27 @@ The field of Explainable AI is rapidly evolving, and several promising research 
 
 ### 6.3 Standardization and Regulatory Frameworks
 
+```mermaid
+sequenceDiagram
+    participant DS as Data Scientist
+    participant Model as Trained Model
+    participant SHAP as SHAP Explainer
+    participant Viz as Visualization Layer
+    participant Stake as Stakeholder
+
+    DS->>Model: Train on dataset
+    DS->>SHAP: Initialize with model
+    SHAP->>Model: Sample feature combinations
+    Model-->>SHAP: Prediction outputs
+    SHAP->>SHAP: Compute Shapley values per feature
+    SHAP-->>DS: shap_values matrix
+    DS->>Viz: Plot waterfall or beeswarm chart
+    Viz-->>Stake: Human-readable feature impact
+    Stake-->>DS: Request clarification on feature X
+    DS->>SHAP: Re-run for feature X subset
+    SHAP-->>Stake: Refined explanation
+```
+
 - **Benchmarking Interpretability:**
   Establishing standardized metrics and benchmarks for explainability will be essential for comparing different XAI methods and ensuring they meet regulatory requirements.
 
@@ -243,19 +327,347 @@ The field of Explainable AI is rapidly evolving, and several promising research 
 
 ---
 
-## 7. Conclusion
+## 7. LIME Perturbation Workflow
+
+LIME explains a single prediction by building a local surrogate model around a perturbed neighborhood:
+
+```mermaid
+sequenceDiagram
+    participant Instance as Original Instance
+    participant Perturb as Perturbation Engine
+    participant BlackBox as Black-Box Model
+    participant Surrogate as Linear Surrogate
+    participant User as End User
+
+    Instance->>Perturb: Provide feature vector
+    Perturb->>Perturb: Generate N perturbed samples near instance
+    Perturb->>BlackBox: Send all perturbed samples for prediction
+    BlackBox-->>Perturb: Probability scores for each sample
+    Perturb->>Surrogate: Weight samples by proximity to original
+    Surrogate->>Surrogate: Fit weighted linear regression
+    Surrogate-->>User: Feature coefficients as local explanation
+    User-->>Surrogate: Request explanation for different feature subset
+    Surrogate-->>User: Updated local coefficients
+```
+
+---
+
+## 8. Bias Detection and Fairness Audit Pipeline
+
+Integrating fairness checks into the model lifecycle ensures XAI also surfaces discriminatory patterns:
+
+```mermaid
+graph TD
+    TRAINDATA[Training Dataset] --> GROUPCHECK[Demographic Group Split]
+    GROUPCHECK --> PROTECTED[Protected Attributes - age, gender, race]
+    PROTECTED --> MODELOUT[Model Predictions per Group]
+    MODELOUT --> DISPARATE{Disparate Impact Ratio acceptable?}
+    DISPARATE -->|No - ratio below threshold| DEBIAS[Re-weight or Re-sample Data]
+    DISPARATE -->|Yes| SHAPFAIR[SHAP per Subgroup]
+    DEBIAS --> RETRAIN[Retrain Model]
+    RETRAIN --> DISPARATE
+    SHAPFAIR --> COMPARE[Compare Feature Importance across Groups]
+    COMPARE --> REPORT[Fairness Audit Report]
+    REPORT --> STAKEHOLDER[Compliance and Ethics Review]
+```
+
+---
+
+## 9. XAI Method Selection Decision Tree
+
+Choosing the right XAI technique depends on the model type, task, and audience:
+
+```mermaid
+graph TD
+    START[Need Explanation] --> MODELTYPE{Model Type?}
+    MODELTYPE -->|Inherently interpretable| COEF[Read Coefficients or Tree Paths directly]
+    MODELTYPE -->|Black box - any model| AGNOSTIC[Model-Agnostic Methods]
+    MODELTYPE -->|Deep neural network| DL[Deep Learning Methods]
+    AGNOSTIC --> SCOPE{Explanation Scope?}
+    SCOPE -->|Single prediction| LIME_CHOICE[LIME]
+    SCOPE -->|Single prediction with guarantees| SHAP_LOCAL[SHAP Local]
+    SCOPE -->|Global model behavior| SHAP_GLOBAL[SHAP Global or PDP]
+    DL --> TASK{Task Type?}
+    TASK -->|Image classification| GRADCAM_CHOICE[Grad-CAM]
+    TASK -->|Tabular or NLP| LRP_CHOICE[LRP or Integrated Gradients]
+    LIME_CHOICE --> OUTPUT[Human-Readable Explanation]
+    SHAP_LOCAL --> OUTPUT
+    SHAP_GLOBAL --> OUTPUT
+    GRADCAM_CHOICE --> OUTPUT
+    LRP_CHOICE --> OUTPUT
+    COEF --> OUTPUT
+```
+
+---
+
+## 10. XAI Integration in a Production ML Pipeline
+
+Explainability is not just a debugging tool - it can be embedded into every stage of model deployment:
+
+```mermaid
+graph LR
+    TRAIN[Training Stage] --> GLOBALXAI[Global Feature Importance Report]
+    DEPLOY[Deployment Stage] --> ONLINEXAI[On-Request Local Explanation Endpoint]
+    MONITOR[Monitoring Stage] --> DRIFTXAI[SHAP Drift Comparison - baseline vs current]
+    GLOBALXAI --> DOCSTORE[Model Card Documentation]
+    ONLINEXAI --> AUDITLOG[Explanation Audit Log]
+    DRIFTXAI --> ALERT[Alert if Feature Importance Shifts]
+    DOCSTORE --> COMPLIANCE[Regulatory Submission]
+    AUDITLOG --> COMPLIANCE
+    ALERT --> RETRAIN[Trigger Retraining Review]
+```
+
+---
+
+## 11. Counterfactual Explanations
+
+Counterfactual explanations answer the question: “What is the minimal change to the input that would flip the model's decision?” This is arguably the most intuitive explanation format for end users — especially in high-stakes decisions like loan rejections.
+
+### 11.1. Why Counterfactuals Matter
+
+Instead of saying “your application was denied because your debt-to-income ratio is 0.42 (SHAP contribution: -0.31)”, a counterfactual says: “Your application would have been approved if your debt-to-income ratio were 0.28 or below, or if your employment tenure were 24 months instead of 14.”
+
+The second form is actionable: the user knows exactly what to change.
+
+### 11.2. Generating Counterfactuals with DiCE
+
+```python
+import dice_ml
+import pandas as pd
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+# Train a classifier (loan approval example)
+train_df = pd.read_csv('loan_data.csv')
+target   = 'approved'
+
+X = train_df.drop(columns=[target])
+y = train_df[target]
+
+model = Pipeline([
+    ('scaler', StandardScaler()),
+    ('clf',    GradientBoostingClassifier(n_estimators=200, random_state=42)),
+])
+model.fit(X, y)
+
+# Wrap dataset and model for DiCE
+d = dice_ml.Data(
+    dataframe=train_df,
+    continuous_features=['income', 'debt_to_income', 'employment_months'],
+    outcome_name=target,
+)
+m = dice_ml.Model(model=model, backend='sklearn')
+exp = dice_ml.Dice(d, m, method='random')
+
+# Generate counterfactuals for a denied applicant
+denied_instance = pd.DataFrame([{
+    'income': 45000,
+    'debt_to_income': 0.42,
+    'employment_months': 14,
+    'credit_score': 620,
+}])
+
+cf = exp.generate_counterfactuals(
+    denied_instance,
+    total_CFs=3,
+    desired_class='opposite',
+    features_to_vary=['debt_to_income', 'employment_months'],
+)
+cf.visualize_as_dataframe()
+```
+
+```mermaid
+graph TD
+    A[Original Denied Instance] --> B[Counterfactual Generator - DiCE or CFRL]
+    B --> C[Search for Nearby Points]
+    C --> D{Model Prediction Flips?}
+    D -- No --> E[Perturb Features Further]
+    E --> C
+    D -- Yes --> F[Record as Counterfactual]
+    F --> G{Meets Constraints?}
+    G -- Immutable feature changed --> E
+    G -- Valid CF --> H[Rank by Proximity to Original]
+    H --> I[Top-K Counterfactuals Returned]
+    I --> J[Present to User as Actionable Advice]
+```
+
+---
+
+## 12. Attention Visualization for Transformers
+
+Transformer-based models (BERT, GPT, T5) use attention weights that can serve as a rough proxy for which tokens influenced a prediction — though researchers caution that attention is not always equal to explanation.
+
+### 12.1. Extracting and Plotting Attention
+
+```python
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+import matplotlib.pyplot as plt
+import numpy as np
+
+model_name = 'distilbert-base-uncased-finetuned-sst-2-english'
+tokenizer  = AutoTokenizer.from_pretrained(model_name)
+model      = AutoModelForSequenceClassification.from_pretrained(
+    model_name,
+    output_attentions=True,
+)
+model.eval()
+
+text  = “The model's explanation was surprisingly helpful and clear.”
+inputs = tokenizer(text, return_tensors='pt')
+
+with torch.no_grad():
+    outputs = model(**inputs)
+
+# outputs.attentions: tuple of (batch, heads, seq, seq) per layer
+last_layer_attn = outputs.attentions[-1]          # last transformer block
+avg_over_heads  = last_layer_attn[0].mean(dim=0)  # average attention heads
+
+tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+attn_to_cls = avg_over_heads[0].numpy()           # attention from [CLS] to each token
+
+# Plot as a bar chart
+plt.figure(figsize=(12, 4))
+plt.bar(tokens, attn_to_cls)
+plt.title('Attention from [CLS] token (last layer, averaged heads)')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.savefig('attention_weights.png', dpi=150)
+```
+
+### 12.2. Integrated Gradients: A More Reliable Alternative
+
+```python
+from captum.attr import IntegratedGradients
+
+ig = IntegratedGradients(model)
+
+# Baseline: all padding tokens (zero embedding signal)
+baseline_ids = torch.zeros_like(inputs['input_ids'])
+
+attributions, delta = ig.attribute(
+    inputs['input_ids'].float(),
+    baselines=baseline_ids.float(),
+    target=outputs.logits.argmax().item(),
+    return_convergence_delta=True,
+    n_steps=50,
+)
+# attributions shape: (1, seq_len, embed_dim) -> sum over embedding dim
+token_attributions = attributions.sum(dim=-1).squeeze(0).detach().numpy()
+```
+
+---
+
+## 13. XAI in Regulated Industries: Practical Code Pattern
+
+Financial and healthcare organizations face specific audit requirements. Here is a reusable explanation logging pattern that captures both the prediction and its local SHAP explanation for every high-stakes inference call.
+
+```python
+import shap
+import numpy as np
+import json
+import datetime
+from dataclasses import dataclass, asdict
+from typing import Any
+
+@dataclass
+class ExplanationRecord:
+    timestamp:       str
+    model_version:   str
+    input_hash:      str
+    prediction:      Any
+    confidence:      float
+    top_features:    list[dict]  # [{“feature”: “...”, “shap_value”: ...}]
+    decision_reason: str
+
+class AuditablePredictor:
+    def __init__(self, model, feature_names: list[str], model_version: str):
+        self.model        = model
+        self.names        = feature_names
+        self.version      = model_version
+        self.explainer    = shap.TreeExplainer(model)
+
+    def predict_and_explain(
+        self,
+        X: np.ndarray,
+        top_n: int = 5,
+    ) -> tuple[Any, ExplanationRecord]:
+        proba      = self.model.predict_proba(X)[0]
+        pred_class = proba.argmax()
+        confidence = float(proba[pred_class])
+
+        shap_values = self.explainer.shap_values(X)
+        # For binary classification take the positive class SHAP values
+        sv = shap_values[1][0] if isinstance(shap_values, list) else shap_values[0]
+
+        top_idx  = np.argsort(np.abs(sv))[::-1][:top_n]
+        features = [
+            {“feature”: self.names[i], “shap_value”: round(float(sv[i]), 4)}
+            for i in top_idx
+        ]
+
+        record = ExplanationRecord(
+            timestamp=datetime.datetime.utcnow().isoformat(),
+            model_version=self.version,
+            input_hash=str(hash(X.tobytes())),
+            prediction=int(pred_class),
+            confidence=round(confidence, 4),
+            top_features=features,
+            decision_reason=self._generate_reason(features),
+        )
+        return pred_class, record
+
+    def _generate_reason(self, features: list[dict]) -> str:
+        pos = [f for f in features if f['shap_value'] > 0]
+        neg = [f for f in features if f['shap_value'] < 0]
+        parts = []
+        if pos:
+            parts.append(“Factors supporting approval: “ +
+                         “, “.join(f['feature'] for f in pos[:3]))
+        if neg:
+            parts.append(“Factors against approval: “ +
+                         “, “.join(f['feature'] for f in neg[:3]))
+        return “. “.join(parts)
+```
+
+```mermaid
+sequenceDiagram
+    participant API as Inference API
+    participant Pred as AuditablePredictor
+    participant SHAP as SHAP Explainer
+    participant Log as Audit Log Store
+
+    API->>Pred: predict_and_explain(input_vector)
+    Pred->>Pred: model.predict_proba(X)
+    Pred->>SHAP: explainer.shap_values(X)
+    SHAP-->>Pred: per-feature SHAP values
+    Pred->>Pred: rank top-N contributing features
+    Pred->>Pred: build ExplanationRecord
+    Pred-->>API: prediction + ExplanationRecord
+    API->>Log: write JSON record with input_hash
+    Log-->>API: record_id
+    API-->>Client: prediction + human_reason + record_id
+    Note over Log: Record retrievable by regulators via record_id
+```
+
+---
+
+## 14. Conclusion
 
 Explainable AI represents a fundamental shift in how we develop, deploy, and trust machine learning systems. By opening the “black box” and revealing the inner workings of complex models, XAI not only fosters trust and accountability but also enables continuous improvement and ethical decision-making. As AI systems become increasingly pervasive in our daily lives, the need for transparent, understandable, and accountable models will only grow.
 
 In this article, we have explored the multifaceted nature of XAI - from its theoretical underpinnings and technical methodologies to its real-world applications and future directions. Whether you are a researcher, developer, or policymaker, embracing explainability is crucial for harnessing the full potential of AI in a responsible and ethical manner.
 
-_Further reading and references:_
+By continuing to innovate and refine XAI techniques, we move closer to a future where AI systems are not only powerful but also open, fair, and truly understandable.
+
+---
+
+## 15. Further Reading
 
 - Doshi-Velez, F., & Kim, B. (2017). _Towards A Rigorous Science of Interpretable Machine Learning_. arXiv preprint arXiv:1702.08608.
 - Rudin, C. (2019). _Stop Explaining Black Box Machine Learning Models for High Stakes Decisions and Use Interpretable Models Instead_. Nature Machine Intelligence.
 - Molnar, C. (2020). _Interpretable Machine Learning: A Guide for Making Black Box Models Explainable_.
 - Samek, W., Montavon, G., Lapuschkin, S., Anders, C. J., & Müller, K. R. (2019). _Explainable AI: Interpreting, Explaining and Visualizing Deep Learning_. Springer.
-
-By continuing to innovate and refine XAI techniques, we move closer to a future where AI systems are not only powerful but also open, fair, and truly understandable.
 
 ---

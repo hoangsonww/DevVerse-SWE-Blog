@@ -38,6 +38,18 @@ By leveraging these frameworks, developers can focus on crafting unique user exp
 
 Below, we examine each framework in detail, discussing its philosophy, unique features, and how you can get started.
 
+```mermaid
+graph TD
+    A[Browser] --> B[Virtual DOM - React]
+    A --> C[Reactive Binding - Vue]
+    A --> D[Component Tree - Angular]
+    A --> E[Compiled Output - Svelte]
+    B --> F[Reconciler diffs and patches real DOM]
+    C --> G[Watchers sync data to real DOM]
+    D --> H[Zone.js detects changes and re-renders]
+    E --> I[No runtime - direct DOM updates]
+```
+
 ---
 
 ### 2.1 React
@@ -262,6 +274,19 @@ npm run dev
 
 Understanding the strengths and trade-offs of each framework is key to selecting the right one for your project. Here’s a detailed comparison:
 
+```mermaid
+graph LR
+    A[Project Requirements] --> B{Scale and Complexity}
+    B -- Enterprise and Large Team --> C[Angular - Full Framework with TypeScript]
+    B -- Flexible and Ecosystem-Rich --> D[React - Library plus external state]
+    B -- Gradual Adoption or Prototyping --> E[Vue - Progressive Framework]
+    B -- Performance-Critical and Small Bundle --> F[Svelte - Compile-time Framework]
+    C --> G[Built-in Router, Forms, DI, RxJS]
+    D --> H[Redux, React Router, Context API]
+    E --> I[Vuex, Vue Router, Options API]
+    F --> J[Svelte Stores, SvelteKit, No Virtual DOM]
+```
+
 | Feature                 | React                                                                    | Vue                                              | Angular                                                                      | Svelte                                                          |
 | ----------------------- | ------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Type**                | Library                                                                  | Progressive Framework                            | Full-Featured Framework                                                      | Compiler Framework                                              |
@@ -272,7 +297,24 @@ Understanding the strengths and trade-offs of each framework is key to selecting
 | **Tooling & Ecosystem** | Rich ecosystem with mature libraries                                     | Comprehensive tooling via Vue CLI                | Integrated tooling with Angular CLI                                          | Growing ecosystem and vibrant community support                 |
 | **Use Case**            | Ideal for both small projects and large-scale apps requiring flexibility | Great for gradual adoption and rapid prototyping | Best for enterprise-level applications needing a robust, all-in-one solution | Perfect for lightweight apps with high performance requirements |
 
-### When to Use Each Framework
+```mermaid
+graph TD
+    A[React Component] --> B[Mount - constructor and render]
+    B --> C[componentDidMount or useEffect]
+    C --> D[Update - state or props change]
+    D --> E[Re-render Virtual DOM]
+    E --> F[Reconcile with Real DOM]
+    F --> G{Unmount?}
+    G -->|No| D
+    G -->|Yes| H[componentWillUnmount cleanup]
+
+    I[Vue Component] --> J[beforeCreate and created]
+    J --> K[beforeMount and mounted]
+    K --> L[beforeUpdate and updated on data change]
+    L --> M[beforeUnmount and unmounted]
+```
+
+### 3.1. When to Use Each Framework
 
 - **React:**
   Choose React for projects that require a high degree of flexibility and a rich ecosystem. It is well-suited for dynamic single-page applications and situations where you want granular control over component behavior.
@@ -286,13 +328,28 @@ Understanding the strengths and trade-offs of each framework is key to selecting
 - **Svelte:**
   Svelte is an excellent choice when performance and bundle size are critical. Its unique compile-time approach minimizes runtime overhead, making it perfect for lightweight applications and scenarios where rapid rendering is essential.
 
+```mermaid
+graph LR
+    A[User Action] --> B[Dispatch Action or Event]
+    B --> C{Framework State Model}
+    C -->|React - Redux| D[Reducer Pure Function]
+    C -->|Vue - Vuex| E[Mutation Committed]
+    C -->|Angular - NgRx| F[Effect Handles Side Effect]
+    C -->|Svelte - Store| G[Writable Store Updated]
+    D --> H[New State Object]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[UI Re-renders with New State]
+```
+
 ---
 
 ## 4. In-Depth Resources and Tutorials
 
 To dive deeper into each framework, here are some curated resources and tutorials:
 
-### React
+### 4.1. React
 
 - **Official Documentation:**
   [React Docs](https://reactjs.org/docs/getting-started.html)
@@ -303,7 +360,7 @@ To dive deeper into each framework, here are some curated resources and tutorial
 - **Tooling:**
   [Create React App](https://create-react-app.dev/)
 
-### Vue
+### 4.2. Vue
 
 - **Official Documentation:**
   [Vue Guide](https://vuejs.org/v2/guide/)
@@ -314,7 +371,7 @@ To dive deeper into each framework, here are some curated resources and tutorial
 - **Tooling:**
   [Vue CLI](https://cli.vuejs.org/)
 
-### Angular
+### 4.3. Angular
 
 - **Official Documentation:**
   [Angular Docs](https://angular.io/docs)
@@ -325,7 +382,7 @@ To dive deeper into each framework, here are some curated resources and tutorial
 - **Tooling:**
   [Angular CLI](https://angular.io/cli)
 
-### Svelte
+### 4.4. Svelte
 
 - **Official Documentation:**
   [Svelte Docs](https://svelte.dev/docs)
@@ -336,9 +393,463 @@ To dive deeper into each framework, here are some curated resources and tutorial
 - **Tooling:**
   [Svelte Template](https://github.com/sveltejs/template)
 
+```mermaid
+sequenceDiagram
+    participant Browser as Browser
+    participant Server as Server - SSR
+    participant Hydration as Hydration Runtime
+
+    Browser->>Server: Request page
+    Server->>Server: Execute framework code
+    Server->>Server: Render component tree to HTML
+    Server-->>Browser: Send full HTML string
+    Browser->>Browser: Display static HTML immediately
+    Browser->>Hydration: Load JavaScript bundle
+    Hydration->>Hydration: Parse component tree
+    Hydration->>Browser: Attach event listeners to existing DOM
+    Browser-->>Browser: Page is now fully interactive
+```
+
 ---
 
-## 5. Best Practices for Frontend Development
+## 5. Build Pipeline Comparison
+
+Each framework compiles and bundles code differently, which affects developer experience and output size:
+
+```mermaid
+graph TD
+    SOURCE[Source Code - JS or TS plus templates] --> BUNDLER{Bundler}
+    BUNDLER -->|React or Vue| WEBPACK[Webpack or Vite]
+    BUNDLER -->|Angular| NGCLI[Angular CLI - esbuild or webpack]
+    BUNDLER -->|Svelte| ROLLUP[Rollup or Vite - compile step first]
+    WEBPACK --> TREESHAKE[Tree Shaking - remove unused code]
+    NGCLI --> TREESHAKE
+    ROLLUP --> TREESHAKE
+    TREESHAKE --> MINIFY[Minification and Code Splitting]
+    MINIFY --> BUNDLE[Final JS Bundle]
+    BUNDLE --> CDN[Served via CDN or hosting platform]
+```
+
+---
+
+## 6. Component Communication Patterns
+
+Components need structured ways to share data across the component tree:
+
+```mermaid
+graph TD
+    PARENT[Parent Component] -->|Props down| CHILD1[Child Component A]
+    PARENT -->|Props down| CHILD2[Child Component B]
+    CHILD1 -->|Emit event up| PARENT
+    CHILD2 -->|Emit event up| PARENT
+    PARENT --> CONTEXT[Context or Provide-Inject]
+    CONTEXT --> DEEP[Deeply Nested Component]
+    CHILD1 --> STORE[Global Store - Redux or Vuex or NgRx]
+    CHILD2 --> STORE
+    DEEP --> STORE
+    STORE --> PARENT
+    STORE --> CHILD1
+    STORE --> CHILD2
+```
+
+---
+
+## 7. Testing Strategy Across Frameworks
+
+A layered testing approach ensures components, integration points, and full user flows are all covered:
+
+```mermaid
+graph LR
+    CODE[Component Code] --> UNIT[Unit Tests - Jest or Vitest]
+    CODE --> COMP[Component Tests - React Testing Library or Vue Test Utils]
+    CODE --> E2E[End-to-End Tests - Cypress or Playwright]
+    UNIT -->|Test pure functions and hooks| FAST[Fast - runs in ms]
+    COMP -->|Render component and assert DOM| MEDIUM[Medium - renders in jsdom]
+    E2E -->|Spin up real browser| SLOW[Slow - full integration]
+    FAST --> CI[CI Pipeline]
+    MEDIUM --> CI
+    SLOW --> CI
+    CI --> DEPLOY[Deploy on Green]
+```
+
+---
+
+## 8. Angular Dependency Injection Model
+
+Angular's DI system wires services into components at module or component scope:
+
+```mermaid
+graph TD
+    APPMOD[AppModule] --> PROVIDERS[Providers Array]
+    PROVIDERS --> USERSVC[UserService - singleton]
+    PROVIDERS --> HTTPCLIENT[HttpClient]
+    USERSVC --> COMP1[UserListComponent]
+    USERSVC --> COMP2[UserDetailComponent]
+    HTTPCLIENT --> USERSVC
+    COMP1 -->|Constructor injection| USERSVC
+    COMP2 -->|Constructor injection| USERSVC
+    COMPMOD[FeatureModule] --> LOCAL[Component-Scoped Provider]
+    LOCAL --> COMP3[FeatureComponent - own instance]
+```
+
+---
+
+## 9. Accessibility Compliance Patterns
+
+Accessibility (a11y) is not optional when building production UIs. WCAG 2.1 AA compliance is both a legal requirement in many jurisdictions and a quality signal for all users. Each framework has specific patterns that make meeting accessibility standards easier or harder.
+
+### 9.1. Accessible Modal Dialog in React
+
+Dialogs require focus trapping, `aria-modal`, `aria-labelledby`, and ESC key dismissal. The `@radix-ui/react-dialog` primitive handles this correctly out of the box.
+
+```tsx
+import * as Dialog from "@radix-ui/react-dialog";
+
+export function AccessibleModal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+          }}
+        />
+        <Dialog.Content
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            background: "#fff",
+            padding: "24px",
+            borderRadius: "8px",
+            maxWidth: "500px",
+            width: "90vw",
+          }}
+        >
+          <Dialog.Title style={{ marginTop: 0 }}>{title}</Dialog.Title>
+          {children}
+          <Dialog.Close asChild>
+            <button
+              aria-label="Close dialog"
+              style={{ position: "absolute", top: 8, right: 8 }}
+            >
+              ✕
+            </button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+```
+
+### 9.2. Skip Navigation Link (All Frameworks)
+
+Every page with repeated navigation must include a visible-on-focus skip link so keyboard users can bypass the nav and jump to main content.
+
+```html
+<!-- Place this as the first child of <body> in your app shell -->
+<a
+  href="#main-content"
+  class="skip-link"
+  style="
+    position: absolute;
+    top: -40px;
+    left: 8px;
+    background: #0052cc;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 0 0 4px 4px;
+    z-index: 9999;
+    transition: top 0.1s;
+  "
+  onfocus="this.style.top=’0’"
+  onblur="this.style.top=’-40px’"
+>
+  Skip to main content
+</a>
+
+<main id="main-content" tabindex="-1">
+  <!-- Page content -->
+</main>
+```
+
+### 9.3. Accessible Form in Angular with Reactive Forms
+
+Angular Reactive Forms integrate cleanly with `aria-describedby` for live error messages, which assistive technologies announce immediately.
+
+```typescript
+// profile-form.component.ts
+import { Component } from "@angular/core";
+import { FormBuilder, Validators } from "@angular/forms";
+
+@Component({
+  selector: "app-profile-form",
+  template: `
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div>
+        <label for="email">Email address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          [attr.aria-invalid]="form.get(‘email’)?.invalid && form.get(‘email’)?.touched"
+          aria-describedby="email-error"
+        />
+        <span
+          id="email-error"
+          role="alert"
+          *ngIf="form.get(‘email’)?.hasError(‘required’) && form.get(‘email’)?.touched"
+        >
+          Email is required.
+        </span>
+        <span
+          id="email-error"
+          role="alert"
+          *ngIf="form.get(‘email’)?.hasError(‘email’) && form.get(‘email’)?.touched"
+        >
+          Please enter a valid email address.
+        </span>
+      </div>
+      <button type="submit" [disabled]="form.invalid">Save profile</button>
+    </form>
+  `,
+})
+export class ProfileFormComponent {
+  form = this.fb.group({
+    email: ["", [Validators.required, Validators.email]],
+  });
+  constructor(private fb: FormBuilder) {}
+  onSubmit() {
+    console.log(this.form.value);
+  }
+}
+```
+
+### 9.4. Accessibility Audit Workflow
+
+```mermaid
+graph TD
+    DEV[Developer writes component] --> AXEEXT[Run axe DevTools in browser]
+    AXEEXT --> VIOLATIONS{Violations found?}
+    VIOLATIONS -- Yes --> FIX[Fix ARIA roles and keyboard nav]
+    FIX --> AXEEXT
+    VIOLATIONS -- No --> SCREEN[Test with VoiceOver or NVDA]
+    SCREEN --> MANUAL{Manual issues?}
+    MANUAL -- Yes --> FIX
+    MANUAL -- No --> CI[Add axe-core to Jest - jest-axe]
+    CI --> AUTOTEST[Automated a11y test in every PR]
+    AUTOTEST --> DEPLOY[Merge and deploy]
+```
+
+---
+
+## 10. Performance Budgets Per Framework
+
+Performance budgets define the maximum acceptable size and loading characteristics for a web application. Without enforced budgets, bundle sizes grow silently with each dependency addition.
+
+### 10.1. Lighthouse CI Integration
+
+```yaml
+# .github/workflows/perf-budget.yml
+name: Performance Budget
+on: [push, pull_request]
+jobs:
+  lhci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci && npm run build
+      - run: npm install -g @lhci/cli
+      - run: lhci autorun
+```
+
+```json
+// lighthouserc.json
+{
+  "ci": {
+    "collect": {
+      "url": ["http://localhost:3000", "http://localhost:3000/dashboard"],
+      "startServerCommand": "npm run start"
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.9 }],
+        "first-contentful-paint": ["error", { "maxNumericValue": 1500 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+        "total-blocking-time": ["error", { "maxNumericValue": 300 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }]
+      }
+    }
+  }
+}
+```
+
+### 10.2. Bundle Size Budgets Per Framework
+
+Typical production bundle size targets for a mid-complexity application (minified + gzipped):
+
+| Framework         | Initial JS Budget | Notes                                              |
+| ----------------- | ----------------- | -------------------------------------------------- |
+| Svelte            | 25-50 KB          | No runtime; ideal for content-heavy apps           |
+| Vue 3             | 50-100 KB         | Composition API enables better tree-shaking        |
+| React + React DOM | 80-120 KB         | Baseline runtime cost; aggressive splitting needed |
+| Angular           | 150-250 KB        | Framework overhead; justified for large apps       |
+
+### 10.3. Webpack Bundle Analyzer Integration
+
+```bash
+# React (Create React App) - analyze the production build
+npx source-map-explorer build/static/js/*.js
+
+# Vite-based projects (Vue or React)
+npx vite-bundle-visualizer
+
+# Angular
+ng build --stats-json
+npx webpack-bundle-analyzer dist/my-app/stats.json
+```
+
+### 10.4. Code Splitting with React.lazy
+
+```tsx
+import React, { Suspense } from "react";
+
+// Each route loads its bundle only when first visited
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const Analytics = React.lazy(() => import("./pages/Analytics"));
+const Settings = React.lazy(() => import("./pages/Settings"));
+
+export function AppRouter() {
+  return (
+    <Suspense
+      fallback={
+        <div role="status" aria-live="polite">
+          Loading...
+        </div>
+      }
+    >
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </Suspense>
+  );
+}
+```
+
+### 10.5. Performance Budget Enforcement Flow
+
+```mermaid
+graph LR
+    PR[Pull Request opened] --> BUILD[Build production bundle]
+    BUILD --> SIZECALC[Calculate JS and CSS bundle sizes]
+    SIZECALC --> BUDGET{Within budget?}
+    BUDGET -- No --> FAILPR[Fail PR check - show size diff]
+    BUDGET -- Yes --> LCP[Run Lighthouse CI]
+    LCP --> LCPCHECK{LCP and CLS within limits?}
+    LCPCHECK -- No --> FAILPR
+    LCPCHECK -- Yes --> PASSPR[Performance gate passed]
+    PASSPR --> MERGE[Allow merge]
+```
+
+---
+
+## 11. Micro-Frontend Integration with Frontend Frameworks
+
+When combining microfrontends with a specific framework, each framework has idiomatic ways to expose and consume remote components.
+
+### 11.1. React with Webpack Module Federation
+
+```tsx
+// app-shell/src/RemoteCatalog.tsx
+import React, { Suspense } from "react";
+
+// Type declaration for the remote module
+declare module "catalog/ProductList" {
+  const ProductList: React.ComponentType<{ category: string }>;
+  export default ProductList;
+}
+
+const RemoteProductList = React.lazy(
+  () =>
+    // @ts-ignore - loaded at runtime by Module Federation
+    import("catalog/ProductList"),
+);
+
+export function CatalogSection({ category }: { category: string }) {
+  return (
+    <Suspense fallback={<span>Loading catalog...</span>}>
+      <RemoteProductList category={category} />
+    </Suspense>
+  );
+}
+```
+
+### 11.2. Vue with vite-plugin-federation
+
+```vue
+<!-- shell/src/views/HomeView.vue -->
+<template>
+  <div>
+    <h1>Home</h1>
+    <!-- Remote component from the recommendations MFE -->
+    <Suspense>
+      <template #default>
+        <RemoteRecommendations :user-id="userId" />
+      </template>
+      <template #fallback>
+        <p>Loading recommendations...</p>
+      </template>
+    </Suspense>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { defineAsyncComponent } from "vue";
+
+const RemoteRecommendations = defineAsyncComponent(
+  () => import("recommendations/RecommendationsWidget"),
+);
+
+defineProps<{ userId: string }>();
+</script>
+```
+
+### 11.3. MFE Integration Architecture
+
+```mermaid
+graph TD
+    SHELL[Shell App - any framework] --> REACT_MFE[React MFE via Module Federation]
+    SHELL --> VUE_MFE[Vue MFE via Module Federation]
+    SHELL --> WC_MFE[Web Component MFE - framework-agnostic]
+    REACT_MFE --> SHARED[Shared: react, react-dom, design-system]
+    VUE_MFE --> SHARED2[Shared: vue, design-system]
+    WC_MFE --> NOSHARED[No shared runtime needed]
+    SHELL --> EVENTBUS[Shared Event Bus - CustomEvent on window]
+    REACT_MFE --> EVENTBUS
+    VUE_MFE --> EVENTBUS
+    WC_MFE --> EVENTBUS
+```
+
+---
+
+## 12. Best Practices for Frontend Development
 
 Beyond choosing a framework, consider these best practices to ensure your project’s success:
 
@@ -357,12 +868,21 @@ Beyond choosing a framework, consider these best practices to ensure your projec
 
 ---
 
-## 6. Conclusion
+## 13. Conclusion
 
 The landscape of frontend frameworks is both rich and varied. Whether you choose React for its flexibility and vibrant ecosystem, Vue for its progressive and intuitive nature, Angular for its robust, enterprise-level features, or Svelte for its cutting-edge compile-time optimizations, each tool offers unique advantages tailored to different project needs.
 
 Understanding the core concepts, ecosystems, and best practices of these frameworks is essential for selecting the right one for your project. Dive into the tutorials and resources provided, experiment with the example code, and embrace the power of modern frontend development. With the right framework in hand, you’ll be well-equipped to build high-performance, scalable, and engaging web applications.
 
 ---
+
+## 14. Further Reading
+
+- **React Official Documentation:** [https://reactjs.org/docs/getting-started.html](https://reactjs.org/docs/getting-started.html)
+- **Vue Official Guide:** [https://vuejs.org/v2/guide/](https://vuejs.org/v2/guide/)
+- **Angular Official Docs:** [https://angular.io/docs](https://angular.io/docs)
+- **Svelte Official Tutorial:** [https://svelte.dev/tutorial](https://svelte.dev/tutorial)
+- **Web Accessibility Initiative (WAI-ARIA):** [https://www.w3.org/WAI/ARIA/](https://www.w3.org/WAI/ARIA/)
+- **Webpack Module Federation:** [https://webpack.js.org/concepts/module-federation/](https://webpack.js.org/concepts/module-federation/)
 
 _This comprehensive guide has explored the intricate details of frontend frameworks - React, Vue, Angular, and Svelte - providing you with a solid foundation to make an informed decision. Happy coding and best of luck on your web development journey!_

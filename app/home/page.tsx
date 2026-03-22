@@ -1,6 +1,7 @@
 import HomePageContent from "@/components/HomePageContent";
 import BackToTopButton from "@/components/BackToTopButton";
 import { getAllPosts } from "@/lib/rss";
+import { createClient } from "@supabase/supabase-js";
 
 export const revalidate = 60; // Enable ISR: regenerate this page every 60 seconds
 
@@ -13,9 +14,6 @@ interface Article {
   excerpt?: string;
 }
 
-/**
- * Homepage, enhanced with SSG to fetch articles at build time. Helps with SEO.
- */
 async function getArticles(): Promise<Article[]> {
   const posts = await getAllPosts();
   const articles = posts.map((p) => ({
@@ -26,7 +24,6 @@ async function getArticles(): Promise<Article[]> {
     readingMinutes: p.readingMinutes,
     excerpt: p.excerpt,
   }));
-  // Sort alphabetically by title (case-insensitive)
   articles.sort((a, b) =>
     a.title.localeCompare(b.title, undefined, {
       sensitivity: "base",
@@ -36,13 +33,36 @@ async function getArticles(): Promise<Article[]> {
   return articles;
 }
 
+async function getViewCounts(): Promise<Record<string, number>> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data } = await supabase
+      .from("article_views")
+      .select("slug, view_count");
+    const map: Record<string, number> = {};
+    if (data) {
+      for (const row of data) {
+        map[row.slug] = row.view_count;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 export default async function HomePage() {
-  // Fetch articles at build time (or during revalidation)
-  const articles = await getArticles();
+  const [articles, viewCounts] = await Promise.all([
+    getArticles(),
+    getViewCounts(),
+  ]);
 
   return (
     <>
-      <HomePageContent articles={articles} />
+      <HomePageContent articles={articles} viewCounts={viewCounts} />
       <BackToTopButton />
     </>
   );

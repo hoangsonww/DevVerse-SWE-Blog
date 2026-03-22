@@ -43,6 +43,22 @@ Supabase was born out of the need for a transparent, community-driven solution t
 
 Supabase is built on several key components that work together to offer a full-featured backend platform:
 
+```mermaid
+graph TD
+    A[Client Application] --> B[Supabase API Gateway]
+    B --> C[PostgREST - Auto REST API]
+    B --> D[Auth Service]
+    B --> E[Realtime Server]
+    B --> F[Storage Service]
+    B --> G[Edge Functions]
+    C --> H[PostgreSQL Database]
+    D --> H
+    E --> H
+    F --> I[Object Storage]
+    G --> H
+    H --> J[Row Level Security]
+```
+
 ### 2.1. PostgreSQL: The Heart of Supabase
 
 At its core, Supabase uses PostgreSQL - a powerful, ACID-compliant relational database known for its robustness and advanced features. Supabase leverages PostgreSQL’s extensibility with:
@@ -138,7 +154,21 @@ signIn("newuser@example.com", "SuperSecure123!");
 
 ### 2.4. Real-Time Subscriptions
 
-One of Supabase’s most powerful features is real-time data updates. Using PostgreSQL’s replication and websockets, Supabase allows you to subscribe to changes on any table, enabling live updates for your application.
+One of Supabase’s most powerful features is real-time data updates.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant R as Realtime Server
+    participant P as PostgreSQL
+    C->>R: Subscribe to table changes
+    R->>P: Listen on replication slot
+    P-->>R: WAL change event fires
+    R-->>C: Push payload over WebSocket
+    C->>C: Update local state
+```
+
+Using PostgreSQL’s replication and websockets, Supabase allows you to subscribe to changes on any table, enabling live updates for your application.
 
 #### Example: Subscribing to Real-Time Changes in React
 
@@ -494,6 +524,19 @@ export default App;
 
 ## 4. Advanced Topics and Best Practices
 
+```mermaid
+graph TD
+    A[Incoming Query] --> B{RLS Enabled on Table?}
+    B -- No --> C[Return All Rows]
+    B -- Yes --> D[Evaluate Policies]
+    D --> E{auth.uid matches policy?}
+    E -- Yes --> F[Row Passes Policy Check]
+    E -- No --> G[Row Filtered Out]
+    F --> H[Return Permitted Rows]
+    G --> H
+    H --> I[Client Receives Result]
+```
+
 ### 4.1. Database Optimization and Custom SQL
 
 - **Indexing:** Create indexes on columns frequently used in queries.
@@ -527,6 +570,20 @@ FOR EACH ROW EXECUTE FUNCTION log_new_message();
 - **Logging:** Use logging libraries or Supabase’s built-in logging for monitoring API usage.
 - **Monitoring:** Set up monitoring tools to track performance metrics and unauthorized access attempts.
 
+```mermaid
+graph LR
+    A[Write Migration File] --> B[supabase db diff]
+    B --> C[Review Schema Changes]
+    C --> D[supabase migration new]
+    D --> E[Apply to Local Dev DB]
+    E --> F[Run Tests Locally]
+    F --> G{Tests Pass?}
+    G -- No --> A
+    G -- Yes --> H[Push to Remote via CLI]
+    H --> I[Supabase Cloud Applies Migration]
+    I --> J[Production Schema Updated]
+```
+
 ### 4.3. Continuous Integration and Deployment
 
 - **Supabase CLI:** Use the Supabase CLI to manage migrations, local development, and deployment of edge functions.
@@ -540,6 +597,21 @@ npm install -g supabase
 
 # Start a local Supabase instance for development
 supabase start
+```
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant CLI as Supabase CLI
+    participant Edge as Edge Runtime - Deno Deploy
+    participant Client as Client App
+    Dev->>CLI: supabase functions new my-func
+    Dev->>CLI: supabase functions deploy my-func
+    CLI->>Edge: Upload TypeScript bundle
+    Edge->>Edge: Build and register function
+    Client->>Edge: HTTP request to functions endpoint
+    Edge->>Edge: Execute function handler
+    Edge-->>Client: Response returned
 ```
 
 ### 4.4. Integrating with Modern Frameworks
@@ -581,6 +653,61 @@ export default function Home({ profiles }) {
 
 ## 5. Security and Performance Best Practices
 
+```mermaid
+graph TD
+    A[Supabase Auth Flow] --> B[User Submits Credentials]
+    B --> C[Auth Service Validates]
+    C --> D{Valid?}
+    D -- No --> E[Return 401 Error]
+    D -- Yes --> F[Issue JWT Access Token]
+    F --> G[Issue Refresh Token]
+    G --> H[Client Stores Tokens]
+    H --> I[Subsequent API Requests]
+    I --> J[PostgREST Checks JWT]
+    J --> K[auth.uid Extracted from Token]
+    K --> L[RLS Policies Evaluated]
+```
+
+```mermaid
+graph LR
+    A[Client App] --> B[Supabase Storage Bucket]
+    B --> C{Access Policy?}
+    C -- Public --> D[Anyone Can Read]
+    C -- Authenticated --> E[Logged-in Users Only]
+    C -- Owner Only --> F[File Owner Only]
+    D --> G[CDN Delivery]
+    E --> G
+    F --> H[Signed URL Required]
+    H --> I[Time-limited Access Token]
+    I --> G
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Connecting : subscribe called
+    Connecting --> Subscribed : WebSocket handshake OK
+    Subscribed --> Receiving : DB change event fires
+    Receiving --> Subscribed : payload delivered
+    Subscribed --> Disconnected : unsubscribe or error
+    Disconnected --> [*]
+```
+
+```mermaid
+graph TD
+    A[PostgreSQL Table] --> B[Enable RLS]
+    B --> C[Define SELECT Policy]
+    B --> D[Define INSERT Policy]
+    B --> E[Define UPDATE Policy]
+    B --> F[Define DELETE Policy]
+    C --> G[auth.uid = user_id]
+    D --> H[auth.role = authenticated]
+    E --> G
+    F --> G
+    G --> I[Row-Level Filter Applied on Query]
+    H --> I
+```
+
 ### 5.1. Enforce Row Level Security (RLS)
 
 Always enable RLS on your tables and define policies to ensure that users can only access their own data. This is critical when exposing your database via auto-generated APIs.
@@ -606,13 +733,310 @@ Never expose your service role key on the client side. Use environment variables
 
 ---
 
-## 6. Conclusion
+## 6. Supabase Branching and Database Webhooks
+
+### 8.1 Supabase Branching
+
+Supabase Branching (available on Pro and above) creates ephemeral preview databases for each pull request. Each branch gets its own Postgres instance with migrations applied, enabling isolated testing of schema changes before merging to production.
+
+```mermaid
+graph LR
+    MAIN[Production Branch - main] --> PR1[PR Branch - feat/add-orders-table]
+    MAIN --> PR2[PR Branch - fix/rls-policy]
+    PR1 -->|Preview URL| DEV1[Frontend Preview Deploy]
+    PR2 -->|Preview URL| DEV2[Frontend Preview Deploy]
+    PR1 -->|Merge| MAIN
+    PR2 -->|Merge| MAIN
+    MAIN -->|Migration applied| PROD_DB[(Production DB)]
+```
+
+Branching integrates with GitHub via the Supabase GitHub App. When a PR is opened, Supabase automatically creates a new database branch, runs your migration files, and provides a branch-specific `SUPABASE_URL` for the preview deployment.
+
+```bash
+# Local development with Supabase CLI
+supabase start                     # Start local instance
+supabase db diff --schema public   # Diff local vs remote
+supabase migration new add_orders  # Create a new migration file
+supabase db push                   # Apply migrations to remote
+```
+
+### 8.2 Database Webhooks
+
+Supabase Database Webhooks trigger HTTP requests when rows are inserted, updated, or deleted. This bridges your database events to external services like Slack, Stripe, or custom serverless functions without polling.
+
+```sql
+-- Create a webhook that fires on new order inserts
+-- (configured via Supabase dashboard or via the Management API)
+-- The webhook sends a POST to your edge function or external URL
+
+-- Example: trigger when order status changes to 'shipped'
+-- Webhook payload includes { type, table, record, old_record, schema }
+```
+
+```typescript
+// Edge function that receives the webhook
+// supabase/functions/order-shipped-webhook/index.ts
+import { serve } from "std/server";
+
+interface WebhookPayload {
+  type: "INSERT" | "UPDATE" | "DELETE";
+  table: string;
+  record: { id: string; status: string; customer_email: string };
+  old_record: { status: string } | null;
+}
+
+serve(async (req: Request) => {
+  const payload: WebhookPayload = await req.json();
+
+  // Only process status transitions to "shipped"
+  if (
+    payload.type === "UPDATE" &&
+    payload.record.status === "shipped" &&
+    payload.old_record?.status !== "shipped"
+  ) {
+    await sendShippingEmail(payload.record.customer_email, payload.record.id);
+  }
+
+  return new Response(JSON.stringify({ received: true }), { status: 200 });
+});
+
+async function sendShippingEmail(email: string, orderId: string) {
+  // Call Resend, SendGrid, or any email provider
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "orders@myshop.com",
+      to: email,
+      subject: `Order ${orderId} has shipped!`,
+      html: `<p>Your order is on its way.</p>`,
+    }),
+  });
+}
+```
+
+---
+
+## 7. Custom JWT Claims and Role-Based Access
+
+Supabase's auth system issues JWTs that can carry custom claims. These claims are accessible inside Row Level Security policies via `auth.jwt()`, enabling sophisticated role-based access control without a separate permissions table.
+
+### 9.1 Adding Custom Claims via a Database Hook
+
+```sql
+-- Hook function that runs when a token is issued
+-- Adds the user's role from the profiles table into the JWT
+CREATE OR REPLACE FUNCTION custom_access_token_hook(event JSONB)
+RETURNS JSONB
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  claims JSONB;
+  user_role TEXT;
+BEGIN
+  -- Fetch the user's role from the profiles table
+  SELECT role INTO user_role
+  FROM public.profiles
+  WHERE id = (event->>'user_id')::UUID;
+
+  claims := event->'claims';
+  claims := jsonb_set(claims, '{user_role}', to_jsonb(COALESCE(user_role, 'viewer')));
+
+  RETURN jsonb_set(event, '{claims}', claims);
+END;
+$$;
+
+-- Register the hook in Supabase dashboard under Auth > Hooks
+```
+
+### 9.2 Using Custom Claims in RLS Policies
+
+```sql
+-- A documents table with role-based access
+CREATE TABLE documents (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  content TEXT,
+  visibility TEXT DEFAULT 'private' CHECK (visibility IN ('private', 'team', 'public')),
+  owner_id UUID REFERENCES auth.users(id)
+);
+
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+
+-- Admins can see all documents
+CREATE POLICY "Admins see all" ON documents
+FOR SELECT
+USING ((auth.jwt()->>'user_role') = 'admin');
+
+-- Users see their own private documents and all team documents
+CREATE POLICY "Users see own and team docs" ON documents
+FOR SELECT
+USING (
+  owner_id = auth.uid()
+  OR visibility = 'public'
+  OR (visibility = 'team' AND auth.role() = 'authenticated')
+);
+```
+
+```mermaid
+graph TD
+    JWT[JWT Token] --> CLAIMS[Custom Claims: user_role=admin]
+    CLAIMS --> RLS{RLS Policy Evaluation}
+    RLS --> |auth.jwt() role check| ADMIN_CHECK{Is admin?}
+    ADMIN_CHECK -->|Yes| ALL_ROWS[Return all rows]
+    ADMIN_CHECK -->|No| OWNER_CHECK{Is owner or public?}
+    OWNER_CHECK -->|Yes| OWN_ROWS[Return permitted rows]
+    OWNER_CHECK -->|No| EMPTY[Return empty set]
+```
+
+---
+
+## 8. Supabase AI: pgvector and Semantic Search
+
+Supabase ships with the `pgvector` extension, turning your Postgres database into a vector store. This enables semantic search, RAG (Retrieval-Augmented Generation), and embedding-based recommendations without an external vector database.
+
+### 10.1 Storing and Querying Embeddings
+
+```sql
+-- Enable the pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Table to store document chunks with embeddings
+CREATE TABLE document_embeddings (
+  id BIGSERIAL PRIMARY KEY,
+  content TEXT NOT NULL,
+  embedding vector(1536),   -- OpenAI ada-002 dimension
+  metadata JSONB DEFAULT '{}'
+);
+
+-- Create an IVFFlat index for approximate nearest neighbor search
+CREATE INDEX ON document_embeddings
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+-- Function: find similar documents by cosine similarity
+CREATE OR REPLACE FUNCTION match_documents(
+  query_embedding vector(1536),
+  match_count INT DEFAULT 5,
+  similarity_threshold FLOAT DEFAULT 0.78
+)
+RETURNS TABLE (id BIGINT, content TEXT, similarity FLOAT)
+LANGUAGE sql STABLE
+AS $$
+  SELECT id, content, 1 - (embedding <=> query_embedding) AS similarity
+  FROM document_embeddings
+  WHERE 1 - (embedding <=> query_embedding) > similarity_threshold
+  ORDER BY embedding <=> query_embedding
+  LIMIT match_count;
+$$;
+```
+
+### 10.2 RAG Pipeline with Supabase
+
+```typescript
+// lib/rag.ts - Full RAG pipeline using Supabase + OpenAI
+import { createClient } from "@supabase/supabase-js";
+import OpenAI from "openai";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Step 1: Embed the user query
+async function embedText(text: string): Promise<number[]> {
+  const response = await openai.embeddings.create({
+    model: "text-embedding-ada-002",
+    input: text,
+  });
+  return response.data[0].embedding;
+}
+
+// Step 2: Retrieve relevant documents
+async function retrieveDocuments(query: string, topK = 5) {
+  const embedding = await embedText(query);
+  const { data, error } = await supabase.rpc("match_documents", {
+    query_embedding: embedding,
+    match_count: topK,
+    similarity_threshold: 0.75,
+  });
+  if (error) throw error;
+  return data;
+}
+
+// Step 3: Generate an answer grounded in retrieved context
+async function generateAnswer(query: string): Promise<string> {
+  const docs = await retrieveDocuments(query);
+  const context = docs.map((d: { content: string }) => d.content).join("\n\n");
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content:
+          "Answer questions using only the provided context. If the answer is not in the context, say so.",
+      },
+      {
+        role: "user",
+        content: `Context:\n${context}\n\nQuestion: ${query}`,
+      },
+    ],
+  });
+  return completion.choices[0].message.content ?? "";
+}
+```
+
+```mermaid
+graph LR
+    QUERY[User Query] --> EMBED[Embed with OpenAI]
+    EMBED --> PGVEC[(pgvector in Supabase)]
+    PGVEC --> TOPK[Top-K Similar Chunks]
+    TOPK --> GPT[GPT-4 with context]
+    GPT --> ANSWER[Grounded Answer]
+    ANSWER --> |Sources referenced| UI[Chat UI]
+```
+
+### 10.3 Ingesting Documents into pgvector
+
+```typescript
+// Chunk and embed a document for storage
+async function ingestDocument(text: string, metadata: object = {}) {
+  // Simple chunk strategy: 500-character sliding window with 100-char overlap
+  const chunkSize = 500;
+  const overlap = 100;
+  const chunks: string[] = [];
+
+  for (let i = 0; i < text.length; i += chunkSize - overlap) {
+    chunks.push(text.slice(i, i + chunkSize));
+  }
+
+  for (const chunk of chunks) {
+    const embedding = await embedText(chunk);
+    await supabase.from("document_embeddings").insert({
+      content: chunk,
+      embedding,
+      metadata,
+    });
+  }
+
+  console.log(`Ingested ${chunks.length} chunks.`);
+}
+```
+
+---
+
+## 9. Conclusion
 
 Supabase is a game-changer in backend development, offering an open source, scalable, and developer-friendly alternative to traditional backend-as-a-service solutions. By leveraging PostgreSQL, auto-generated APIs, real-time capabilities, integrated authentication, storage, and edge functions, Supabase provides a robust foundation for building full-stack applications quickly and securely. Whether you are developing a small MVP or a large-scale enterprise solution, Supabase's comprehensive feature set and extensive tooling empower you to focus on what matters - delivering a great user experience.
 
 ---
 
-## 7. Further Resources
+## 10. Further Resources
 
 - **Supabase Official Documentation:** [https://supabase.com/docs](https://supabase.com/docs)
 - **GitHub Repository:** [https://github.com/supabase/supabase](https://github.com/supabase/supabase)

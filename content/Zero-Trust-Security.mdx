@@ -31,6 +31,18 @@ Zero trust rests on three principles:
 
 These principles shift security from perimeter defense to continuous verification.
 
+```mermaid
+graph TD
+    REQ[User Request] --> IDENTITY[Identity Verification]
+    IDENTITY --> DEVICE[Device Posture Check]
+    DEVICE --> CONTEXT[Context Evaluation]
+    CONTEXT --> POLICY{Policy Engine}
+    POLICY -->|Allow| ACCESS[Grant Access]
+    POLICY -->|Deny| BLOCK[Block and Log]
+    ACCESS --> MONITOR[Continuous Monitoring]
+    MONITOR --> |Anomaly| POLICY
+```
+
 ---
 
 ## 2. Identity as the control plane
@@ -55,6 +67,23 @@ Segment the network to reduce blast radius:
 
 Segmentation limits how far an attacker can move if a system is compromised.
 
+The following diagram illustrates micro-perimeter network segmentation with explicit allowlists between zones:
+
+```mermaid
+graph TD
+    INTERNET[Internet] --> WAF[WAF and DDoS Protection]
+    WAF --> DMZ[DMZ - Public Zone]
+    DMZ --> API[API Gateway]
+    API -->|Explicit allowlist| APP[Application Zone]
+    APP -->|Explicit allowlist| DATA[Data Zone]
+    DATA --> DB[(Databases)]
+    APP -->|Explicit allowlist| MGMT[Management Zone]
+    MGMT --> SECRETS[Secrets Manager]
+    LATERAL[Attacker inside APP] -->|Blocked| DATA
+    LATERAL -->|Blocked| MGMT
+    Note1[East-west traffic requires mTLS and policy approval] -.-> APP
+```
+
 ---
 
 ## 4. Device posture and endpoint trust
@@ -67,6 +96,51 @@ Endpoints are a common weak link. Strengthen them with:
 
 Access decisions should be denied if device posture is unknown or risky.
 
+The device posture evaluation flow shows how endpoint health determines whether access is granted, limited, or denied:
+
+```mermaid
+graph TD
+    DEVICE[Device Access Request] --> ENROLL{Device enrolled in MDM?}
+    ENROLL -->|No| DENY[Deny Access]
+    ENROLL -->|Yes| OS{OS version current?}
+    OS -->|No| QUARANTINE[Quarantine - redirect to update portal]
+    OS -->|Yes| DISK{Disk encryption enabled?}
+    DISK -->|No| QUARANTINE
+    DISK -->|Yes| EDR{EDR agent healthy?}
+    EDR -->|No| QUARANTINE
+    EDR -->|Yes| CERT{Valid device certificate?}
+    CERT -->|No| DENY
+    CERT -->|Yes| RISK{Risk score acceptable?}
+    RISK -->|High| STEP_UP[Require step-up authentication]
+    RISK -->|Low| GRANT[Grant access with full privileges]
+    STEP_UP --> GRANT
+```
+
+Just-in-time privileged access eliminates standing permissions by granting time-bound credentials only when a request is approved:
+
+```mermaid
+sequenceDiagram
+    participant Eng as Engineer
+    participant PAM as PAM System
+    participant Approver
+    participant Vault as Secrets Vault
+    participant Target as Target System
+
+    Eng->>PAM: Request access to prod-db for 1 hour
+    PAM->>PAM: Check engineer identity and role
+    PAM->>Approver: Send approval request with justification
+    Approver-->>PAM: Approved
+    PAM->>Vault: Generate time-bound credential - 1h TTL
+    Vault-->>PAM: Temporary credential issued
+    PAM-->>Eng: Credential delivered via secure channel
+    Eng->>Target: Authenticate with temporary credential
+    Target-->>Eng: Access granted
+    Note over PAM,Vault: After 1 hour TTL expires
+    Vault->>Vault: Revoke credential automatically
+    Eng->>Target: Credential rejected - access ended
+    PAM->>PAM: Log full session for audit
+```
+
 ---
 
 ## 5. Data protection and encryption
@@ -78,6 +152,24 @@ Data is the ultimate asset. Protect it by:
 - Applying data loss prevention (DLP) and exfiltration monitoring.
 
 Plan for both accidental leaks and malicious exfiltration.
+
+Data classification tiers determine the encryption strength, access controls, and residency requirements applied to each category:
+
+```mermaid
+graph TD
+    DATA[Data Asset] --> CLASSIFY[Classification Engine]
+    CLASSIFY --> T1[Tier 1 - Public]
+    CLASSIFY --> T2[Tier 2 - Internal]
+    CLASSIFY --> T3[Tier 3 - Confidential]
+    CLASSIFY --> T4[Tier 4 - Restricted]
+    T1 --> C1[No encryption required]
+    T2 --> C2[Encryption in transit - TLS]
+    T3 --> C3[Encryption in transit and at rest - AES-256]
+    T4 --> C4[Field-level encryption plus DLP monitoring]
+    T4 --> R4[Geographic residency enforced]
+    T4 --> A4[Access requires MFA and audit log]
+    T3 --> A3[Access requires role approval]
+```
 
 ---
 
@@ -103,6 +195,48 @@ Internal traffic needs the same scrutiny as external access:
 
 Service-to-service identity prevents attackers from moving laterally after a breach.
 
+The following sequence diagram shows a mutual TLS handshake between two internal services:
+
+```mermaid
+sequenceDiagram
+    participant SvcA as Service A
+    participant SvcB as Service B
+    participant CA as Certificate Authority
+
+    SvcA->>SvcB: ClientHello - TLS version and cipher suites
+    SvcB-->>SvcA: ServerHello - selected cipher
+    SvcB-->>SvcA: Server Certificate
+    SvcA->>CA: Verify server certificate chain
+    CA-->>SvcA: Certificate valid
+    SvcA-->>SvcB: Client Certificate
+    SvcB->>CA: Verify client certificate chain
+    CA-->>SvcB: Certificate valid
+    SvcA->>SvcB: Key exchange and Finished
+    SvcB-->>SvcA: Finished
+    Note over SvcA,SvcB: Encrypted mutual TLS session established
+    SvcA->>SvcB: API Request with service identity claims
+    SvcB-->>SvcA: Authorized response
+```
+
+The secrets rotation lifecycle ensures credentials are never long-lived and rotation is automatic and auditable:
+
+```mermaid
+graph TD
+    SECRET[Secret Created] --> STORE[Stored in Secrets Manager]
+    STORE --> LEASE[Lease issued - TTL set]
+    LEASE --> USE[Service reads secret via API]
+    USE --> MONITOR[Rotation scheduler monitors TTL]
+    MONITOR --> DUE{Rotation due?}
+    DUE -->|No| USE
+    DUE -->|Yes| GEN[Generate new secret value]
+    GEN --> DUAL[Both old and new secret valid]
+    DUAL --> NOTIFY[Notify dependent services]
+    NOTIFY --> RELOAD[Services reload new secret]
+    RELOAD --> REVOKE[Old secret revoked]
+    REVOKE --> AUDIT[Rotation logged in audit trail]
+    AUDIT --> MONITOR
+```
+
 ---
 
 ## 8. Logging, monitoring, and response
@@ -119,6 +253,25 @@ Monitoring makes policy enforcement measurable and improvable.
 
 ## 9. Migration strategy
 
+The identity provider federation diagram shows how multiple identity sources are unified through a central IdP for consistent policy enforcement:
+
+```mermaid
+graph TD
+    USER[User] --> IDP[Central Identity Provider]
+    SVC[Service Account] --> IDP
+    CORP[Corporate LDAP or AD] --> IDP
+    SSO[External SSO - Google or Okta] --> IDP
+    IDP --> TOKEN[Short-lived Token or Certificate]
+    TOKEN --> PE[Policy Enforcement Point]
+    PE --> Q1{Identity verified?}
+    Q1 -->|No| DENY[Deny and Log]
+    Q1 -->|Yes| Q2{Device posture valid?}
+    Q2 -->|No| DENY
+    Q2 -->|Yes| Q3{Context within policy?}
+    Q3 -->|No| DENY
+    Q3 -->|Yes| RESOURCE[Grant access to resource]
+```
+
 Zero trust is a journey, not a single project:
 
 - Start with high-risk systems and privileged access paths.
@@ -126,6 +279,25 @@ Zero trust is a journey, not a single project:
 - Roll out policies incrementally with monitoring and rollback plans.
 
 Adopt a phased approach to avoid blocking core business workflows.
+
+The incident response workflow shows how a detected anomaly escalates through investigation and containment under a zero trust model:
+
+```mermaid
+graph TD
+    ALERT[Anomaly Detected by SIEM] --> TRIAGE[On-call Engineer Triages Alert]
+    TRIAGE --> CONFIRM{Confirmed incident?}
+    CONFIRM -->|No| TUNE[Tune detection rule - false positive]
+    CONFIRM -->|Yes| CONTAIN[Isolate affected identity or device]
+    CONTAIN --> REVOKE[Revoke active sessions and tokens]
+    REVOKE --> SCOPE[Determine blast radius]
+    SCOPE --> LATERAL{Lateral movement found?}
+    LATERAL -->|Yes| SEGMENT[Apply emergency network segment block]
+    LATERAL -->|No| REMEDIATE[Remediate root cause]
+    SEGMENT --> REMEDIATE
+    REMEDIATE --> RESTORE[Restore access with new credentials]
+    RESTORE --> POSTMORTEM[Write incident report and postmortem]
+    POSTMORTEM --> IMPROVE[Update detection rules and policies]
+```
 
 ---
 
@@ -150,3 +322,338 @@ Zero trust only works when it is enforced consistently.
 - Review policies regularly and tune for usability.
 
 Zero trust shifts security from a perimeter mindset to continuous, identity-driven control. Done well, it reduces breach impact while keeping systems usable.
+
+---
+
+## 12. SASE architecture
+
+Secure Access Service Edge (SASE) converges networking and security into a cloud-delivered service. Where traditional zero trust focuses on identity and policy, SASE extends that model to include WAN optimization, DNS security, cloud access security broker (CASB), and zero trust network access (ZTNA) in a single fabric.
+
+```mermaid
+graph TD
+    USERS[Remote Users and Branch Offices] --> SASE[SASE Cloud Edge - Global PoPs]
+    DEVICES[Managed and Unmanaged Devices] --> SASE
+    SASE --> ZTNA[Zero Trust Network Access]
+    SASE --> CASB[Cloud Access Security Broker]
+    SASE --> SWG[Secure Web Gateway]
+    SASE --> FWAAS[Firewall as a Service]
+    SASE --> SDWAN[SD-WAN Fabric]
+    ZTNA --> APPACCESS[Application Access - identity verified]
+    CASB --> CLOUDSVC[SaaS Apps - Salesforce, O365]
+    SWG --> INTERNET[Filtered Internet Access]
+    FWAAS --> DATACENTER[Private Data Center]
+    SDWAN --> BRANCH[Branch Office Networks]
+```
+
+### SASE versus classic VPN
+
+| Dimension          | Classic VPN                      | SASE with ZTNA                                |
+| ------------------ | -------------------------------- | --------------------------------------------- |
+| Trust model        | Network-level trust after login  | Per-request identity and posture verification |
+| Access scope       | Broad network segment            | Specific application only                     |
+| Performance        | Hairpins through central gateway | Direct route to nearest PoP                   |
+| Device requirement | VPN client on managed device     | Lightweight agent or agentless                |
+| Lateral movement   | Possible within segment          | Prevented by micro-perimeters                 |
+| Scalability        | Limited by VPN concentrator      | Elastic cloud scale                           |
+
+SASE providers like Cloudflare Access, Zscaler Private Access, and Netskope implement this model as managed cloud services that integrate with existing IdPs.
+
+---
+
+## 13. Zero trust for APIs
+
+APIs are a major attack surface in distributed systems. Traditional API gateways provide routing and rate limiting but often lack the identity granularity zero trust requires.
+
+```mermaid
+sequenceDiagram
+    participant Client as API Client
+    participant Gateway as API Gateway
+    participant IDP as Identity Provider
+    participant OPA as Policy Engine - OPA
+    participant Service as Backend Service
+
+    Client->>Gateway: POST /api/v2/orders with Bearer JWT
+    Gateway->>IDP: Validate JWT signature and expiry
+    IDP-->>Gateway: Token claims - sub, roles, org_id
+    Gateway->>OPA: Evaluate policy - input: claims plus path plus method
+    OPA-->>Gateway: Decision: allow - role matches orders:write
+    Gateway->>Service: Forward request with verified identity headers
+    Service-->>Gateway: Response
+    Gateway-->>Client: 201 Created
+    Note over Gateway,OPA: Every request evaluated - no implicit trust from prior auth
+```
+
+### API-level zero trust controls
+
+```typescript
+// Express.js middleware: zero trust API gate with OPA
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+
+interface TokenClaims {
+  sub: string;
+  roles: string[];
+  org_id: string;
+  device_posture: "compliant" | "unknown" | "non-compliant";
+}
+
+async function zeroTrustGate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    res.status(401).json({ error: "Missing authorization token" });
+    return;
+  }
+
+  let claims: TokenClaims;
+  try {
+    claims = jwt.verify(token, process.env.JWT_PUBLIC_KEY!) as TokenClaims;
+  } catch {
+    res.status(401).json({ error: "Invalid or expired token" });
+    return;
+  }
+
+  // Reject requests from non-compliant devices for sensitive endpoints
+  if (
+    req.path.startsWith("/api/admin") &&
+    claims.device_posture !== "compliant"
+  ) {
+    res.status(403).json({ error: "Device posture check failed" });
+    return;
+  }
+
+  // Evaluate policy with OPA
+  const opaInput = {
+    method: req.method,
+    path: req.path,
+    claims,
+    source_ip: req.ip,
+    timestamp: new Date().toISOString(),
+  };
+
+  const opaResponse = await fetch(`${process.env.OPA_URL}/v1/data/api/allow`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ input: opaInput }),
+  });
+
+  const { result } = await opaResponse.json();
+
+  if (!result) {
+    // Log denial for audit trail
+    console.log(
+      JSON.stringify({
+        event: "access_denied",
+        sub: claims.sub,
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString(),
+      }),
+    );
+    res.status(403).json({ error: "Access denied by policy" });
+    return;
+  }
+
+  // Attach verified identity to request context
+  res.locals.identity = claims;
+  next();
+}
+
+export default zeroTrustGate;
+```
+
+---
+
+## 14. Policy-as-code with OPA
+
+Open Policy Agent (OPA) separates policy decisions from application logic. Policies are expressed in Rego, stored in version control, tested like code, and evaluated at runtime by any service that can make an HTTP call.
+
+```mermaid
+graph TD
+    POLICY[Rego Policy File - version controlled] --> BUNDLE[OPA Bundle - compiled]
+    BUNDLE --> OPASERVER[OPA Server or Sidecar]
+    APPCODE[Application Code] --> OPAQUERY[Policy Query - JSON input]
+    OPAQUERY --> OPASERVER
+    OPASERVER --> DECISION[Allow or Deny decision]
+    DECISION --> APPCODE
+    AUDITLOG[Decision Log exported to SIEM] --> OPASERVER
+```
+
+### OPA Rego policy example
+
+```rego
+# policy/api.rego
+package api
+
+import future.keywords.in
+
+# Default deny
+default allow := false
+
+# Allow read access to own resources
+allow if {
+    input.method in {"GET", "HEAD"}
+    resource_owner == input.claims.sub
+}
+
+# Allow write access for users with the correct role
+allow if {
+    input.method in {"POST", "PUT", "PATCH"}
+    "orders:write" in input.claims.roles
+    input.claims.org_id == extracted_org_id
+}
+
+# Admin access requires both admin role and compliant device
+allow if {
+    startswith(input.path, "/api/admin")
+    "admin" in input.claims.roles
+    input.claims.device_posture == "compliant"
+}
+
+# Helper rules
+resource_owner := owner if {
+    parts := split(input.path, "/")
+    count(parts) >= 4
+    owner := parts[3]
+}
+
+extracted_org_id := org if {
+    parts := split(input.path, "/")
+    org := parts[2]
+}
+```
+
+```bash
+# Test the policy locally before deploying
+opa test policy/ -v
+
+# Run OPA as a sidecar in Kubernetes
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-policy
+data:
+  api.rego: |
+    package api
+    default allow := false
+    allow if { "orders:write" in input.claims.roles }
+EOF
+```
+
+---
+
+## 15. Audit logging patterns
+
+Zero trust without comprehensive audit logging is incomplete. Every allow and deny decision must be recorded with enough context to reconstruct what happened and why.
+
+```mermaid
+graph TD
+    ACCESS[Access Event - allow or deny] --> ENRICH[Enrich with context]
+    ENRICH --> FIELDS[Add: user, device, resource, action, outcome, timestamp, IP, risk score]
+    FIELDS --> STRUCTURED[Write structured JSON log]
+    STRUCTURED --> SIEM[Forward to SIEM - Splunk, Elastic, or Sentinel]
+    SIEM --> DETECT[Anomaly detection rules]
+    SIEM --> ARCHIVE[Long-term immutable archive - 7 years]
+    DETECT --> ALERT[Alert on suspicious patterns]
+    ALERT --> ONCALL[On-call engineer notified]
+```
+
+### Audit log schema
+
+```typescript
+interface AuditLogEntry {
+  // Mandatory fields
+  event_id: string; // UUID for deduplication
+  timestamp: string; // ISO 8601
+  event_type: "access.allow" | "access.deny" | "token.issued" | "token.revoked";
+
+  // Principal
+  subject_id: string; // User or service account identifier
+  subject_type: "human" | "service";
+  org_id: string;
+
+  // Resource
+  resource_type: string; // e.g., "api_endpoint", "database_row"
+  resource_id: string;
+  action: string; // e.g., "read", "write", "delete"
+
+  // Context
+  source_ip: string;
+  device_id: string | null;
+  device_posture: "compliant" | "unknown" | "non-compliant";
+  session_id: string;
+
+  // Decision
+  outcome: "allow" | "deny";
+  policy_version: string; // Which policy version made the decision
+  deny_reason?: string; // Populated on deny
+
+  // Risk
+  risk_score: number; // 0-100
+  anomaly_flags: string[]; // e.g., ["unusual_location", "off_hours"]
+}
+```
+
+### Alert patterns for audit logs
+
+Certain patterns in audit logs warrant automatic alerting:
+
+| Pattern                                     | Signal                                      | Action                      |
+| ------------------------------------------- | ------------------------------------------- | --------------------------- |
+| Deny rate spike for a user                  | Credential stuffing or misconfigured policy | Alert + temporary lockout   |
+| Access from new geography                   | Account takeover or VPN bypass              | Step-up auth challenge      |
+| Bulk read of sensitive records              | Data exfiltration attempt                   | Alert + session review      |
+| Privileged access outside business hours    | Insider threat or compromised admin         | Alert + require re-approval |
+| Service account accessing unusual resources | Lateral movement after compromise           | Isolate service identity    |
+
+---
+
+## 16. Comparison: zero trust maturity levels
+
+Zero trust is a spectrum. Organizations progress through maturity levels over time:
+
+| Level | Name            | Characteristics                                                            |
+| ----- | --------------- | -------------------------------------------------------------------------- |
+| 0     | Perimeter-based | Firewall trust, VPN for remote, implicit internal trust                    |
+| 1     | Identity-aware  | SSO and MFA in place; limited device checks                                |
+| 2     | Device-aware    | MDM enrollment required; posture-based access decisions                    |
+| 3     | Workload-aware  | mTLS between services; service identities via SPIFFE/SPIRE                 |
+| 4     | Data-aware      | Field-level encryption; DLP policies; data classification drives access    |
+| 5     | Fully dynamic   | Continuous risk scoring; behavioral analytics; real-time policy adaptation |
+
+Most production organizations operate at level 2-3. Reaching level 4-5 requires significant investment in data classification, behavioral analytics, and automated response pipelines.
+
+---
+
+## 17. Conclusion
+
+Zero trust is not a product you install — it is a security posture that organizations adopt incrementally. The core principles of verify explicitly, use least privilege, and assume breach work together to reduce the blast radius of any individual compromise. Starting with identity and privileged access controls provides the highest immediate return. Adding device posture checks, network micro-segmentation, and mutual TLS for service traffic progressively closes the gaps an attacker could exploit after an initial foothold. Policy-as-code with tools like OPA keeps enforcement consistent, auditable, and testable. Comprehensive audit logging turns the model from a passive architecture into an active detection and response capability. Zero trust done well reduces breach impact while keeping systems usable — the two goals that traditional perimeter security forces teams to trade off against each other.
+
+---
+
+## 18. Further Reading and Resources
+
+- **Standards and Frameworks:**
+  NIST SP 800-207, _Zero Trust Architecture_ — the definitive government reference for zero trust principles and deployment models.
+  CISA Zero Trust Maturity Model — a practical maturity framework for federal agencies that applies equally well to enterprise environments.
+
+- **Open Source Tools:**
+  [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) — policy engine for unified, context-aware authorization across services.
+  [SPIFFE / SPIRE](https://spiffe.io/) — workload identity standard and runtime for issuing short-lived X.509 certificates to services.
+  [Envoy Proxy](https://www.envoyproxy.io/) — sidecar proxy used in service meshes to enforce mTLS and policy at the network layer.
+
+- **Cloud Provider Documentation:**
+  Google BeyondCorp Enterprise — one of the earliest and most documented real-world zero trust deployments.
+  AWS IAM Identity Center and AWS Verified Access — AWS-native building blocks for zero trust access patterns.
+  Azure AD Conditional Access and Microsoft Entra — Microsoft's identity-driven zero trust implementation guide.
+
+- **Books:**
+  _Zero Trust Networks_ by Evan Gilman and Doug Barth — practical introduction to zero trust network architecture.
+  _The Practice of Network Security Monitoring_ by Richard Bejtlich — foundational guidance on continuous visibility, a prerequisite for effective zero trust.
+
+---

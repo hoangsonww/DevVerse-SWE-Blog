@@ -47,6 +47,21 @@ InfluxDB is not just another database - it’s a purpose-built solution for time
 - **IoT Applications:** Collecting and analyzing sensor data in real time.
 - **Analytics and Reporting:** Aggregating time-based data for trends and insights.
 
+```mermaid
+graph LR
+    A[IoT Sensors] --> E[InfluxDB Write API]
+    B[Application Metrics] --> E
+    C[Server and Infra Stats] --> E
+    D[Business Events] --> E
+    E --> F[Write-Ahead Log]
+    F --> G[Memory Buffer]
+    G --> H[Time-Sharded Storage Engine]
+    H --> I[Query Engine - InfluxQL and Flux]
+    I --> J[Grafana Dashboard]
+    I --> K[Alerting Rules]
+    I --> L[Downstream Analytics]
+```
+
 Key advantages include:
 
 - **Scalability:** Both vertical and horizontal scaling options.
@@ -58,6 +73,21 @@ Key advantages include:
 ## 3. Deep Dive into Core Architecture
 
 Understanding InfluxDB’s internals reveals how it efficiently manages time series data. The architecture comprises several key components:
+
+```mermaid
+graph TD
+    A[Incoming Write - Line Protocol] --> B[Memory Buffer - WAL]
+    B --> C[Time-Based Shard Assignment]
+    C --> D[Compressed TSM Storage File]
+    D --> E[Retention Policy Check]
+    E --> F{Data Expired?}
+    F -- Yes --> G[Tombstone and Compaction]
+    F -- No --> H[Available for Query]
+    H --> I[InfluxQL or Flux Query]
+    I --> J[Time-Range Index Scan]
+    J --> K[Aggregation - mean, sum, percentile]
+    K --> L[Query Result Returned]
+```
 
 ### 3.1 Write Path
 
@@ -98,6 +128,21 @@ Understanding InfluxDB’s internals reveals how it efficiently manages time ser
 
 InfluxDB goes beyond basic storage and querying by offering several advanced features that enhance its capabilities.
 
+```mermaid
+graph TD
+    A[High-Resolution Raw Data - 1s interval] --> B[Continuous Query Scheduler]
+    B --> C[Run CQ every 5 minutes]
+    C --> D[Aggregate - mean over 1m window]
+    D --> E[Write to Downsampled Measurement]
+    E --> F[1-minute resolution data]
+    F --> G[Another CQ - hourly rollup]
+    G --> H[1-hour resolution data]
+    H --> I[Retention Policy - keep 90 days]
+    A --> J[Raw Retention Policy - keep 7 days]
+    J --> K[Auto-Expire Raw after 7 days]
+    I --> L[Compressed Long-Term Storage]
+```
+
 ### 4.1 Continuous Queries and Downsampling
 
 - **Automatic Data Summarization:**
@@ -124,6 +169,18 @@ InfluxDB goes beyond basic storage and querying by offering several advanced fea
 
 - **Flux Language:**
   Flux is a versatile scripting language for data processing, enabling complex queries, data transformations, and integration with external systems.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active : Retention Policy Created
+    Active --> Writing : Data Ingested Within Duration
+    Writing --> Active : Write Complete
+    Active --> Expiring : Data Age Exceeds Duration
+    Expiring --> Tombstoned : Mark for Deletion
+    Tombstoned --> Compacting : Compaction Job Runs
+    Compacting --> Active : Reclaim Storage and Continue
+    Active --> [*] : Retention Policy Dropped
+```
 
 ---
 
@@ -157,6 +214,20 @@ Optimizing InfluxDB for your use case involves several best practices:
 
 - **Compression Settings:**
   Fine-tune compression settings based on the data ingestion rate and query performance.
+
+```mermaid
+graph LR
+    A[System - Host or Container] --> B[Telegraf Agent]
+    C[IoT Device] --> B
+    D[Cloud Service API] --> B
+    B --> E[Input Plugins - cpu, mem, net, http]
+    E --> F[Aggregator Plugins - min, max, mean]
+    F --> G[Output Plugin - InfluxDB write]
+    G --> H[InfluxDB Line Protocol over HTTP]
+    H --> I[InfluxDB Bucket]
+    I --> J[Grafana Visualization]
+    I --> K[Alerting via Flux Task]
+```
 
 ---
 
@@ -259,9 +330,317 @@ While InfluxDB is a robust solution, there are some challenges to consider:
 
 ---
 
-## 11. Conclusion
+## 11. Advanced Monitoring and Visualization
+
+The sequence diagram below illustrates how a Flux alerting task detects a threshold breach and fires a notification:
+
+```mermaid
+sequenceDiagram
+    participant Scheduler as Task Scheduler
+    participant Flux as Flux Task Engine
+    participant InfluxDB as InfluxDB Bucket
+    participant Check as Threshold Check
+    participant Notify as Notification Endpoint
+
+    Scheduler->>Flux: Trigger task every 1 minute
+    Flux->>InfluxDB: Query last 1m of cpu_usage measurement
+    InfluxDB-->>Flux: Return data points
+    Flux->>Check: Evaluate against threshold - warn 80 crit 95
+    Check-->>Flux: Status - critical
+    Flux->>InfluxDB: Write status to _monitoring bucket
+    Flux->>Notify: Send alert to Slack or PagerDuty
+    Notify-->>Flux: 200 OK acknowledged
+```
+
+The class diagram models the core InfluxDB data model concepts and how they compose into a measurable time series:
+
+```mermaid
+classDiagram
+    class Bucket {
+        +String name
+        +Duration retentionPeriod
+        +String orgID
+        +write()
+        +query()
+    }
+    class Measurement {
+        +String name
+        +List fields
+        +Map tags
+    }
+    class Point {
+        +Measurement measurement
+        +Map tagSet
+        +Map fieldSet
+        +Timestamp time
+        +toLineProtocol()
+    }
+    class Field {
+        +String key
+        +Value value
+    }
+    class Tag {
+        +String key
+        +String value
+    }
+    Bucket --> Measurement : contains
+    Measurement --> Point : stored as
+    Point --> Field : has one or more
+    Point --> Tag : indexed by
+```
+
+The diagram below compares InfluxDB against Prometheus and TimescaleDB across key architectural dimensions:
+
+```mermaid
+graph LR
+    A[Selection Criteria] --> B[Write Model]
+    A --> C[Query Language]
+    A --> D[Storage Format]
+    A --> E[Best Fit Use Case]
+    B --> F[InfluxDB - Push via Line Protocol]
+    B --> G[Prometheus - Pull via scrape intervals]
+    B --> H[TimescaleDB - Push via SQL INSERT]
+    C --> I[InfluxDB - InfluxQL and Flux]
+    C --> J[Prometheus - PromQL]
+    C --> K[TimescaleDB - PostgreSQL SQL]
+    D --> L[InfluxDB - TSM custom engine]
+    D --> M[Prometheus - TSDB local chunks]
+    D --> N[TimescaleDB - PostgreSQL hypertables]
+```
+
+The state diagram captures the lifecycle of an InfluxDB shard from creation through eventual expiry and compaction:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created : Shard created for time interval
+    Created --> Hot : Data actively written to shard
+    Hot --> Warm : Shard interval has passed
+    Warm --> Cold : No new writes for extended period
+    Cold --> Compacting : Background compaction job runs
+    Compacting --> Compacted : TSM files merged and compressed
+    Compacted --> Expiring : Retention policy end reached
+    Expiring --> Dropped : Shard deleted from disk
+    Dropped --> [*]
+```
+
+---
+
+## 12. Flux Query Language Deep Dive
+
+Flux is InfluxDB’s functional data scripting language. Unlike InfluxQL, Flux treats the query as a pipeline of transformations — every step returns a table or a stream of tables, which the next step consumes.
+
+### 12.1. Core Flux Concepts
+
+```flux
+// Structure: from() → range() → filter() → transform → yield()
+
+// Basic query: CPU usage for host01 in the last hour
+from(bucket: "telemetry")
+  |> range(start: -1h)
+  |> filter(fn: (r) =>
+      r._measurement == "cpu" and
+      r._field       == "usage_idle" and
+      r.host         == "host01"
+  )
+  |> map(fn: (r) => ({r with _value: 100.0 - r._value}))  // convert to usage_active
+  |> yield(name: "cpu_active")
+```
+
+### 12.2. Window and Aggregation
+
+```flux
+// 5-minute mean CPU usage, grouped by host
+from(bucket: "telemetry")
+  |> range(start: -6h)
+  |> filter(fn: (r) => r._measurement == "cpu" and r._field == "usage_idle")
+  |> map(fn: (r) => ({r with _value: 100.0 - r._value}))
+  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)
+  |> group(columns: ["host"])
+  |> yield(name: "5m_avg_by_host")
+```
+
+### 12.3. Join: Correlating Two Measurements
+
+```flux
+// Join temperature and humidity from the same sensor
+temp = from(bucket: "sensors")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "environment" and r._field == "temperature")
+
+humidity = from(bucket: "sensors")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "environment" and r._field == "humidity")
+
+join(
+  tables: {temp: temp, hum: humidity},
+  on: ["_time", "sensor_id"],
+)
+|> map(fn: (r) => ({
+    _time:       r._time,
+    sensor_id:   r.sensor_id,
+    temperature: r._value_temp,
+    humidity:    r._value_hum,
+    heat_index:  r._value_temp + (0.33 * r._value_hum) - 4.0,
+}))
+|> yield(name: "heat_index")
+```
+
+```mermaid
+graph LR
+    A[from bucket] --> B[range - time bounds]
+    B --> C[filter - tag and field predicates]
+    C --> D[map - value transformation]
+    D --> E{Branching?}
+    E -- Aggregation --> F[aggregateWindow or reduce]
+    E -- Joining --> G[join on time and tags]
+    E -- Alerting --> H[monitor.check threshold]
+    F --> I[group - reshape table stream]
+    G --> I
+    H --> J[notify - Slack or PagerDuty]
+    I --> K[yield - return result set]
+```
+
+### 12.4. Flux Tasks: Scheduled Downsampling
+
+```flux
+// Save as a task that runs every 10 minutes
+option task = {
+  name:   "downsample_cpu_to_1m",
+  every:  10m,
+  offset: 0m,
+}
+
+from(bucket: "telemetry/autogen")
+  |> range(start: -task.every)
+  |> filter(fn: (r) => r._measurement == "cpu")
+  |> aggregateWindow(every: 1m, fn: mean)
+  |> to(
+      bucket: "telemetry_1m",
+      org:    "my-org",
+  )
+```
+
+---
+
+## 13. InfluxDB v3 (InfluxDB Cloud Serverless)
+
+InfluxDB v3 represents a ground-up architectural rewrite, moving from the custom TSM storage engine to Apache Arrow and Apache Parquet, with SQL as a first-class query language alongside Flux.
+
+### 13.1. Key v3 Changes
+
+| Feature            | InfluxDB OSS v2             | InfluxDB v3 (Cloud Serverless)   |
+| ------------------ | --------------------------- | -------------------------------- |
+| Storage engine     | TSM (custom)                | Apache Parquet on object storage |
+| Query languages    | InfluxQL, Flux              | SQL, InfluxQL (Flux deprecated)  |
+| Cardinality limits | Strict (millions of series) | Much higher (columnar storage)   |
+| Schema             | Tag-based series            | Apache Arrow schema              |
+| Deployment         | Self-hosted or cloud        | Serverless cloud-native          |
+| Infinite retention | Via retention policies      | Pay-per-query on object storage  |
+
+### 13.2. SQL in InfluxDB v3
+
+```sql
+-- v3 uses standard SQL with time-series extensions
+SELECT
+  DATE_BIN(INTERVAL ‘5 minutes’, time, ‘1970-01-01’) AS window,
+  host,
+  AVG(usage_idle)  AS avg_idle,
+  MIN(usage_idle)  AS min_idle,
+  MAX(usage_idle)  AS max_idle
+FROM cpu
+WHERE time >= NOW() - INTERVAL ‘6 hours’
+GROUP BY 1, 2
+ORDER BY 1, 2;
+```
+
+### v3 Python Client
+
+```python
+import influxdb_client_3 as influxdb3
+import pandas as pd
+
+client = influxdb3.InfluxDBClient3(
+    host  ="https://us-east-1-1.aws.cloud2.influxdata.com",
+    token ="YOUR_TOKEN",
+    database="telemetry",
+)
+
+# Write using Arrow Table
+import pyarrow as pa
+
+schema = pa.schema([
+    pa.field("host",        pa.string()),
+    pa.field("usage_idle",  pa.float64()),
+    pa.field("time",        pa.timestamp("ns", tz="UTC")),
+])
+
+table = pa.table(
+    {"host": ["server-1"], "usage_idle": [87.2],
+     "time": pd.to_datetime(["now"], utc=True)},
+    schema=schema,
+)
+client.write(table, data_type=influxdb3.WriteOptions(write_precision="ns"))
+
+# Query with SQL
+df = client.query("SELECT * FROM cpu WHERE time > now() - interval ‘1 hour’")
+print(df.head())
+```
+
+---
+
+## 14. IoT Pipeline Example: Edge to Dashboard
+
+A complete end-to-end pipeline from MQTT-publishing sensors through Telegraf into InfluxDB and visualized in Grafana.
+
+```mermaid
+graph TD
+    A[Raspberry Pi Sensor - MQTT publish every 30s] --> B[MQTT Broker - Mosquitto]
+    B --> C[Telegraf - mqtt_consumer input plugin]
+    C --> D[Telegraf - influxdb_v2 output plugin]
+    D --> E[InfluxDB Bucket - iot-sensors]
+    E --> F[Flux Downsampling Task - every 10m]
+    F --> G[InfluxDB Bucket - iot-sensors-1m]
+    E --> H[Grafana Data Source]
+    G --> H
+    H --> I[Real-time Dashboard Panel]
+    E --> J[Flux Alerting Task]
+    J --> K{Temperature above 85C?}
+    K -- Yes --> L[POST to PagerDuty webhook]
+    K -- No --> M[Write OK status to _monitoring bucket]
+```
+
+### 14.1. Telegraf Configuration for MQTT
+
+```toml
+# telegraf.conf
+
+[[inputs.mqtt_consumer]]
+  servers         = ["tcp://mqtt-broker:1883"]
+  topics          = ["sensors/+/temperature", "sensors/+/humidity"]
+  qos             = 1
+  connection_timeout = "30s"
+  username        = "telegraf"
+  password        = "secret"
+  data_format     = "json"
+  json_time_key   = "ts"
+  json_time_format = "unix_ms"
+  tag_keys        = ["sensor_id", "location"]
+
+[[outputs.influxdb_v2]]
+  urls            = ["http://influxdb:8086"]
+  token           = "$INFLUXDB_TOKEN"
+  organization    = "acme"
+  bucket          = "iot-sensors"
+  timeout         = "5s"
+```
+
+---
+
+## 15. Conclusion
 
 InfluxDB stands as a powerful solution for managing time series data. Its architecture is optimized for fast ingestion, efficient storage, and high-performance querying - making it indispensable for modern applications requiring real-time insights. From system monitoring and IoT data collection to complex business analytics, InfluxDB provides the tools and flexibility to harness the full potential of your data.
+
+The Flux language brings pipeline-oriented data transformations, scheduled downsampling tasks, and built-in alerting — all from a single query language. InfluxDB v3’s shift to Apache Parquet and SQL opens the door to higher cardinality workloads and seamless integration with the broader Arrow ecosystem. Combined with Telegraf’s broad input plugin library, InfluxDB is a complete, production-proven platform for any time series challenge.
 
 By understanding its inner workings and applying best practices in deployment and tuning, developers and architects can build resilient, scalable systems that meet today’s demanding data needs. Whether you’re just starting with time series data or looking to optimize an existing deployment, InfluxDB offers a proven path to success.
 

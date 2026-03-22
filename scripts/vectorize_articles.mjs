@@ -64,27 +64,26 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isQuotaError(error) {
-  const message = String(error?.message || "").toLowerCase();
-  return message.includes("quota") || message.includes("billing");
-}
-
-function isRetryable(error) {
-  const status = Number(error?.status || error?.response?.status);
-  const message = String(error?.message || "").toLowerCase();
-  if (Number.isFinite(status)) {
-    return status === 429 || status >= 500;
+function parseRetryDelay(error) {
+  // Try to extract retryDelay from error details (e.g. "22s" or "22.991730528s")
+  const details = error?.errorDetails || [];
+  for (const detail of details) {
+    if (detail?.retryDelay) {
+      const match = String(detail.retryDelay).match(/([\d.]+)/);
+      if (match) return Math.ceil(parseFloat(match[1]) * 1000);
+    }
   }
-  return (
-    message.includes("too many requests") ||
-    message.includes("rate limit") ||
-    message.includes("temporarily")
-  );
+  // Try to extract from error message
+  const msgMatch = String(error?.message || "").match(/retry in ([\d.]+)s/i);
+  if (msgMatch) return Math.ceil(parseFloat(msgMatch[1]) * 1000);
+  return 0;
 }
 
 async function getEmbedding(text) {
   const model = getEmbeddingModel();
-  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+  let attempt = 0;
+
+  while (true) {
     try {
       const embedResp = await model.embedContent({
         content: {
@@ -110,24 +109,34 @@ async function getEmbedding(text) {
       }
       return values.map((value) => value / magnitude);
     } catch (error) {
-      if (isQuotaError(error)) {
+      const status = Number(error?.status || error?.response?.status);
+      const message = String(error?.message || "").toLowerCase();
+      const isRateLimit = status === 429 || message.includes("quota") || message.includes("too many requests") || message.includes("rate limit");
+      const isServerError = status >= 500;
+
+      if (!isRateLimit && !isServerError) {
+        // Non-retryable error (bad request, auth, etc.) — throw
         throw error;
       }
-      if (attempt >= maxRetries || !isRetryable(error)) {
-        throw error;
+
+      attempt += 1;
+
+      // Use server-provided retry delay if available, otherwise exponential backoff
+      let delay = parseRetryDelay(error);
+      if (delay <= 0) {
+        // Exponential backoff: 2s, 4s, 8s, 16s, 32s, 60s, 60s, 60s...
+        delay = Math.min(60000, retryBaseMs * Math.pow(2, Math.min(attempt, 6))) + Math.floor(Math.random() * 1000);
+      } else {
+        // Add a small buffer to server-provided delay
+        delay += 2000;
       }
-      const delay =
-        retryBaseMs * Math.pow(2, attempt) + Math.floor(Math.random() * 250);
+
       console.log(
-        `Embedding rate limited. Retrying in ${Math.round(delay)}ms (attempt ${
-          attempt + 1
-        }/${maxRetries}).`,
+        `Rate limited (attempt ${attempt}). Waiting ${Math.round(delay / 1000)}s before retry...`,
       );
       await sleep(delay);
     }
   }
-
-  throw new Error("Embedding retry loop exhausted.");
 }
 
 function parseMetadata(fileContent, filename) {
@@ -140,6 +149,8 @@ function parseMetadata(fileContent, filename) {
       title: filename.replace(".mdx", ""),
       description: "",
       topics: [],
+      author: "Son Nguyen",
+      date: "",
     };
   }
 
@@ -161,7 +172,27 @@ function parseMetadata(fileContent, filename) {
       .filter((topic) => topic.length > 0);
   }
 
-  return { title, description, topics };
+  // Extract author from ### Author: ...
+  const authorMatch = fileContent.match(/###\s*Author:\s*(.+)/);
+  const author = authorMatch ? authorMatch[1].trim() : "Son Nguyen";
+
+  // Extract date from > Date: YYYY-MM-DD
+  const dateMatch = fileContent.match(/>\s*Date:\s*(\d{4}-\d{2}-\d{2})/);
+  const date = dateMatch ? dateMatch[1] : "";
+
+  return { title, description, topics, author, date };
+}
+
+function countWords(text) {
+  const cleaned = (text || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\{\{[^}]*\}\}/g, " ")
+    .replace(/[#*_>`~\-\[\]();:]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return 0;
+  return cleaned.split(/\s+/).length;
 }
 
 function extractContent(fileContent) {
@@ -273,19 +304,54 @@ async function main() {
   const index = client.index(indexName);
   const vectors = [];
 
+  // Fetch view counts from Supabase if available
+  let viewCounts = {};
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const resp = await fetch(`${supabaseUrl}/rest/v1/article_views?select=slug,view_count`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+      });
+      if (resp.ok) {
+        const rows = await resp.json();
+        for (const row of rows) {
+          viewCounts[row.slug] = row.view_count;
+        }
+        console.log(`Fetched view counts for ${Object.keys(viewCounts).length} articles`);
+      }
+    } catch (err) {
+      console.warn("Could not fetch view counts from Supabase:", err.message);
+    }
+  }
+
   for (const file of files) {
     const filePath = path.join(contentDir, file);
     const fileContent = await fs.readFile(filePath, "utf8");
     const slug = file.replace(/\.mdx$/, "");
-    const { title, description, topics } = parseMetadata(fileContent, file);
+    const { title, description, topics, author, date } = parseMetadata(fileContent, file);
     const body = extractContent(fileContent);
+    const words = countWords(body);
+    const readingMinutes = Math.max(1, Math.ceil(words / 220));
+    const views = viewCounts[slug] || 0;
     const chunks = chunkText(body);
 
-    console.log(`Processing ${slug} (${chunks.length} chunks)`);
+    // Delete old vectors for this slug to remove orphan chunks from previous runs
+    try {
+      const oldIds = Array.from({ length: 200 }, (_, i) => `${slug}#${i}`);
+      await index.deleteMany(oldIds);
+    } catch (err) {
+      // Pinecone may throw if IDs don't exist — that's fine
+    }
+
+    console.log(`Processing ${slug} (${chunks.length} chunks, ${readingMinutes} min read, ${views} views)`);
 
     for (let i = 0; i < chunks.length; i += 1) {
       const chunk = chunks[i];
-      const embedText = `${title}\n${description}\n\n${chunk}`;
+      const embedText = `${title}\n${description}\nAuthor: ${author}\nDate: ${date}\nTopics: ${topics.join(", ")}\n\n${chunk}`;
       const embedding = await getEmbedding(embedText);
       const id = `${slug}#${i}`;
 
@@ -297,6 +363,10 @@ async function main() {
           title,
           description,
           topics,
+          author,
+          date,
+          readingMinutes,
+          views,
           url: `${siteUrl}/articles/${slug}`,
           chunkIndex: i,
           content: chunk,

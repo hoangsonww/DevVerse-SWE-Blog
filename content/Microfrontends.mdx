@@ -19,9 +19,24 @@ export default function MicrofrontendsContent({ children }) {
 
 Microfrontend architecture is an approach where a frontend application is decomposed into individual, semi-independent “microapps” that work together to form a cohesive user experience. Inspired by the principles of microservices on the backend, this design pattern promotes team autonomy, independent deployment, and flexible technology choices. In this guide, we explore the fundamentals of microfrontends, examine their benefits, discuss various techniques to implement them, and outline best practices for creating scalable, maintainable, and resilient frontend systems.
 
+```mermaid
+graph TD
+    A[App Shell / Container] --> B[Header MFE]
+    A --> C[Product Catalog MFE]
+    A --> D[Cart MFE]
+    A --> E[Checkout MFE]
+    B --> F[Shared Design System]
+    C --> F
+    D --> F
+    E --> F
+    C --> G[Product API]
+    D --> H[Cart API]
+    E --> I[Payment API]
+```
+
 ---
 
-## I. Introduction to Microfrontends
+## 1. Introduction to Microfrontends
 
 As web applications grow in complexity and size, maintaining a single, monolithic frontend codebase becomes increasingly challenging. Microfrontend architecture addresses these challenges by breaking the frontend into smaller, self-contained modules - each responsible for a specific business domain or feature.
 
@@ -34,7 +49,7 @@ As web applications grow in complexity and size, maintaining a single, monolithi
 
 ---
 
-## II. Benefits of Microfrontend Architecture
+## 2. Benefits of Microfrontend Architecture
 
 Microfrontends offer a range of significant benefits compared to monolithic frontends:
 
@@ -60,7 +75,7 @@ Microfrontends offer a range of significant benefits compared to monolithic fron
 
 ---
 
-## III. History and Evolution of Microfrontends
+## 3. History and Evolution of Microfrontends
 
 The evolution of microfrontends mirrors that of microservices on the backend. Initially, frontend applications were developed as monolithic entities, which became unwieldy as user interfaces grew in complexity. The need for decoupled, independently deployable frontend modules led to early experiments in modularization. These experiments paved the way for modern microfrontend practices:
 
@@ -72,7 +87,7 @@ For more detailed insights, explore resources like the [GitHub Micro Frontends M
 
 ---
 
-## IV. Why Microfrontends Matter
+## 4. Why Microfrontends Matter
 
 In today's dynamic digital landscape, user experiences must be fast, responsive, and continuously evolving. Monolithic frontends often hinder innovation due to their inherent complexity and interdependencies. Microfrontend architecture matters because it enables:
 
@@ -84,7 +99,7 @@ In today's dynamic digital landscape, user experiences must be fast, responsive,
 
 ---
 
-## V. How Microfrontends Work
+## 5. How Microfrontends Work
 
 Microfrontend architecture employs several strategies to ensure that independently developed modules can seamlessly integrate into a cohesive application:
 
@@ -106,9 +121,22 @@ Microfrontend architecture employs several strategies to ensure that independent
 
 ---
 
-## VI. Techniques for Implementing Microfrontends
+## 6. Techniques for Implementing Microfrontends
 
 There are several approaches to building microfrontend architectures. Each technique comes with its own set of advantages and challenges.
+
+```mermaid
+graph LR
+    A[Browser Request] --> B[NGINX Reverse Proxy]
+    B --> C[Shell App]
+    C --> D{Route Matching}
+    D --> E[Users MFE :3001]
+    D --> F[Products MFE :3002]
+    D --> G[Admin MFE :3003]
+    E --> H[Shared Event Bus]
+    F --> H
+    G --> H
+```
 
 ### 1. Webpack Module Federation
 
@@ -257,9 +285,24 @@ Single-SPA orchestrates multiple microapps on a single page by defining lifecycl
 
 Some organizations build custom orchestrators tailored to their unique needs. These orchestrators dynamically load and manage microapps based on user context, roles, or device type. Custom solutions can offer optimized performance and specialized features that off-the-shelf tools might not support.
 
+A well-structured organization maps each MFE to a dedicated team that owns its own build and deploy pipeline:
+
+```mermaid
+graph TD
+    A[Product Organization] --> B[Team Alpha - Catalog Domain]
+    A --> C[Team Beta - Cart and Checkout Domain]
+    A --> D[Team Gamma - User Profile Domain]
+    A --> E[Platform Team - Shell and Design System]
+    B --> F[Catalog MFE - owns build and deploy]
+    C --> G[Cart MFE - owns build and deploy]
+    D --> H[Profile MFE - owns build and deploy]
+    E --> I[App Shell - orchestrates all MFEs]
+    E --> J[Shared Component Library]
+```
+
 ---
 
-## VII. Best Practices and Strategies for Scaling Microfrontends
+## 7. Best Practices and Strategies for Scaling Microfrontends
 
 ### 1. Standardize UI/UX Guidelines
 
@@ -286,9 +329,21 @@ Some organizations build custom orchestrators tailored to their unique needs. Th
 - **Analytics:** Monitor load times, resource usage, and user interactions for each microapp.
 - **Performance Budget:** Establish performance budgets to ensure that microapps remain fast and responsive even as they grow.
 
+The event bus pattern keeps MFEs loosely coupled: producers dispatch custom events without knowing which consumers are listening:
+
+```mermaid
+graph LR
+    A[MFE A - Catalog] --> B[Custom Event Dispatch - item-added]
+    B --> C[Shared Event Bus - window events]
+    C --> D[MFE B - Cart - listens for item-added]
+    C --> E[MFE C - Analytics - listens for all events]
+    D --> F[Update Cart State Locally]
+    E --> G[Send Analytics Payload]
+```
+
 ---
 
-## VIII. Challenges and Considerations
+## 8. Challenges and Considerations
 
 While microfrontends offer numerous benefits, they also introduce certain complexities:
 
@@ -304,9 +359,23 @@ While microfrontends offer numerous benefits, they also introduce certain comple
 - **Consistency and User Experience:**
   Achieving a consistent look and feel across diverse microapps demands strict adherence to shared guidelines and collaboration between teams.
 
+Independent deployment is the defining operational advantage of microfrontends. A team's CI pipeline publishes a new remote entry directly to the CDN without requiring a shell redeployment:
+
+```mermaid
+graph TD
+    A[Team Commits to MFE Repo] --> B[MFE CI Pipeline Runs]
+    B --> C[Unit and Integration Tests]
+    C --> D{Tests Pass?}
+    D -- No --> E[Notify Team - fix required]
+    D -- Yes --> F[Build and Publish Remote Entry]
+    F --> G[CDN or Registry Updated]
+    G --> H[Shell App Loads New Remote at Runtime]
+    H --> I[No Shell Redeployment Needed]
+```
+
 ---
 
-## IX. Future Trends in Microfrontend Architecture
+## 9. Future Trends in Microfrontend Architecture
 
 The microfrontend approach is continually evolving, with several emerging trends shaping its future:
 
@@ -322,9 +391,350 @@ The microfrontend approach is continually evolving, with several emerging trends
 - **Greater Emphasis on Security and Privacy:**
   As microfrontends become more widespread, advanced security practices and standards will emerge to safeguard distributed architectures.
 
+One emerging practice is enforcing a performance budget in CI so that bundle size and Lighthouse scores become first-class build constraints. The diagram below models how this gate works:
+
+```mermaid
+graph TD
+    A[MFE Build Completes] --> B[Bundle Size Analyzer Runs]
+    B --> C{JS Bundle Exceeds 150kb?}
+    C -- Yes --> D[Fail Build - Exceed JS Budget]
+    C -- No --> E[Lighthouse CI Runs on Preview URL]
+    E --> F{LCP Above 2.5s?}
+    F -- Yes --> G[Fail Build - Exceed LCP Budget]
+    F -- No --> H{TTI Above 5s?}
+    H -- Yes --> I[Fail Build - Exceed TTI Budget]
+    H -- No --> J[Performance Gate Passed]
+    J --> K[Publish Remote Entry to CDN]
+```
+
+The sequence diagram shows how a Single-SPA orchestrator mounts and unmounts microfrontend apps in response to route changes:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Shell as App Shell
+    participant Router as Single-SPA Router
+    participant CatalogMFE as Catalog MFE
+    participant CartMFE as Cart MFE
+
+    User->>Shell: Navigate to /catalog
+    Shell->>Router: Route change event
+    Router->>CatalogMFE: Lifecycle - bootstrap
+    CatalogMFE-->>Router: Bootstrap complete
+    Router->>CatalogMFE: Lifecycle - mount
+    CatalogMFE-->>Shell: Renders into DOM slot
+    User->>Shell: Navigate to /cart
+    Router->>CatalogMFE: Lifecycle - unmount
+    CatalogMFE-->>Router: Unmount complete
+    Router->>CartMFE: Lifecycle - bootstrap and mount
+    CartMFE-->>Shell: Renders into DOM slot
+```
+
+The class diagram models the Webpack Module Federation configuration objects for a host shell and a remote microfrontend:
+
+```mermaid
+classDiagram
+    class ModuleFederationConfig {
+        +String name
+        +String filename
+        +Map exposes
+        +Map remotes
+        +Map shared
+    }
+    class HostConfig {
+        +String name
+        +Map remotes
+        +Map shared
+        +loadRemote()
+    }
+    class RemoteConfig {
+        +String name
+        +String filename
+        +Map exposes
+        +publish()
+    }
+    class SharedDependency {
+        +String packageName
+        +String version
+        +Boolean singleton
+        +Boolean eager
+    }
+    ModuleFederationConfig <|-- HostConfig
+    ModuleFederationConfig <|-- RemoteConfig
+    HostConfig --> SharedDependency : declares
+    RemoteConfig --> SharedDependency : declares
+    HostConfig --> RemoteConfig : consumes
+```
+
 ---
 
-## X. Conclusion
+## 10. Testing Strategies for Microfrontends
+
+Testing a microfrontend system requires a layered approach. Each microapp owns its unit and integration tests, while the shell app or a dedicated test harness handles cross-MFE contract and end-to-end testing.
+
+### 10.1. Unit and Component Testing Per MFE
+
+Each MFE should run its own isolated test suite against its public component API. No MFE test should import another MFE's source code directly - only the exported public interface.
+
+```bash
+# Run tests inside a single MFE workspace
+cd packages/catalog-mfe
+npx jest --coverage --testPathPattern="src/"
+```
+
+```tsx
+// catalog-mfe/src/ProductCard.test.tsx
+import { render, screen } from "@testing-library/react";
+import { ProductCard } from "./ProductCard";
+
+describe("ProductCard", () => {
+  it("renders product name and price", () => {
+    render(<ProductCard name="Widget Pro" price={29.99} />);
+    expect(screen.getByText("Widget Pro")).toBeInTheDocument();
+    expect(screen.getByText("$29.99")).toBeInTheDocument();
+  });
+
+  it("calls onAddToCart when button is clicked", async () => {
+    const onAddToCart = jest.fn();
+    render(
+      <ProductCard name="Widget Pro" price={29.99} onAddToCart={onAddToCart} />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: /add to cart/i }));
+    expect(onAddToCart).toHaveBeenCalledWith({
+      name: "Widget Pro",
+      price: 29.99,
+    });
+  });
+});
+```
+
+### 10.2. Contract Testing with Pact
+
+Contract testing verifies that the event bus messages and custom DOM events flowing between MFEs stay stable across independent deployments. Pact is commonly used for HTTP APIs; for event-driven MFE communication, a lightweight JSON schema contract is sufficient.
+
+```typescript
+// shared/contracts/item-added.contract.ts
+import Ajv from "ajv";
+
+export const ItemAddedSchema = {
+  type: "object",
+  required: ["productId", "quantity", "price"],
+  properties: {
+    productId: { type: "string", minLength: 1 },
+    quantity: { type: "number", minimum: 1 },
+    price: { type: "number", minimum: 0 },
+  },
+  additionalProperties: false,
+};
+
+const ajv = new Ajv();
+export const validateItemAdded = ajv.compile(ItemAddedSchema);
+```
+
+```typescript
+// catalog-mfe/src/events.test.ts
+import { validateItemAdded } from "shared/contracts/item-added.contract";
+
+test("dispatch payload matches item-added contract", () => {
+  const payload = { productId: "sku-001", quantity: 2, price: 49.99 };
+  expect(validateItemAdded(payload)).toBe(true);
+});
+```
+
+### 10.3. End-to-End Testing the Composed Shell
+
+Playwright or Cypress can spin up the composed shell and verify that cross-MFE user journeys work correctly, catching integration regressions that no single MFE's tests would catch.
+
+```typescript
+// e2e/checkout-flow.spec.ts
+import { test, expect } from "@playwright/test";
+
+test("user adds product from catalog and completes checkout", async ({
+  page,
+}) => {
+  await page.goto("http://localhost:3000");
+
+  // Catalog MFE renders
+  await expect(page.locator("[data-mfe='catalog']")).toBeVisible();
+
+  // Add item
+  await page.click("[data-testid='add-to-cart-sku-001']");
+
+  // Cart MFE badge updates
+  await expect(page.locator("[data-testid='cart-count']")).toHaveText("1");
+
+  // Navigate to checkout MFE
+  await page.click("[data-testid='checkout-link']");
+  await expect(page.locator("[data-mfe='checkout']")).toBeVisible();
+  await expect(page.locator("[data-testid='order-total']")).toContainText(
+    "$49.99",
+  );
+});
+```
+
+### 10.4. Testing Architecture Overview
+
+```mermaid
+graph TD
+    A[MFE Source Code] --> B[Unit Tests - Jest]
+    A --> C[Component Tests - React Testing Library]
+    B --> D[Run in CI per MFE repo]
+    C --> D
+    D --> E[Contract Tests - JSON Schema]
+    E --> F[Contract Registry - shared package]
+    F --> G[Shell Integration Tests - Playwright]
+    G --> H{All green?}
+    H -- Yes --> I[Publish Remote Entry to CDN]
+    H -- No --> J[Fail pipeline - notify team]
+```
+
+---
+
+A shared design system prevents visual inconsistency without coupling MFEs to a specific version at deploy time. The recommended approach is a versioned component library published to an npm registry, consumed as a singleton via Webpack Module Federation's `shared` map.
+
+### 10.5. Design Token Package
+
+```typescript
+// @design-system/tokens/src/index.ts
+export const tokens = {
+  colors: {
+    primary: "#0052cc",
+    danger: "#de350b",
+    success: "#36b37e",
+    surface: "#ffffff",
+    background: "#f4f5f7",
+  },
+  spacing: {
+    xs: "4px",
+    sm: "8px",
+    md: "16px",
+    lg: "24px",
+    xl: "32px",
+  },
+  typography: {
+    fontFamily: "'Inter', sans-serif",
+    sizeSm: "0.875rem",
+    sizeMd: "1rem",
+    sizeLg: "1.25rem",
+  },
+} as const;
+
+export type Tokens = typeof tokens;
+```
+
+### 10.6. Button Component with Design Token Consumption
+
+```tsx
+// @design-system/components/src/Button.tsx
+import React from "react";
+import { tokens } from "@design-system/tokens";
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "danger" | "ghost";
+  size?: "sm" | "md" | "lg";
+}
+
+export const Button: React.FC<ButtonProps> = ({
+  variant = "primary",
+  size = "md",
+  children,
+  style,
+  ...rest
+}) => {
+  const bgMap = {
+    primary: tokens.colors.primary,
+    danger: tokens.colors.danger,
+    ghost: "transparent",
+  };
+
+  const paddingMap = {
+    sm: `${tokens.spacing.xs} ${tokens.spacing.sm}`,
+    md: `${tokens.spacing.sm} ${tokens.spacing.md}`,
+    lg: `${tokens.spacing.md} ${tokens.spacing.lg}`,
+  };
+
+  return (
+    <button
+      style={{
+        background: bgMap[variant],
+        padding: paddingMap[size],
+        fontFamily: tokens.typography.fontFamily,
+        color: variant === "ghost" ? tokens.colors.primary : "#fff",
+        border:
+          variant === "ghost" ? `1px solid ${tokens.colors.primary}` : "none",
+        borderRadius: "4px",
+        cursor: "pointer",
+        ...style,
+      }}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+};
+```
+
+### 10.7. Sharing the Design System as a Module Federation Singleton
+
+```js
+// Each MFE's webpack.config.js - shared section
+shared: {
+  react:          { singleton: true, requiredVersion: "^18.0.0" },
+  "react-dom":    { singleton: true, requiredVersion: "^18.0.0" },
+  "@design-system/tokens":     { singleton: true, eager: true },
+  "@design-system/components": { singleton: true, eager: true },
+},
+```
+
+Setting `singleton: true` ensures that every MFE uses the same instance of the design system, eliminating version drift and duplicate CSS-in-JS style injections.
+
+---
+
+Migrating a monolithic frontend to microfrontends is best done incrementally. A complete rewrite carries substantial risk; the strangler fig pattern lets you extract domain slices one at a time while keeping the monolith running.
+
+### 10.8. Phase 1: Identify Domain Boundaries
+
+Use code ownership data and team structure to find natural seams. A heatmap of file-change co-occurrence in git history reveals tightly coupled zones that should remain together and loosely coupled areas that are safe to extract first.
+
+```bash
+# Find the most frequently co-edited files (coupling indicator)
+git log --name-only --pretty=format: | sort | uniq -c | sort -rn | head -30
+```
+
+### 10.9. Phase 2: Introduce the Shell Without Moving Code
+
+Deploy a thin shell app at the domain root. Initially it simply iframes or module-federates the entire monolith at `/`. This establishes the deployment seam without breaking existing behavior.
+
+```mermaid
+graph LR
+    A[Shell App - new] --> B[Route: /admin - new Admin MFE]
+    A --> C[Route: /* - existing Monolith via federation]
+    B --> D[Admin Team owns this deploy]
+    C --> E[Existing team keeps deploying monolith]
+```
+
+### 10.10. Phase 3: Extract One MFE at a Time
+
+Choose the domain with the most isolated code and the lowest API surface first. Extract it, give ownership to the relevant team, and verify the integration through E2E tests before moving to the next domain.
+
+```mermaid
+graph TD
+    A[Monolith v1] -->|Month 1| B[Extract Admin MFE]
+    B --> C[Monolith v2 minus admin routes]
+    C -->|Month 3| D[Extract Catalog MFE]
+    D --> E[Monolith v3 minus admin and catalog]
+    E -->|Month 6| F[Extract Checkout MFE]
+    F --> G[Thin Monolith - legacy glue only]
+    G -->|Month 9| H[Retire Monolith - shell only remains]
+```
+
+### 10.11. Phase 4: Harden Contracts and Cut Over
+
+Once all domains are extracted, sever the shared runtime coupling: remove direct imports between MFEs, enforce event bus contracts with schema validation in CI, and delete the monolith routing fallback from the shell.
+
+---
+
+## 11. Conclusion
 
 Microfrontend architecture represents a paradigm shift in frontend development. By decomposing a monolithic frontend into independent, manageable microapps, organizations can achieve greater agility, scalability, and resilience. This approach empowers teams to innovate independently while maintaining a cohesive user experience.
 
@@ -334,7 +744,7 @@ As you explore microfrontend architectures, consider adopting best practices aro
 
 ---
 
-## XI. Further Reading and Resources
+## 12. Further Reading and Resources
 
 - **Official Documentation and Blogs:**
 

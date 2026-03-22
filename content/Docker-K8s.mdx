@@ -25,11 +25,25 @@ In today’s cloud-native world, containerization and orchestration are the corn
 
 Containerization and orchestration are at the heart of modern DevOps practices. Docker standardizes how applications are built, shipped, and run, while Kubernetes provides a robust platform for automating the deployment and management of containerized applications. This guide is designed to be a comprehensive reference, complete with in-depth tutorials, practical examples, and advanced techniques.
 
+The following diagram shows the high-level relationship between Docker and Kubernetes in a typical deployment pipeline:
+
+```mermaid
+graph LR
+    A[Source Code] --> B[Dockerfile]
+    B --> C[Docker Build]
+    C --> D[Container Image]
+    D --> E[Container Registry]
+    E --> F[Kubernetes Cluster]
+    F --> G[Pod 1]
+    F --> H[Pod 2]
+    F --> I[Pod 3]
+```
+
 ---
 
 ## 2. Docker: Containerization Made Detailed
 
-### What is Docker?
+### 2.1. What is Docker?
 
 Docker is an open-source platform designed to simplify the process of building, running, and distributing applications within containers. Containers encapsulate an application with all its dependencies, ensuring that it runs uniformly across different computing environments.
 
@@ -39,7 +53,7 @@ Docker is an open-source platform designed to simplify the process of building, 
 - **Isolation:** Each container runs in its own environment, avoiding conflicts with other applications.
 - **Efficiency:** Containers share the host OS kernel, leading to lower overhead compared to traditional VMs.
 
-### Building a Docker Image: Step-by-Step
+### 2.2. Building a Docker Image: Step-by-Step
 
 Let’s build a simple Node.js application and containerize it using Docker.
 
@@ -119,7 +133,7 @@ docker run -p 3000:3000 docker-node-app
 
 Access your app at [http://localhost:3000](http://localhost:3000).
 
-### Managing Containers: Essential Docker Commands
+### 2.3. Managing Containers: Essential Docker Commands
 
 - **List running containers:**
 
@@ -151,11 +165,19 @@ docker rm <container-id>
 docker rmi docker-node-app
 ```
 
-### Advanced Docker Topics
+### 2.4. Advanced Docker Topics
 
 #### Multi-Stage Builds
 
 Multi-stage builds allow you to create lean production images by using multiple build stages in your Dockerfile.
+
+```mermaid
+graph LR
+    S1[Stage 1: Builder] --> |npm install| S2[Install Deps]
+    S2 --> |npm run build| S3[Compile App]
+    S3 --> |COPY --from=builder| S4[Stage 2: Runtime]
+    S4 --> S5[Lean Production Image]
+```
 
 ```dockerfile
 # Stage 1: Build the application
@@ -197,6 +219,25 @@ Start the services with:
 docker-compose up
 ```
 
+Docker supports several networking modes that control how containers communicate with each other and the host:
+
+```mermaid
+graph TD
+    DOCKER[Docker Networking] --> BRIDGE[Bridge Mode - default]
+    DOCKER --> HOST[Host Mode]
+    DOCKER --> NONE[None Mode - isolated]
+    DOCKER --> OVERLAY[Overlay Mode - multi-host]
+    DOCKER --> MACVLAN[Macvlan Mode]
+    BRIDGE --> B1[Containers share virtual network]
+    BRIDGE --> B2[NAT to host via docker0]
+    HOST --> H1[Container shares host network stack]
+    HOST --> H2[No network isolation]
+    OVERLAY --> O1[Spans multiple Docker hosts]
+    OVERLAY --> O2[Required for Swarm clusters]
+    MACVLAN --> M1[Container gets host MAC address]
+    MACVLAN --> M2[Appears as physical device on LAN]
+```
+
 #### Volume Management and Networking
 
 - **Volumes:** Persist data and share it between containers.
@@ -217,7 +258,7 @@ docker run --network my-network --name container2 my-image
 
 ## 3. Kubernetes: Orchestration in Depth
 
-### Understanding Kubernetes Architecture
+### 3.1. Understanding Kubernetes Architecture
 
 Kubernetes is a powerful platform for container orchestration. Its core components include:
 
@@ -227,7 +268,36 @@ Kubernetes is a powerful platform for container orchestration. Its core componen
 - **Deployments:** Manage a set of identical pods, ensuring desired state and handling updates.
 - **Services:** Provide stable network endpoints to access pods.
 
-### Setting Up a Local Kubernetes Cluster
+```mermaid
+graph TD
+    subgraph Control Plane
+        API[API Server]
+        ETCD[etcd Store]
+        SCHED[Scheduler]
+        CM[Controller Manager]
+    end
+    subgraph Worker Node 1
+        KL1[Kubelet]
+        P1[Pod A]
+        P2[Pod B]
+    end
+    subgraph Worker Node 2
+        KL2[Kubelet]
+        P3[Pod C]
+        P4[Pod D]
+    end
+    API --> ETCD
+    API --> SCHED
+    API --> CM
+    SCHED --> KL1
+    SCHED --> KL2
+    KL1 --> P1
+    KL1 --> P2
+    KL2 --> P3
+    KL2 --> P4
+```
+
+### 3.2. Setting Up a Local Kubernetes Cluster
 
 For local experimentation, you can use **Minikube** or **kind**.
 
@@ -252,7 +322,7 @@ kubectl get nodes
 
 Download and install `kubectl` as per the [official guide](https://kubernetes.io/docs/tasks/tools/).
 
-### Deploying Applications on Kubernetes
+### 3.3. Deploying Applications on Kubernetes
 
 We’ll deploy the Dockerized Node.js app from earlier.
 
@@ -322,7 +392,7 @@ Access the service (for Minikube):
 minikube service docker-node-app-service
 ```
 
-### Advanced Kubernetes Topics
+### 3.4. Advanced Kubernetes Topics
 
 #### Scaling, Rolling Updates, and Self-healing
 
@@ -342,6 +412,23 @@ kubectl apply -f deployment.yaml
 
 #### Helm: Package Management for Kubernetes
 
+A Helm chart organizes all Kubernetes manifests and configuration into a well-defined directory structure:
+
+```mermaid
+graph TD
+    CHART[mychart - Helm Chart Root] --> CHARTFILE[Chart.yaml - chart metadata]
+    CHART --> VALUES[values.yaml - default config]
+    CHART --> TEMPLATES[templates - directory]
+    CHART --> CHARTS[charts - dependencies]
+    TEMPLATES --> DEPLOY[deployment.yaml]
+    TEMPLATES --> SVC[service.yaml]
+    TEMPLATES --> INGRESS[ingress.yaml]
+    TEMPLATES --> CM[configmap.yaml]
+    TEMPLATES --> HELPERS[_helpers.tpl - named templates]
+    VALUES -. "Override at install time" .-> DEPLOY
+    VALUES -. "Override at install time" .-> SVC
+```
+
 Helm is a package manager that simplifies deploying applications.
 
 1. **Install Helm:**
@@ -360,6 +447,45 @@ helm create mychart
 
 ```bash
 helm install my-release mychart
+```
+
+A Kubernetes rolling update replaces pods incrementally to maintain availability throughout the deployment:
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant API as K8s API Server
+    participant RS as ReplicaSet Controller
+    participant N1 as Node 1
+    participant N2 as Node 2
+
+    Dev->>API: kubectl apply new image tag
+    API->>RS: Update desired state
+    RS->>N1: Start new Pod v2
+    N1-->>RS: Pod v2 Running
+    RS->>N1: Terminate old Pod v1
+    N1-->>RS: Pod v1 Terminated
+    RS->>N2: Start new Pod v2
+    N2-->>RS: Pod v2 Running
+    RS->>N2: Terminate old Pod v1
+    N2-->>RS: Pod v1 Terminated
+    RS-->>API: Rollout complete
+    API-->>Dev: Deployment updated
+```
+
+The Kubernetes pod lifecycle diagram shows all the states a pod moves through from scheduling to termination:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Pod created - waiting for scheduling
+    Pending --> ContainerCreating: Node assigned - pulling images
+    ContainerCreating --> Running: All containers started
+    Running --> Succeeded: All containers exited with code 0
+    Running --> Failed: At least one container exited with non-zero code
+    Running --> Unknown: Node communication lost
+    Failed --> Pending: Restart policy triggers restart
+    Succeeded --> [*]: Pod complete - no restart
+    Failed --> [*]: Restart policy is Never
 ```
 
 #### Ingress Controllers
@@ -400,7 +526,7 @@ spec:
 
 ## 4. Best Practices and Tips
 
-### Docker Best Practices
+### 4.1. Docker Best Practices
 
 - **Use Minimal Base Images:**
   Use Alpine or distroless images to reduce vulnerabilities and image size.
@@ -411,7 +537,26 @@ spec:
 - **Security:**
   Run containers as non-root users and scan images for vulnerabilities.
 
-### Kubernetes Best Practices
+The Horizontal Pod Autoscaler control loop measures resource metrics and adjusts replica count to meet the target utilization:
+
+```mermaid
+graph TD
+    HPA[HPA Controller] --> METRICS[Metrics Server]
+    METRICS --> CPU[CPU Utilization per Pod]
+    METRICS --> MEM[Memory Utilization per Pod]
+    HPA --> CALC[Calculate desired replicas]
+    CALC --> COMPARE{Desired vs current replicas?}
+    COMPARE -->|Scale up needed| DEPLOY[Increase Deployment replica count]
+    COMPARE -->|Scale down needed| REDUCE[Decrease Deployment replica count]
+    COMPARE -->|No change| WAIT[Wait for next evaluation interval]
+    DEPLOY --> SCHED[Scheduler places new Pods]
+    REDUCE --> TERM[Gracefully terminate excess Pods]
+    SCHED --> METRICS
+    TERM --> METRICS
+    WAIT --> METRICS
+```
+
+### 4.2. Kubernetes Best Practices
 
 - **Resource Requests and Limits:**
   Define CPU and memory constraints to optimize cluster utilization.
@@ -428,22 +573,409 @@ spec:
 
 ## 5. Additional Resources and Learning
 
-### Docker
+### 5.1. Docker
 
 - **Official Docker Documentation:** [docs.docker.com](https://docs.docker.com/)
 - **Docker Hub:** Explore container images at [hub.docker.com](https://hub.docker.com/)
 - **Tutorials and Courses:** Udemy, Coursera, and freeCodeCamp offer excellent Docker training.
 
-### Kubernetes
+### 5.2. Kubernetes
 
 - **Kubernetes Official Documentation:** [kubernetes.io/docs](https://kubernetes.io/docs/)
 - **Interactive Labs:** Katacoda and Play with Kubernetes provide hands-on tutorials.
 - **Certifications:** Consider the Certified Kubernetes Administrator (CKA) or Developer (CKAD) for advanced learning.
 - **Community and Forums:** Engage on Slack channels, Stack Overflow, and local meetups.
 
+Kubernetes supports several Service types that expose workloads differently depending on whether access is internal, external, or cloud-native:
+
+```mermaid
+graph TD
+    SVCTYPE[Kubernetes Service Types] --> CLUSTERIP[ClusterIP - default]
+    SVCTYPE --> NODEPORT[NodePort]
+    SVCTYPE --> LB[LoadBalancer]
+    SVCTYPE --> EXTNAME[ExternalName]
+    CLUSTERIP --> CI1[Reachable only inside the cluster]
+    CLUSTERIP --> CI2[Stable virtual IP and DNS name]
+    NODEPORT --> NP1[Exposes service on each node IP and static port]
+    NODEPORT --> NP2[Port range 30000 to 32767]
+    LB --> LB1[Provisions cloud load balancer automatically]
+    LB --> LB2[Assigns external IP from cloud provider]
+    EXTNAME --> EN1[Maps service to external DNS name]
+    EXTNAME --> EN2[No proxying - pure DNS CNAME]
+```
+
+Container resource requests and limits govern how the scheduler places pods and how the kubelet enforces CPU and memory boundaries:
+
+```mermaid
+graph LR
+    POD[Pod Spec] --> REQ[Resource Requests - scheduling hint]
+    POD --> LIM[Resource Limits - enforcement cap]
+    REQ --> SCHED[Scheduler finds node with enough free capacity]
+    LIM --> KUBELET[Kubelet enforces via cgroups]
+    KUBELET --> CPU_T[CPU throttled at limit - not killed]
+    KUBELET --> MEM_K[Memory OOMKilled when limit exceeded]
+    REQ --> QOS[QoS Class determined]
+    QOS --> GUAR[Guaranteed - requests equal limits]
+    QOS --> BURST[Burstable - requests less than limits]
+    QOS --> BEST[BestEffort - no requests or limits set]
+```
+
 ---
 
-## 6. Conclusion
+## 6. Kubernetes Operators and Custom Resources
+
+Operators extend Kubernetes to manage stateful applications using domain-specific knowledge encoded in Go controllers. They watch custom resources and reconcile the actual cluster state toward the desired state.
+
+### 6.1 Custom Resource Definition
+
+```yaml
+# crd-database.yaml - defines a new "Database" resource kind
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: databases.example.com
+spec:
+  group: example.com
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["engine", "version", "storage"]
+              properties:
+                engine:
+                  type: string
+                  enum: ["postgres", "mysql", "mongodb"]
+                version:
+                  type: string
+                storage:
+                  type: string
+                  pattern: "^[0-9]+(Gi|Mi)$"
+                replicas:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                endpoint:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: databases
+    singular: database
+    kind: Database
+```
+
+### 6.2 Reconcile Loop Pattern
+
+```mermaid
+sequenceDiagram
+    participant USER as kubectl apply
+    participant API as K8s API Server
+    participant CTRL as Operator Controller
+    participant REAL as Actual Cluster State
+
+    USER->>API: Apply Database CR {engine: postgres, replicas: 3}
+    API->>CTRL: Enqueue reconcile event
+    CTRL->>API: GET current Database CR
+    CTRL->>REAL: GET actual StatefulSets and Services
+    CTRL->>CTRL: Compare desired vs actual state
+    CTRL->>API: Create StatefulSet if missing
+    CTRL->>API: Create headless Service if missing
+    CTRL->>API: Create PersistentVolumeClaims
+    CTRL->>API: Update Database CR status.phase = Running
+    API-->>USER: Database ready
+    Note over CTRL,REAL: Operator continuously watches for drift
+    REAL->>CTRL: Pod crashes
+    CTRL->>CTRL: Reconcile triggered automatically
+    CTRL->>API: Create replacement Pod
+```
+
+### 6.3 Custom Resource Usage
+
+```yaml
+# my-database.yaml - create a postgres cluster using the Operator
+apiVersion: example.com/v1alpha1
+kind: Database
+metadata:
+  name: orders-db
+  namespace: production
+spec:
+  engine: postgres
+  version: "15.3"
+  storage: "20Gi"
+  replicas: 3
+```
+
+```bash
+kubectl apply -f my-database.yaml
+kubectl get databases -n production
+kubectl describe database orders-db -n production
+```
+
+---
+
+## 7. Service Mesh with Istio
+
+A service mesh adds observability, traffic management, and mutual TLS to service-to-service communication without any application code changes. Istio injects an Envoy sidecar proxy into each pod.
+
+The following diagram shows how the Envoy sidecar proxies in the data plane communicate through mutual TLS, while istiod in the control plane pushes xDS configuration, manages certificates, and validates mesh config:
+
+```mermaid
+graph TD
+    subgraph DataPlane
+        POD_A[Pod A] --> ENVOY_A[Envoy Sidecar]
+        POD_B[Pod B] --> ENVOY_B[Envoy Sidecar]
+        ENVOY_A -->|mTLS| ENVOY_B
+    end
+    subgraph ControlPlane
+        ISTIOD[istiod] --> PILOT[Pilot - xDS config push]
+        ISTIOD --> CITADEL[Citadel - certificate management]
+        ISTIOD --> GALLEY[Galley - config validation]
+    end
+    ISTIOD --> ENVOY_A
+    ISTIOD --> ENVOY_B
+    ENVOY_A --> PROMETHEUS[Prometheus metrics]
+    ENVOY_B --> PROMETHEUS
+    ENVOY_A --> JAEGER[Jaeger distributed traces]
+    ENVOY_B --> JAEGER
+    PROMETHEUS --> GRAFANA[Grafana dashboards]
+```
+
+### 7.1. Traffic Management with VirtualService
+
+```yaml
+# Canary deployment: route 5% of traffic to v2 while testing
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: orders-service
+spec:
+  hosts:
+    - orders-service
+  http:
+    - match:
+        - headers:
+            x-canary-user:
+              exact: "true"
+      route:
+        - destination:
+            host: orders-service
+            subset: v2
+          weight: 100
+    - route:
+        - destination:
+            host: orders-service
+            subset: v1
+          weight: 95
+        - destination:
+            host: orders-service
+            subset: v2
+          weight: 5
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: orders-service
+spec:
+  host: orders-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http2MaxRequests: 1000
+        pendingHttpRequests: 100
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+```
+
+---
+
+## 8. GitOps with ArgoCD
+
+GitOps uses a Git repository as the single source of truth for cluster state. ArgoCD watches the repository and continuously reconciles the cluster to match the declared manifests.
+
+### 8.1. ArgoCD Application Definition
+
+```yaml
+# argocd-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orders-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/example/k8s-manifests.git
+    targetRevision: HEAD
+    path: apps/orders-service/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true # Remove resources that are no longer in Git
+      selfHeal: true # Revert manual kubectl changes automatically
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+```
+
+### 8.2. GitOps Workflow
+
+The following sequence diagram shows the full GitOps cycle from a developer code push through CI image build to ArgoCD reconciling the cluster:
+
+```mermaid
+sequenceDiagram
+    participant DEV as Developer
+    participant GIT as GitHub Repository
+    participant CI as CI Pipeline (GitHub Actions)
+    participant REGISTRY as Container Registry
+    participant ARGOCD as ArgoCD Controller
+    participant CLUSTER as Kubernetes Cluster
+
+    DEV->>GIT: Push code change
+    GIT->>CI: Trigger build pipeline
+    CI->>CI: Run tests
+    CI->>REGISTRY: Build and push docker image with SHA tag
+    CI->>GIT: Update image tag in k8s-manifests repo (Kustomize patch)
+    ARGOCD->>GIT: Poll or webhook - detect manifest change
+    ARGOCD->>ARGOCD: Diff desired vs actual cluster state
+    ARGOCD->>CLUSTER: Apply new Deployment with updated image
+    CLUSTER->>CLUSTER: Rolling update begins
+    CLUSTER-->>ARGOCD: Rollout healthy
+    ARGOCD-->>DEV: Sync status: Synced and Healthy
+```
+
+### 8.3. GitOps Benefits and Tradeoffs
+
+The following diagram summarizes the key benefits and tradeoffs to weigh when adopting a GitOps workflow with ArgoCD:
+
+```mermaid
+graph LR
+    GITOPS[GitOps with ArgoCD] --> BENEFITS[Benefits]
+    GITOPS --> TRADEOFFS[Tradeoffs]
+    BENEFITS --> AUDIT[Full audit trail via Git history]
+    BENEFITS --> DRIFT[Automatic drift detection and correction]
+    BENEFITS --> ROLLBACK[Instant rollback with git revert]
+    BENEFITS --> REVIEW[PR-based change review process]
+    TRADEOFFS --> SECRETS[Secret management requires Sealed Secrets or Vault]
+    TRADEOFFS --> BOOTSTRAP[Initial cluster bootstrap is manual]
+    TRADEOFFS --> COMPLEXITY[Two-repo model adds cognitive overhead]
+```
+
+---
+
+## 9. Cost Optimization and Pod Disruption Budgets
+
+### 9.1. Pod Disruption Budgets
+
+Pod Disruption Budgets (PDBs) prevent too many pods from being unavailable simultaneously during voluntary disruptions such as node drains, cluster upgrades, or autoscaler scale-downs.
+
+```yaml
+# Guarantee at least 2 pods are always available during disruptions
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: orders-service-pdb
+  namespace: production
+spec:
+  minAvailable: 2 # Use integer or percentage, e.g., "80%"
+  selector:
+    matchLabels:
+      app: orders-service
+```
+
+```yaml
+# Alternatively, cap maximum unavailable pods at 1
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: orders-service-pdb-strict
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: orders-service
+```
+
+### 9.2. Kubernetes Cost Optimization Strategies
+
+The following diagram outlines the major cost optimization levers in Kubernetes, spanning right-sizing, spot nodes, scheduling policies, and storage tiering:
+
+```mermaid
+graph TD
+    COST[Kubernetes Cost Optimization] --> RIGHTSIZING[Right-sizing]
+    COST --> SPOT[Spot or Preemptible Nodes]
+    COST --> SCHEDULE[Scheduling Policies]
+    COST --> STORAGE[Storage Optimization]
+    RIGHTSIZING --> VPA[Vertical Pod Autoscaler - recommend CPU and memory]
+    RIGHTSIZING --> KEDA[KEDA - event-driven autoscaler scales to zero]
+    SPOT --> TAINTS[Taint spot nodes - spot=true:NoSchedule]
+    SPOT --> TOLERATIONS[Add tolerations to fault-tolerant workloads]
+    SPOT --> BALANCER[Cluster Autoscaler with spot fallback]
+    SCHEDULE --> AFFINITY[Node affinity - prefer cheaper regions or zones]
+    SCHEDULE --> BINPACKING[Bin-packing scheduler plugin]
+    SCHEDULE --> CLEANUP[Auto-delete completed jobs and old ReplicaSets]
+    STORAGE --> STORAGECLASS[Use gp3 instead of gp2 on AWS]
+    STORAGE --> LIFECYCLE[S3 lifecycle policies for logs and artifacts]
+```
+
+### 9.3. Vertical Pod Autoscaler Configuration
+
+```yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: orders-service-vpa
+  namespace: production
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orders-service
+  updatePolicy:
+    updateMode: "Auto" # Or "Off" to only generate recommendations without applying
+  resourcePolicy:
+    containerPolicies:
+      - containerName: orders-service
+        minAllowed:
+          cpu: 50m
+          memory: 64Mi
+        maxAllowed:
+          cpu: "2"
+          memory: 2Gi
+        controlledResources: ["cpu", "memory"]
+```
+
+---
+
+## 10. Conclusion
 
 Docker and Kubernetes are transformative technologies in the modern development landscape. Docker enables you to build portable, reproducible application containers, while Kubernetes orchestrates these containers to run at scale with high availability and resilience. This guide has provided an in-depth exploration of both platforms, from basic containerization and image management with Docker to sophisticated orchestration techniques using Kubernetes, Helm, and Ingress.
 

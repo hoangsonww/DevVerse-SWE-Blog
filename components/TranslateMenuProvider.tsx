@@ -465,6 +465,7 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
       <style jsx>{`
         .translate-popover {
           min-width: min(240px, calc(100vw - 24px));
+          width: 280px;
           background: var(--container-background);
           border: 1px solid var(--border-color);
           border-radius: 16px;
@@ -473,7 +474,7 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
           opacity: 0;
           transform: translateY(-6px);
           pointer-events: none;
-          max-width: min(320px, calc(100vw - 24px));
+          max-width: min(300px, calc(100vw - 24px));
           overflow-y: auto;
           transition:
             opacity 0.18s ease,
@@ -529,6 +530,8 @@ export function TranslateMenuProvider({ children }: { children: ReactNode }) {
           color: rgba(51, 51, 51, 0.65);
           line-height: 1.4;
           margin-bottom: 0.6rem;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
         }
 
         :global(.dark) .translate-hint {

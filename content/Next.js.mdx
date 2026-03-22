@@ -21,11 +21,26 @@ Next.js has rapidly emerged as a game-changing framework in the world of web dev
 
 ---
 
-## I. Introduction to Next.js
+## 1. Introduction to Next.js
 
 Next.js is a React framework that streamlines the process of building web applications. It brings together the power of React with a robust set of features out of the box, allowing developers to focus on building features rather than configuring infrastructure.
 
-### Key Advantages:
+```mermaid
+graph TD
+    REQ[Incoming Request] --> ROUTER[Next.js Router]
+    ROUTER --> SSR[Server-Side Rendering]
+    ROUTER --> SSG[Static Site Generation]
+    ROUTER --> API[API Routes]
+    ROUTER --> CSR[Client-Side Rendering]
+    SSR --> HTML[HTML Response]
+    SSG --> CDN[CDN Cache]
+    CDN --> HTML
+    API --> JSON[JSON Response]
+    CSR --> JS[JavaScript Bundle]
+    JS --> HTML
+```
+
+### 1.1. Key Advantages:
 
 - **Ease of Use:**
   With file-based routing, automatic code splitting, and built-in CSS/Sass support, Next.js minimizes boilerplate and accelerates development.
@@ -38,7 +53,7 @@ Next.js is a React framework that streamlines the process of building web applic
 
 ---
 
-## II. Core Features of Next.js
+## 2. Core Features of Next.js
 
 Next.js offers a suite of powerful features that simplify modern web development:
 
@@ -134,7 +149,7 @@ The Next.js `Image` component automatically optimizes images, supporting lazy lo
 
 ---
 
-## III. Advanced Capabilities
+## 3. Advanced Capabilities
 
 Next.js provides advanced features that further extend its power and flexibility.
 
@@ -156,9 +171,46 @@ export async function getStaticProps() {
 
 Middleware in Next.js runs before a request is completed, allowing you to implement authentication, logging, and custom request handling globally.
 
+The following diagram shows the middleware execution chain for an incoming request in the App Router:
+
+```mermaid
+graph TD
+    REQ[Incoming Request] --> MW1[Middleware - Authentication check]
+    MW1 -->|Unauthenticated| REDIRECT[Redirect to Login]
+    MW1 -->|Authenticated| MW2[Middleware - Geo or A/B routing]
+    MW2 --> MW3[Middleware - Rate limiting headers]
+    MW3 --> ROUTE[Route Handler or Page]
+    ROUTE --> CACHE{Response cacheable?}
+    CACHE -->|Yes| CDN[Store in CDN or Edge Cache]
+    CACHE -->|No| BROWSER[Send to Browser]
+    CDN --> BROWSER
+```
+
 ### 3. API Routes for Serverless Functions
 
 By combining API routes with serverless deployment platforms, you can build highly scalable, lightweight backends that integrate seamlessly with your frontend.
+
+The following diagram shows the ISR revalidation flow when a cached page becomes stale:
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant CDN as CDN or Edge Cache
+    participant NextJS as Next.js Server
+
+    Browser->>CDN: Request page
+    CDN-->>Browser: Serve cached static page
+    Note over CDN: Revalidation window expires
+
+    Browser->>CDN: Request same page
+    CDN-->>Browser: Serve stale cached page immediately
+    CDN->>NextJS: Trigger background regeneration
+    NextJS->>NextJS: Fetch fresh data and re-render
+    NextJS-->>CDN: Update cache with new page
+
+    Browser->>CDN: Next request
+    CDN-->>Browser: Serve updated page
+```
 
 ### 4. Built-In Performance Optimizations
 
@@ -171,7 +223,29 @@ By combining API routes with serverless deployment platforms, you can build high
 
 ---
 
-## IV. Real-World Use Cases
+## 4. Real-World Use Cases
+
+The following diagram shows how data fetching strategies compare across SSR, SSG, ISR, and CSR in Next.js:
+
+```mermaid
+graph LR
+    subgraph SSR
+        S1[Request arrives] --> S2[getServerSideProps runs]
+        S2 --> S3[Fresh data every request]
+    end
+    subgraph SSG
+        G1[Build time only] --> G2[getStaticProps runs once]
+        G2 --> G3[Data frozen until rebuild]
+    end
+    subgraph ISR
+        I1[Build time then periodic] --> I2[getStaticProps with revalidate]
+        I2 --> I3[Data refreshed on interval]
+    end
+    subgraph CSR
+        C1[No server data fetch] --> C2[useEffect or SWR in browser]
+        C2 --> C3[Data fetched client-side]
+    end
+```
 
 Next.js is versatile and used in a variety of applications:
 
@@ -193,7 +267,22 @@ By leveraging its simplicity and performance optimizations, Next.js is ideal for
 
 ---
 
-## V. Best Practices for Building with Next.js
+## 5. Best Practices for Building with Next.js
+
+The following diagram shows the file-based routing resolution from directory structure to URL path:
+
+```mermaid
+graph TD
+    FS[pages/ or app/ directory] --> R1[index.js maps to slash]
+    FS --> R2[about.js maps to slash about]
+    FS --> R3[blog/ folder]
+    R3 --> R4[blog/index.js maps to slash blog]
+    R3 --> R5[blog/[slug].js maps to slash blog slash any-slug]
+    FS --> R6[api/ folder]
+    R6 --> R7[api/users.js maps to slash api slash users]
+    R5 --> R8[getStaticPaths fetches all slugs at build time]
+    R8 --> R9[Static HTML generated per slug]
+```
 
 ### 1. Organize Your Project Structure
 
@@ -201,6 +290,21 @@ By leveraging its simplicity and performance optimizations, Next.js is ideal for
 - Separate concerns by using dedicated folders for utilities, hooks, and styles.
 
 ### 2. Optimize Performance
+
+The following diagram shows the image optimization pipeline in Next.js:
+
+```mermaid
+graph LR
+    IMG[Original Image Upload] --> COMP[next/image Component]
+    COMP --> FMT{Browser Format Support?}
+    FMT --> WEBP[Serve WebP format]
+    FMT --> AVIF[Serve AVIF format]
+    FMT --> FALLBACK[Serve original JPEG or PNG]
+    COMP --> SZ[Responsive srcset generated]
+    SZ --> LAZY[Lazy loading applied]
+    LAZY --> CACHE[Cached at CDN edge]
+    CACHE --> USER[User receives optimized image]
+```
 
 - **Leverage SSR/SSG Appropriately:**
   Choose the rendering strategy based on the nature of your content.
@@ -218,6 +322,21 @@ By leveraging its simplicity and performance optimizations, Next.js is ideal for
 
 ### 4. Secure Your Application
 
+The following diagram shows the API route authentication and rate limiting flow:
+
+```mermaid
+graph TD
+    REQ[Incoming API Request] --> APIKEY{API Key Present?}
+    APIKEY -- No --> REJECT401[Return 401 Unauthorized]
+    APIKEY -- Yes --> RATELIMIT{Rate Limit Exceeded?}
+    RATELIMIT -- Yes --> REJECT429[Return 429 Too Many Requests]
+    RATELIMIT -- No --> VALIDATE{Token Valid?}
+    VALIDATE -- No --> REJECT403[Return 403 Forbidden]
+    VALIDATE -- Yes --> HANDLER[Execute Route Handler]
+    HANDLER --> DB[Database or External Service]
+    DB --> RESP[JSON Response]
+```
+
 - **API Route Security:**
   Implement authentication and rate limiting on sensitive API endpoints.
 - **Environment Variables:**
@@ -229,7 +348,22 @@ By leveraging its simplicity and performance optimizations, Next.js is ideal for
 
 ---
 
-## VI. Integrating Next.js with Other Technologies
+## 6. Integrating Next.js with Other Technologies
+
+The App Router request lifecycle in Next.js 13+ shows how a request travels through the framework layers:
+
+```mermaid
+graph TD
+    REQ[Browser Request] --> EDGE[Edge Runtime - Middleware]
+    EDGE --> LAYOUT[Root Layout - app/layout.tsx]
+    LAYOUT --> SEGMENT[Route Segment Layout]
+    SEGMENT --> LOADING[Loading UI - Suspense boundary]
+    LOADING --> PAGE[Page Component]
+    PAGE --> SC[Server Components - fetch data]
+    SC --> CC[Client Components - interactivity]
+    CC --> RSC[React Server Component Payload streamed]
+    RSC --> BROWSER[Progressive HTML stream to browser]
+```
 
 Next.js works well with a wide range of tools and services:
 
@@ -244,31 +378,310 @@ Next.js works well with a wide range of tools and services:
 
 ---
 
-## VII. Real-World Examples and Case Studies
+## 7. Real-World Examples and Case Studies
 
-### Example: A Personal Blog
+### 7.1. Example: A Personal Blog
 
 Many developers choose Next.js for their blogs due to its simplicity and performance. Using SSG ensures that the blog loads quickly, while ISR enables content updates without a complete rebuild.
 
-### Example: Corporate Websites
+### 7.2. Example: Corporate Websites
 
 Next.js powers numerous corporate websites by combining static generation for marketing pages with SSR for dynamic sections like product listings or client dashboards.
 
-### Example: SaaS Applications
+### 7.3. Example: SaaS Applications
 
 For Software-as-a-Service platforms, Next.js provides a robust foundation with SSR for real-time data, API routes for backend integration, and a seamless developer experience that accelerates feature development.
 
+The diagram below maps how a Next.js application connects to the surrounding ecosystem of content, data, auth, and deployment targets:
+
+```mermaid
+graph TD
+    NEXTJS[Next.js Application] --> CMS[Headless CMS - Contentful or Sanity]
+    NEXTJS --> AUTH[Authentication - NextAuth.js or Auth0]
+    NEXTJS --> STATE[State Management - Redux or Zustand]
+    NEXTJS --> GQL[GraphQL - Apollo or urql]
+    NEXTJS --> DB[Database - Prisma or Drizzle]
+    NEXTJS --> DEPLOY[Deployment Target]
+    DEPLOY --> VERCEL[Vercel - recommended]
+    DEPLOY --> DOCKER[Docker Container]
+    DEPLOY --> SELFHOST[Self-Hosted Node Server]
+    CMS --> SSG[SSG or ISR pages]
+    AUTH --> MIDDLEWARE[Middleware protected routes]
+    DB --> APIROUTES[API Routes]
+```
+
 ---
 
-## VIII. Conclusion
+## 8. App Router Deep Dive: Parallel Routes and Server Actions
+
+Next.js 13+ introduced the App Router, which fundamentally changed how routing and data fetching work. Two of its most powerful features are parallel routes and Server Actions.
+
+### 8.1. Parallel Routes
+
+Parallel routes let you render multiple pages simultaneously within the same layout. They are defined using the `@folder` convention and are perfect for dashboards that need independent panels.
+
+```
+app/
+  dashboard/
+    layout.tsx            // root dashboard layout
+    @analytics/
+      page.tsx            // analytics panel
+    @team/
+      page.tsx            // team panel
+    page.tsx              // default slot
+```
+
+```tsx
+// app/dashboard/layout.tsx
+export default function DashboardLayout({
+  children,
+  analytics,
+  team,
+}: {
+  children: React.ReactNode;
+  analytics: React.ReactNode;
+  team: React.ReactNode;
+}) {
+  return (
+    <div className="dashboard-grid">
+      <main>{children}</main>
+      <aside>{analytics}</aside>
+      <section>{team}</section>
+    </div>
+  );
+}
+```
+
+Each slot loads independently. If `@analytics` is slow, `@team` is still rendered immediately, giving users a progressive experience.
+
+### 8.2. Server Actions
+
+Server Actions are async functions that run on the server and can be called directly from client components. They eliminate entire API route files for form submissions and mutations.
+
+```tsx
+// app/posts/new/page.tsx
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+
+async function createPost(formData: FormData) {
+  "use server"; // marks this function as a Server Action
+
+  const title = formData.get("title") as string;
+  const body = formData.get("body") as string;
+
+  if (!title || !body) {
+    throw new Error("Title and body are required");
+  }
+
+  const post = await db.post.create({ data: { title, body } });
+  redirect(`/posts/${post.id}`);
+}
+
+export default function NewPostPage() {
+  return (
+    <form action={createPost}>
+      <input name="title" placeholder="Post title" required />
+      <textarea name="body" placeholder="Post body" required />
+      <button type="submit">Publish</button>
+    </form>
+  );
+}
+```
+
+The `"use server"` directive serializes the function call over the network. The form works even without JavaScript enabled, because it degrades to a native HTML form POST.
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Edge as Edge Middleware
+    participant RSC as React Server Component
+    participant SA as Server Action
+    participant DB as Database
+
+    Browser->>Edge: GET /posts/new
+    Edge->>RSC: Render page component
+    RSC-->>Browser: Streaming HTML + RSC payload
+    Browser->>SA: POST (form submit - Server Action)
+    SA->>DB: INSERT post record
+    DB-->>SA: New post row
+    SA-->>Browser: Redirect to /posts/:id
+    Browser->>RSC: GET /posts/:id
+    RSC->>DB: SELECT post
+    DB-->>RSC: Post data
+    RSC-->>Browser: Rendered post page
+```
+
+### 8.3. App Router Caching Layers
+
+The App Router has four distinct caching layers that work together. Understanding which cache each request hits is critical for performance tuning.
+
+```mermaid
+graph TD
+    REQ[Incoming Request] --> RC{Router Cache - client-side}
+    RC -->|HIT| CLIENT[Serve from browser memory]
+    RC -->|MISS| FC{Full Route Cache - server-side}
+    FC -->|HIT static| CDN[Serve from CDN or edge]
+    FC -->|MISS or dynamic| DC{Data Cache - fetch cache}
+    DC -->|HIT| CACHED_DATA[Use cached fetch response]
+    DC -->|MISS| ORIGIN[Fetch from data source]
+    ORIGIN --> DC
+    DC --> RENDER[Render React tree]
+    RENDER --> FC
+    FC --> RC
+    RC --> CLIENT
+```
+
+| Cache Layer         | Where                | Duration                   | Invalidation                                |
+| ------------------- | -------------------- | -------------------------- | ------------------------------------------- |
+| Router Cache        | Client (browser)     | Session                    | `router.refresh()`                          |
+| Full Route Cache    | Server               | Build time or revalidation | `revalidatePath()` / `revalidateTag()`      |
+| Data Cache          | Server               | Indefinite by default      | `revalidateTag()` / `{ cache: ‘no-store’ }` |
+| Request Memoization | Server (per request) | Single request             | Automatic                                   |
+
+### 8.4. Opting Out of Caching
+
+Force dynamic behavior by exporting a route segment config:
+
+```tsx
+// app/feed/page.tsx – always fresh, never cached
+export const dynamic = "force-dynamic";
+
+export default async function FeedPage() {
+  const posts = await fetch("https://api.example.com/posts", {
+    cache: "no-store",
+  }).then((r) => r.json());
+
+  return <PostList posts={posts} />;
+}
+```
+
+---
+
+### 8.1. Deployment: Vercel vs. Self-Hosted
+
+Choosing a deployment target affects which Next.js features are available and how they perform.
+
+### 8.2. Vercel (Recommended for Most Teams)
+
+Vercel is built by the Next.js team. Every App Router feature is supported without configuration. Key capabilities include Edge Middleware running at 100+ PoPs, ISR via On-Demand Revalidation, image optimization with automatic format detection, and zero-config preview deployments per pull request.
+
+```bash
+# Deploy to Vercel from the CLI
+npx vercel --prod
+```
+
+### 8.3. Self-Hosted with Node.js
+
+For teams that need full control over infrastructure, Next.js can run as a standalone Node.js server.
+
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+Add `output: "standalone"` to `next.config.js` to generate a self-contained `server.js` that bundles all dependencies. This keeps Docker image layers lean (typically under 200 MB).
+
+### 8.4. Self-Hosted with Docker and Kubernetes
+
+```yaml
+# k8s/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextjs-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nextjs
+  template:
+    spec:
+      containers:
+        - name: nextjs
+          image: your-registry/nextjs-app:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nextjs-secrets
+                  key: NEXTAUTH_SECRET
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+```
+
+```mermaid
+graph TD
+    DEV[Developer pushes code] --> CI[GitHub Actions CI]
+    CI --> BUILD[npm run build]
+    BUILD --> TEST[Run test suite]
+    TEST --> DOCKER[Build Docker image]
+    DOCKER --> REGISTRY[Push to container registry]
+    REGISTRY --> CD[CD pipeline]
+    CD --> STAGING[Deploy to staging cluster]
+    STAGING --> SMOKE[Run smoke tests]
+    SMOKE --> PROD[Deploy to production cluster]
+    PROD --> LB[Kubernetes LoadBalancer]
+    LB --> POD1[Pod 1]
+    LB --> POD2[Pod 2]
+    LB --> POD3[Pod 3]
+```
+
+### 8.5. Feature Comparison
+
+| Feature                      | Vercel              | Self-Hosted Node.js                |
+| ---------------------------- | ------------------- | ---------------------------------- |
+| ISR / On-Demand Revalidation | Native              | Requires external cache (Redis)    |
+| Edge Middleware              | Global PoP network  | Single region unless you add a CDN |
+| Image Optimization           | Automatic CDN       | Requires `sharp` + your own CDN    |
+| Setup Complexity             | Zero config         | Dockerfile + Kubernetes YAML       |
+| Cost at scale                | Per-request pricing | Fixed infrastructure cost          |
+
+### 8.6. Anti-Patterns to Avoid
+
+- **Using `getServerSideProps` for data that rarely changes.** Every request hits your server. Prefer ISR with a short `revalidate` window instead.
+- **Importing heavy Node.js modules in client components.** Anything imported into a Client Component is bundled and sent to the browser. Move heavy processing to Server Components or API routes.
+- **Fetching inside `useEffect` for data needed at render time.** This causes layout shift and poor Core Web Vitals. Fetch in Server Components instead.
+- **Skipping `next/image` for large hero images.** The `<img>` tag bypasses format conversion and lazy loading, directly hurting LCP scores.
+
+---
+
+## 9. Conclusion
 
 Next.js has redefined what is possible in web development by merging the best aspects of server-side rendering, static site generation, and client-side rendering into a unified, easy-to-use framework. Its powerful features, advanced performance optimizations, and flexible architecture make it an ideal choice for projects ranging from personal blogs to large-scale enterprise applications.
 
+The App Router, Server Actions, and layered caching system introduced in Next.js 13–15 represent a fundamental rethink of how React applications are built. By co-locating server and client code, enabling fine-grained cache invalidation, and supporting streaming out of the box, Next.js dramatically reduces the complexity of building fast, data-rich applications.
+
 By understanding Next.js’s core features, leveraging its advanced capabilities like ISR and middleware, and following best practices for performance and security, you can build web applications that are fast, scalable, and future-proof. The community and ecosystem surrounding Next.js continue to grow, ensuring that this framework remains at the forefront of modern web development.
+
+**Key Takeaways:**
+
+- Use Server Components by default; reach for Client Components only when you need browser APIs or interactivity.
+- Prefer Server Actions over separate API routes for form mutations — less boilerplate, native progressive enhancement.
+- Understand all four caching layers before debugging stale data.
+- Match your deployment target to your team’s operational expertise and budget; both Vercel and self-hosted Docker are production-ready paths.
+- Treat Core Web Vitals as first-class engineering requirements — LCP, CLS, and INP directly affect search rankings.
 
 ---
 
-## IX. Further Reading and Resources
+## 10. Further Reading and Resources
 
 - **Official Documentation:**
   - [Next.js Documentation](https://nextjs.org/docs)

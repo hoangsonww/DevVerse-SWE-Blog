@@ -56,10 +56,39 @@ Fine-tuning pre-trained models on large datasets (e.g., ImageNet) offers several
 
 Vision Transformers modify the standard transformer architecture to handle image data:
 
+```mermaid
+graph TD
+    A[Input Image - 224x224] --> B[Split into 16x16 Patches]
+    B --> C[Flatten Each Patch]
+    C --> D[Linear Patch Embedding]
+    D --> E[Add CLS Token]
+    E --> F[Add Positional Encoding]
+    F --> G[Transformer Encoder Block 1]
+    G --> H[Transformer Encoder Block N]
+    H --> I[Extract CLS Token Output]
+    I --> J[MLP Classification Head]
+    J --> K[Class Probabilities]
+```
+
 - **Patch Embedding:** An image is divided into fixed-size patches (e.g., 16×16 pixels). Each patch is flattened and projected into a high-dimensional embedding space.
 - **Positional Encoding:** Since transformer models are permutation invariant, positional encodings are added to embed spatial information into the patch representations.
 - **Transformer Encoder Layers:** Multiple layers of self-attention and feed-forward networks process the sequence of patch embeddings. Each layer refines the contextual relationships between patches.
 - **Classification Token ([CLS]):** A special token is prepended to the sequence whose final hidden state is used for classification.
+
+```mermaid
+graph TD
+    A[Input Image] --> B[Divide into 16x16 Patches]
+    B --> C[Patch 1 Flattened to Vector]
+    B --> D[Patch 2 Flattened to Vector]
+    B --> E[Patch N Flattened to Vector]
+    C --> F[Linear Projection Layer]
+    D --> F
+    E --> F
+    F --> G[Add Learnable Position Embedding]
+    G --> H[Patch Token Sequence]
+    H --> I[Prepend CLS Token]
+    I --> J[Transformer Encoder Input]
+```
 
 ### 2.2. Pre-Training Regimen and Transferability
 
@@ -68,6 +97,21 @@ ViTs are typically pre-trained on massive datasets using unsupervised or self-su
 - **Large-Scale Datasets:** Models such as the ViT-Base and ViT-Large are pre-trained on datasets containing millions of images.
 - **Self-Supervised Objectives:** Techniques like masked patch prediction and contrastive learning help the model learn robust feature representations.
 - **Transfer Learning Benefits:** The learned representations are highly transferable, allowing for effective fine-tuning on domain-specific or smaller datasets.
+
+```mermaid
+graph LR
+    A[Token Sequence] --> B[Split into Query - Key - Value]
+    B --> C[Query Vectors]
+    B --> D[Key Vectors]
+    B --> E[Value Vectors]
+    C --> F[Compute Attention Scores - Q times K transpose]
+    D --> F
+    F --> G[Scale by Square Root of Dimension]
+    G --> H[Softmax to Get Attention Weights]
+    H --> I[Multiply Weights by Value Vectors]
+    E --> I
+    I --> J[Contextualized Token Representations]
+```
 
 ### 2.3. Comparison with Convolutional Neural Networks
 
@@ -130,6 +174,19 @@ Techniques to address dataset imbalance include:
 ## 4. Advanced Training Strategies and Hyperparameter Optimization
 
 ### 4.1. Fine-Tuning Setup
+
+```mermaid
+graph LR
+    A[Pre-trained ViT on ImageNet] --> B[Freeze Early Encoder Layers]
+    B --> C[Replace Classification Head]
+    C --> D[Load Target Dataset]
+    D --> E[Apply Data Augmentation]
+    E --> F[Fine-tune with Small LR]
+    F --> G[Validate on Holdout Set]
+    G --> H{Early Stopping Met?}
+    H -- No --> F
+    H -- Yes --> I[Save Fine-tuned Model]
+```
 
 Fine-tuning a ViT involves a careful reconfiguration of the model:
 
@@ -288,6 +345,23 @@ Boosting confidence in model predictions through interpretability is crucial:
 - **Explainable AI Techniques:** Tools such as Grad-CAM and SHAP can provide insights into model decision processes.
 - **User-Friendly Reports:** Generate automated reports that highlight strengths and weaknesses of the model for stakeholders.
 
+```mermaid
+graph TD
+    A[Fine-tuned ViT Model] --> B{Mode?}
+    B --> C[Training Mode]
+    B --> D[Inference Mode]
+    C --> E[Dropout Active]
+    C --> F[BatchNorm Uses Running Stats]
+    C --> G[Gradients Computed]
+    D --> H[Dropout Disabled]
+    D --> I[BatchNorm Uses Population Stats]
+    D --> J[torch.no-grad Context]
+    J --> K[Lower Memory Usage]
+    J --> L[Faster Forward Pass]
+    K --> M[Production Serving]
+    L --> M
+```
+
 ---
 
 ## 7. Deployment and Production Considerations
@@ -315,6 +389,334 @@ Integrate your fine-tuned ViT into existing pipelines:
 - **API Deployment:** Serve the model via RESTful APIs using frameworks such as FastAPI or Flask.
 - **Cloud Services:** Leverage cloud infrastructures (AWS, GCP, Azure) for scalable and reliable inference.
 - **Containerization:** Use Docker and orchestration tools like Kubernetes for deployment across distributed systems.
+
+```mermaid
+graph TD
+    A[Multi-Head Self-Attention] --> B[Head 1 - Low-level edges]
+    A --> C[Head 2 - Textures]
+    A --> D[Head 3 - Object parts]
+    A --> E[Head H - Global context]
+    B --> F[Concatenate All Head Outputs]
+    C --> F
+    D --> F
+    E --> F
+    F --> G[Linear Projection]
+    G --> H[Richer Token Representations]
+```
+
+```mermaid
+graph LR
+    A[ViT vs CNN Comparison] --> B[ViT Strengths]
+    A --> C[CNN Strengths]
+    B --> D[Global receptive field from layer 1]
+    B --> E[Scales well with data and compute]
+    B --> F[Flexible input handling]
+    C --> G[Strong inductive bias for local features]
+    C --> H[Data efficient on small datasets]
+    C --> I[Faster inference on edge devices]
+    D --> J[Superior on ImageNet-21k scale]
+    G --> K[Superior on small labeled sets]
+```
+
+```mermaid
+sequenceDiagram
+    participant DS as Dataset
+    participant FE as Feature Extractor
+    participant Model as ViT Model
+    participant Loss as Loss Function
+    participant Opt as Optimizer
+    DS->>FE: Raw image batch
+    FE->>Model: Normalized pixel values
+    Model->>Loss: Class logits
+    Loss->>Opt: Compute cross-entropy loss
+    Opt->>Model: Gradient update via backprop
+    Model->>DS: Request next batch
+```
+
+```mermaid
+graph TD
+    A[Trained ViT Model] --> B[Export to ONNX]
+    B --> C{Deployment Target?}
+    C -- Cloud API --> D[FastAPI or Flask Wrapper]
+    C -- Mobile --> E[CoreML or TFLite Conversion]
+    C -- Edge Device --> F[TensorRT Optimization]
+    D --> G[Docker Container]
+    G --> H[Kubernetes Autoscaling]
+    E --> I[On-Device Inference]
+    F --> J[NVIDIA Jetson or GPU Server]
+    H --> K[Production Serving]
+    I --> K
+    J --> K
+```
+
+The original ViT required 300 million images (JFT-300M) for pre-training, which limits its applicability. Three follow-up architectures made transformers more practical for teams without Google-scale data.
+
+### 7.4. DeiT: Data-Efficient Image Transformers
+
+Facebook AI Research's DeiT (2020) showed that ViT-scale performance is achievable using only ImageNet-1k (1.28M images) by introducing a **distillation token** alongside the standard CLS token.
+
+```mermaid
+graph TD
+    IMAGE[Input Image] --> PATCHES[Patch Embedding]
+    PATCHES --> TOKENS[Token Sequence]
+    TOKENS --> CLS[CLS Token prepended]
+    TOKENS --> DIST[Distillation Token prepended]
+    CLS --> ENCODER[Transformer Encoder Blocks]
+    DIST --> ENCODER
+    ENCODER --> CLSOUT[CLS Token Output → softmax classification loss]
+    ENCODER --> DISTOUT[Distillation Token Output → matches teacher model predictions]
+    CLSOUT --> TOTAL[Combined training loss]
+    DISTOUT --> TOTAL
+    TEACHER[CNN Teacher Model - RegNet] --> SOFT[Soft pseudo-labels]
+    SOFT --> DISTOUT
+```
+
+The distillation token learns to mimic a strong CNN teacher (e.g., RegNet-Y-16GF), injecting inductive bias about local features without changing the pure-transformer architecture. DeiT-B achieves 81.8% top-1 on ImageNet with a 5-day training on 8 GPUs.
+
+```python
+# Fine-tuning DeiT-B with Hugging Face
+from transformers import DeiTForImageClassification, DeiTFeatureExtractor
+
+feature_extractor = DeiTFeatureExtractor.from_pretrained(
+    "facebook/deit-base-distilled-patch16-224"
+)
+model = DeiTForImageClassification.from_pretrained(
+    "facebook/deit-base-distilled-patch16-224",
+    num_labels=10,          # your target class count
+    ignore_mismatched_sizes=True,
+)
+```
+
+### 7.5. Swin Transformer: Hierarchical Vision Transformer
+
+Microsoft Research's Swin Transformer (2021) introduced two key innovations: **shifted windows** for local attention, and a **hierarchical design** that produces multi-scale feature maps — enabling Swin to serve as a general-purpose backbone for both classification and dense prediction tasks (detection, segmentation).
+
+```mermaid
+graph TD
+    IMAGE[224x224 Image] --> SPLIT[4x4 Patch Split - Stage 1 - 56x56 tokens]
+    SPLIT --> SWA1[Swin Block with Window Multi-Head Attention]
+    SWA1 --> PM1[Patch Merging - downsample to 28x28]
+    PM1 --> SWA2[Swin Block - Stage 2]
+    SWA2 --> PM2[Patch Merging - downsample to 14x14]
+    PM2 --> SWA3[Swin Block - Stage 3]
+    SWA3 --> PM3[Patch Merging - downsample to 7x7]
+    PM3 --> SWA4[Swin Block - Stage 4]
+    SWA4 --> HEAD[Classification or Detection Head]
+    NOTE1[Window attention - O n complexity] -.-> SWA1
+    NOTE2[Shifted windows enable cross-window interaction] -.-> SWA2
+```
+
+**Shifted window attention** computes self-attention within non-overlapping local windows (e.g., 7×7 patches), keeping complexity linear in image size. On alternating layers, windows are shifted by half the window size, allowing information to flow across window boundaries.
+
+```python
+from transformers import SwinForImageClassification, AutoFeatureExtractor
+
+feature_extractor = AutoFeatureExtractor.from_pretrained("microsoft/swin-base-patch4-window7-224")
+model = SwinForImageClassification.from_pretrained(
+    "microsoft/swin-base-patch4-window7-224",
+    num_labels=10,
+    ignore_mismatched_sizes=True,
+)
+```
+
+### 7.6. Architecture Comparison
+
+| Model    | Params | ImageNet Top-1 | Complexity | Best Use Case                              |
+| -------- | ------ | -------------- | ---------- | ------------------------------------------ |
+| ViT-B/16 | 86M    | 81.8%          | O(n²)      | Large-data classification                  |
+| DeiT-B   | 86M    | 81.8%          | O(n²)      | Limited data, knowledge distillation       |
+| Swin-B   | 88M    | 83.5%          | O(n)       | Detection, segmentation, multi-scale tasks |
+| Swin-L   | 197M   | 86.3%          | O(n)       | State-of-the-art dense prediction          |
+
+```mermaid
+graph LR
+    COMP[Architecture Comparison] --> VIT[ViT - global attention]
+    COMP --> DEIT[DeiT - distillation token]
+    COMP --> SWIN[Swin - shifted windows]
+    VIT --> VITPRO[Best global context]
+    VIT --> VITCON[Quadratic complexity - slow at high resolution]
+    DEIT --> DEITPRO[ImageNet-1k sufficient]
+    DEIT --> DEITCON[Still quadratic complexity]
+    SWIN --> SWINPRO[Linear complexity - scales to high resolution]
+    SWINPRO --> SWINSEG[Excellent for segmentation and detection]
+    SWIN --> SWINCON[More complex implementation]
+```
+
+---
+
+Transformers are not limited to classification. Detection Transformer (DETR) uses a ViT backbone plus a transformer decoder to perform end-to-end object detection without anchor boxes, non-maximum suppression, or multi-scale feature pyramids.
+
+### 7.7. ViT for Object Detection with DETR
+
+```python
+from transformers import DetrForObjectDetection, DetrImageProcessor
+from PIL import Image
+import torch
+import requests
+
+# Load DETR fine-tuned on COCO
+processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
+model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+
+image = Image.open(requests.get("http://images.cocodataset.org/val2017/000000039769.jpg", stream=True).raw)
+
+inputs = processor(images=image, return_tensors="pt")
+outputs = model(**inputs)
+
+# Post-process: filter detections above a confidence threshold
+target_sizes = torch.tensor([image.size[::-1]])
+results = processor.post_process_object_detection(
+    outputs, target_sizes=target_sizes, threshold=0.9
+)[0]
+
+for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
+    box = [round(b, 2) for b in box.tolist()]
+    print(f"Detected {model.config.id2label[label.item()]} with score {score:.3f} at {box}")
+```
+
+```mermaid
+sequenceDiagram
+    participant IMG as Input Image
+    participant BACKBONE as CNN or ViT Backbone
+    participant ENC as Transformer Encoder
+    participant DEC as Transformer Decoder
+    participant FFN as Feed-Forward Network
+    participant OUT as Output Boxes and Labels
+
+    IMG->>BACKBONE: Extract feature map
+    BACKBONE->>ENC: Flattened features + positional encoding
+    ENC->>ENC: Self-attention across all spatial positions
+    ENC->>DEC: Memory (encoder output)
+    DEC->>DEC: Cross-attention between object queries and encoder memory
+    DEC->>FFN: N object query outputs (e.g. N=100)
+    FFN->>OUT: Predict class + bounding box for each query
+    Note over OUT: Bipartite matching loss during training - no NMS needed at inference
+```
+
+---
+
+After fine-tuning, production deployment requires balancing accuracy, latency, and memory footprint across a range of hardware targets.
+
+### 7.8. ONNX Export and TensorRT Optimization
+
+```python
+import torch
+from transformers import ViTForImageClassification
+
+model = ViTForImageClassification.from_pretrained("./fine_tuned_vit")
+model.eval()
+
+# Export to ONNX
+dummy_input = torch.randn(1, 3, 224, 224)
+torch.onnx.export(
+    model,
+    dummy_input,
+    "vit_model.onnx",
+    input_names=["pixel_values"],
+    output_names=["logits"],
+    dynamic_axes={"pixel_values": {0: "batch_size"}, "logits": {0: "batch_size"}},
+    opset_version=14,
+)
+print("ONNX model exported")
+```
+
+```python
+# Validate with ONNX Runtime
+import onnxruntime as ort
+import numpy as np
+
+session = ort.InferenceSession("vit_model.onnx", providers=["CUDAExecutionProvider"])
+dummy = np.random.randn(1, 3, 224, 224).astype(np.float32)
+outputs = session.run(["logits"], {"pixel_values": dummy})
+print("ONNX inference output shape:", outputs[0].shape)
+```
+
+### 7.9. INT8 Quantization
+
+Post-training quantization reduces model size by ~4x and inference latency by 2–3x on CPU with minimal accuracy loss.
+
+```python
+from transformers import ViTForImageClassification
+import torch
+from torch.quantization import quantize_dynamic
+
+model = ViTForImageClassification.from_pretrained("./fine_tuned_vit")
+model.eval()
+
+# Dynamic quantization — converts linear layers to INT8
+quantized_model = quantize_dynamic(
+    model,
+    qconfig_spec={torch.nn.Linear},
+    dtype=torch.qint8,
+)
+
+# Compare sizes
+import os
+torch.save(model.state_dict(), "vit_fp32.pt")
+torch.save(quantized_model.state_dict(), "vit_int8.pt")
+
+fp32_size = os.path.getsize("vit_fp32.pt") / 1024 / 1024
+int8_size = os.path.getsize("vit_int8.pt") / 1024 / 1024
+print(f"FP32: {fp32_size:.1f} MB  →  INT8: {int8_size:.1f} MB")
+```
+
+### 7.10. Serving with FastAPI
+
+```python
+# serve.py
+from fastapi import FastAPI, UploadFile, File
+from transformers import ViTForImageClassification, ViTFeatureExtractor
+from PIL import Image
+import torch
+import io
+
+app = FastAPI(title="ViT Image Classifier")
+
+model = ViTForImageClassification.from_pretrained("./fine_tuned_vit")
+feature_extractor = ViTFeatureExtractor.from_pretrained("./fine_tuned_vit")
+model.eval()
+
+LABELS = model.config.id2label
+
+@app.post("/classify")
+async def classify_image(file: UploadFile = File(...)):
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    inputs = feature_extractor(images=image, return_tensors="pt")
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    logits = outputs.logits
+    predicted_class = logits.argmax(-1).item()
+    confidence = torch.softmax(logits, dim=-1)[0, predicted_class].item()
+
+    return {
+        "label": LABELS[predicted_class],
+        "confidence": round(confidence, 4),
+        "class_id": predicted_class,
+    }
+```
+
+```mermaid
+graph TD
+    FINETUNED[Fine-tuned ViT Model] --> BENCH[Benchmark baseline accuracy and latency]
+    BENCH --> OPT{Optimization target?}
+    OPT -->|Minimal accuracy loss - max speed| ONNX[Export to ONNX + TensorRT]
+    OPT -->|4x size reduction on CPU| QUANT[INT8 Dynamic Quantization]
+    OPT -->|Mobile or edge device| PRUNE[Structured Pruning + TFLite]
+    ONNX --> VALIDATE[Validate accuracy on test set]
+    QUANT --> VALIDATE
+    PRUNE --> VALIDATE
+    VALIDATE --> DIFF{Accuracy drop acceptable?}
+    DIFF -->|Yes| DEPLOY[Deploy to production serving]
+    DIFF -->|No| FINETUNE[Fine-tune quantized model - QAT]
+    FINETUNE --> VALIDATE
+    DEPLOY --> FASTAPI[FastAPI REST endpoint]
+    DEPLOY --> TRITON[NVIDIA Triton Inference Server]
+    DEPLOY --> K8S[Kubernetes with GPU nodes]
+```
 
 ---
 
@@ -344,6 +746,15 @@ Research must continue into mitigating biases in training data and ensuring that
 ## 9. Conclusion
 
 Fine-tuning Vision Transformers for image classification represents an exciting frontier in deep learning. Through a comprehensive understanding of the architectural underpinnings, careful data preparation, advanced training techniques, and rigorous evaluation, practitioners can harness the power of ViTs to achieve state-of-the-art performance. This detailed analysis provides a foundational and advanced reference for deploying these models into real-world applications, with an eye toward continuous improvement and ethical considerations.
+
+**Key Takeaways:**
+
+- Choose your ViT variant based on your data budget and task: ViT-B/16 for large-scale classification, DeiT when only ImageNet-1k is available, Swin for detection and segmentation requiring multi-scale features.
+- Distillation (DeiT approach) is a practical way to transfer inductive bias from CNNs into transformers without architectural changes.
+- DETR demonstrates that transformers can replace the entire detection pipeline (anchors + NMS) with a simpler end-to-end formulation.
+- For production deployment, always benchmark ONNX + TensorRT and INT8 quantization against your accuracy budget — a 4x reduction in model size with under 1% accuracy loss is routinely achievable.
+- Serve fine-tuned ViTs behind FastAPI with Kubernetes autoscaling; use NVIDIA Triton Inference Server for batching at high throughput.
+- Attention map visualization is the most effective explainability tool for ViTs — it directly shows which image regions the model focused on, making debugging misclassifications intuitive.
 
 ---
 

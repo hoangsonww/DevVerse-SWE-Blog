@@ -23,6 +23,20 @@ In the ever-evolving landscape of digital technology, a solid grasp of web devel
 
 ## 1. HTML: The Foundation of the Web
 
+```mermaid
+graph TD
+    A[Web Technology Stack] --> B[HTML - Structure]
+    A --> C[CSS - Presentation]
+    A --> D[JavaScript - Behavior]
+    D --> E[Frameworks and Libraries]
+    E --> F[React - Vue - Angular]
+    F --> G[Meta-Frameworks]
+    G --> H[Next.js - Nuxt - SvelteKit]
+    H --> I[Backend API Layer]
+    I --> J[Node.js - Python - Go]
+    J --> K[Database - PostgreSQL - MongoDB]
+```
+
 HTML (HyperText Markup Language) provides the semantic structure for web content. It tells the browser what to display and organizes your content into a readable and accessible format.
 
 ### 1.1. The Basic HTML Document Structure
@@ -75,6 +89,29 @@ Every HTML document follows a consistent structure. Consider this basic template
 ### 1.2. Semantic HTML and Accessibility
 
 Semantic HTML uses meaningful tags to convey the purpose of the content. For instance, `<header>`, `<nav>`, `<main>`, `<article>`, and `<footer>` improve both SEO and accessibility. Proper use of semantic elements aids screen readers and enhances overall user experience.
+
+The semantic DOM tree of a typical HTML page looks like this:
+
+```mermaid
+graph TD
+    HTML[html] --> HEAD[head]
+    HTML --> BODY[body]
+    HEAD --> META[meta charset and viewport]
+    HEAD --> TITLE[title]
+    HEAD --> LINK[link stylesheet]
+    BODY --> HEADER[header]
+    BODY --> MAIN[main]
+    BODY --> FOOTER[footer]
+    HEADER --> H1[h1 - Site Title]
+    HEADER --> NAV[nav]
+    NAV --> UL[ul]
+    UL --> LI1[li - Home]
+    UL --> LI2[li - About]
+    MAIN --> ARTICLE[article]
+    MAIN --> SECTION[section]
+    ARTICLE --> H2[h2 - Heading]
+    ARTICLE --> P[p - Paragraph]
+```
 
 #### Example: Semantic Structure
 
@@ -229,6 +266,17 @@ p {
 
 The CSS Box Model is fundamental to understanding layout. Every element is a box comprising:
 
+```mermaid
+graph TD
+    MARGIN[Margin - outermost space] --> BORDER[Border - visible outline]
+    BORDER --> PADDING[Padding - inner space]
+    PADDING --> CONTENT[Content - text or image]
+    MARGIN --- NOTE1[Controls spacing between elements]
+    BORDER --- NOTE2[width style color properties]
+    PADDING --- NOTE3[Increases clickable area]
+    CONTENT --- NOTE4[width and height apply here]
+```
+
 1. **Content:** The actual text, image, or other media.
 2. **Padding:** Space between the content and the border.
 3. **Border:** The outline around the padding and content.
@@ -352,6 +400,20 @@ JavaScript transforms static pages into dynamic, interactive experiences. It man
 
 ### 3.1. DOM Manipulation and Event Handling
 
+JavaScript event bubbling and capturing describe the two phases in which events propagate through the DOM tree:
+
+```mermaid
+graph TD
+    DOC[document] --> HTML2[html]
+    HTML2 --> BODY2[body]
+    BODY2 --> DIV[div - outer]
+    DIV --> BTN[button - click target]
+    BTN -. "1 Capturing phase top-down" .-> DIV
+    DIV -. "2 Bubbling phase bottom-up" .-> BODY2
+    BODY2 -. "3 Bubbling continues" .-> HTML2
+    HTML2 -. "4 Reaches document" .-> DOC
+```
+
 A simple example to change content on a button click:
 
 ```javascript
@@ -388,6 +450,20 @@ fetch("https://api.example.com/data")
 ---
 
 ## 4. Responsive Web Design: One Site, Many Devices
+
+```mermaid
+graph LR
+    A[Browser Request] --> B[HTML Parsed]
+    B --> C[DOM Constructed]
+    B --> D[CSS Parsed]
+    D --> E[CSSOM Constructed]
+    C --> F[Render Tree]
+    E --> F
+    F --> G[Layout - Reflow]
+    G --> H[Paint]
+    H --> I[Composite Layers]
+    I --> J[Pixels on Screen]
+```
 
 Responsive design ensures your site adapts gracefully to any device. Techniques include fluid grids, flexible images, and media queries.
 
@@ -447,6 +523,65 @@ p {
 
 ## 5. Best Practices and Advanced Techniques
 
+```mermaid
+graph TD
+    A[JavaScript Async Patterns] --> B[Callbacks]
+    A --> C[Promises]
+    A --> D[Async - Await]
+    B --> E[Callback Hell - nested]
+    C --> F[then - catch - finally chain]
+    D --> G[Reads like synchronous code]
+    F --> H[Promise.all for parallel calls]
+    G --> H
+    H --> I[Concurrent Fetch Requests]
+    I --> J[Combine Results]
+```
+
+```mermaid
+graph LR
+    A[CSS Layout Methods] --> B[Normal Flow]
+    A --> C[Flexbox]
+    A --> D[CSS Grid]
+    A --> E[Positioning]
+    B --> F[Block and Inline elements stack]
+    C --> G[1D row or column layout]
+    D --> H[2D rows and columns]
+    E --> I[relative - absolute - fixed - sticky]
+    G --> J[Navigation bars - Card rows]
+    H --> K[Page-level layouts - dashboards]
+    I --> L[Tooltips - Overlays - Sticky headers]
+```
+
+```mermaid
+graph TD
+    A[Web Performance Checklist] --> B[Network]
+    A --> C[Rendering]
+    A --> D[Assets]
+    B --> E[HTTP2 or HTTP3]
+    B --> F[CDN for static files]
+    B --> G[Lazy load offscreen resources]
+    C --> H[Minimize layout reflow]
+    C --> I[Use CSS containment]
+    C --> J[Avoid forced synchronous layout]
+    D --> K[WebP images]
+    D --> L[Code splitting via dynamic import]
+    D --> M[Tree shaking unused JS]
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> StaticHTML
+    StaticHTML --> CSSApplied : stylesheet loaded
+    CSSApplied --> JSParsed : script tag reached
+    JSParsed --> DOMReady : DOMContentLoaded fires
+    DOMReady --> EventListenersAttached : JS executes
+    EventListenersAttached --> Interactive : user can interact
+    Interactive --> StateChange : user action
+    StateChange --> DOMUpdated : JS mutates DOM
+    DOMUpdated --> Repainted : browser repaints
+    Repainted --> Interactive : ready again
+```
+
 ### 5.1. Semantic and Accessible Code
 
 - **Semantic HTML:** Use meaningful tags to improve SEO and accessibility.
@@ -502,9 +637,364 @@ CSS animations and transitions add polish to your web projects.
 
 ---
 
-## 6. Conclusion and Further Resources
+## 6. Web APIs: Fetch, Web Storage, and Service Workers
 
-Web development is a multifaceted discipline that combines creativity with technical rigor. This deep dive has covered the essentials - from structuring content with HTML and crafting styles with CSS to building interactivity with JavaScript and ensuring your site looks great on every device. Embracing semantic coding, accessibility, and performance optimization not only improves user experience but also future-proofs your projects.
+Modern browsers expose powerful APIs that go far beyond DOM manipulation. Understanding these APIs unlocks offline capability, persistent client storage, and sophisticated network control.
+
+### 6.1 The Fetch API in Depth
+
+The Fetch API supersedes XMLHttpRequest with a promise-based interface that composes cleanly with async/await. It gives you granular control over requests and responses.
+
+```javascript
+// A production-grade fetch wrapper with timeout, retry, and error handling
+async function apiFetch(url, options = {}, retries = 3) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (retries > 0 && error.name !== "AbortError") {
+      await new Promise((r) => setTimeout(r, 500));
+      return apiFetch(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
+
+// POST example with JSON body
+async function createUser(userData) {
+  return apiFetch("/api/users", {
+    method: "POST",
+    body: JSON.stringify(userData),
+  });
+}
+```
+
+### 6.2 Web Storage: localStorage and sessionStorage
+
+Web Storage provides synchronous key-value storage in the browser. Use `localStorage` for data that should persist across sessions and `sessionStorage` for tab-scoped data.
+
+```javascript
+// A typed storage helper that handles serialization and expiry
+const storage = {
+  set(key, value, ttlSeconds = null) {
+    const item = {
+      value,
+      expiry: ttlSeconds ? Date.now() + ttlSeconds * 1000 : null,
+    };
+    localStorage.setItem(key, JSON.stringify(item));
+  },
+
+  get(key) {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const item = JSON.parse(raw);
+    if (item.expiry && Date.now() > item.expiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return item.value;
+  },
+
+  remove(key) {
+    localStorage.removeItem(key);
+  },
+};
+
+// Cache API responses for 5 minutes
+storage.set("user_profile", { name: "Alex", role: "admin" }, 300);
+const profile = storage.get("user_profile"); // returns null after 5 min
+```
+
+### 6.3 Service Workers and Offline Capability
+
+Service workers are JavaScript files that run in a separate browser thread, intercepting network requests and enabling offline functionality, push notifications, and background sync.
+
+```mermaid
+graph TD
+    PAGE[Web Page] --> |fetch event| SW[Service Worker]
+    SW --> CACHE{In Cache?}
+    CACHE -->|Yes| CACHED[Return Cached Response]
+    CACHE -->|No| NET[Fetch from Network]
+    NET --> STORE[Store in Cache]
+    STORE --> RESP[Return Fresh Response]
+    NET -->|Network error| OFFLINE[Return Offline Fallback]
+```
+
+```javascript
+// service-worker.js - Cache-first strategy with network fallback
+const CACHE_NAME = "app-v1";
+const STATIC_ASSETS = ["/", "/index.html", "/styles.css", "/app.js"];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)),
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        const clone = response.clone();
+        caches
+          .open(CACHE_NAME)
+          .then((cache) => cache.put(event.request, clone));
+        return response;
+      });
+    }),
+  );
+});
+
+// Register the service worker from your main JS
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/service-worker.js")
+    .then((reg) => console.log("SW registered:", reg.scope))
+    .catch((err) => console.error("SW registration failed:", err));
+}
+```
+
+---
+
+## 7. Modern CSS: Container Queries, Subgrid, and CSS Custom Properties
+
+CSS has evolved rapidly beyond Flexbox and Grid. Container queries, subgrid, and custom properties enable design systems that were previously only achievable with JavaScript.
+
+### 7.1 Container Queries
+
+Media queries respond to the viewport. Container queries respond to the size of a parent element. This is transformative for truly reusable components: a card component can now adapt its own layout based on its container, not the screen.
+
+```mermaid
+graph LR
+    VP[Viewport - 1200px] --> SIDEBAR[Sidebar Container - 300px]
+    VP --> MAIN[Main Content Container - 860px]
+    SIDEBAR --> CARD1[Card in narrow mode]
+    MAIN --> CARD2[Card in wide mode]
+    CARD1 --> |container-query fires| STACK[Stacked layout]
+    CARD2 --> |container-query fires| ROW[Row layout]
+```
+
+```css
+/* Define a containment context */
+.card-wrapper {
+  container-type: inline-size;
+  container-name: card;
+}
+
+/* Style the card based on its container width, not the viewport */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@container card (min-width: 500px) {
+  .card {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .card__image {
+    width: 200px;
+    flex-shrink: 0;
+  }
+}
+```
+
+### 7.2 CSS Grid Subgrid
+
+Subgrid allows nested grid items to align to the tracks of the parent grid. This solves the long-standing problem of aligning content across sibling cards in a grid.
+
+```css
+/* Parent grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+/* Each card spans 3 implicit rows: image, title, price */
+.product-card {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid; /* inherit parent track sizing */
+  gap: 0.5rem;
+}
+
+/* Now image, title, and price align across all cards automatically */
+.product-card__image {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+```
+
+### 7.3 CSS Custom Properties for Design Tokens
+
+CSS custom properties (variables) enable design token systems that update the entire UI from a single source of truth, including dynamic theming with JavaScript.
+
+```css
+/* Design token definitions */
+:root {
+  --color-primary: #0066cc;
+  --color-surface: #ffffff;
+  --color-text: #1a1a2e;
+  --spacing-base: 8px;
+  --radius-md: 6px;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode tokens override root tokens */
+[data-theme="dark"] {
+  --color-primary: #4d9fff;
+  --color-surface: #1a1a2e;
+  --color-text: #e0e0e0;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.card {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: calc(var(--spacing-base) * 3);
+}
+```
+
+```javascript
+// Toggle theme dynamically without any class conflicts
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}
+```
+
+---
+
+## 8. TypeScript for Web Developers
+
+TypeScript adds static typing to JavaScript, catching errors at compile time rather than runtime. For web projects beyond a few hundred lines, TypeScript pays for itself quickly.
+
+### 8.1 Typing DOM Interactions
+
+```typescript
+// Typed event handler - no runtime surprises
+function setupForm(formId: string): void {
+  const form = document.getElementById(formId) as HTMLFormElement | null;
+  if (!form) return;
+
+  form.addEventListener("submit", async (event: SubmitEvent) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const email = data.get("email") as string;
+    const password = data.get("password") as string;
+    await loginUser({ email, password });
+  });
+}
+
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+interface LoginResponse {
+  token: string;
+  user: { id: string; name: string };
+}
+
+async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Login failed");
+  return response.json() as Promise<LoginResponse>;
+}
+```
+
+### 8.2 TypeScript and the Fetch API
+
+Typing API responses ensures that shape mismatches between the server contract and frontend usage are caught during development.
+
+```typescript
+// Generic typed fetch helper
+async function typedFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+// Usage - TypeScript verifies all property accesses
+interface Article {
+  id: number;
+  title: string;
+  author: string;
+  publishedAt: string;
+}
+
+const articles = await typedFetch<Article[]>("/api/articles");
+console.log(articles[0].title); // autocomplete works, typo is a compile error
+```
+
+```mermaid
+graph TD
+    TS[TypeScript Source] --> TC[tsc Compiler]
+    TC --> CHECK{Type Check Pass?}
+    CHECK -->|No| ERR[Type Error - fix before running]
+    CHECK -->|Yes| JS[JavaScript Output]
+    JS --> BROWSER[Browser Executes]
+    ERR --> DEV[Developer fixes code]
+    DEV --> TC
+```
+
+### 8.3 Type-Safe CSS Module Imports
+
+When using CSS Modules with TypeScript, you get autocomplete for class names and compile-time safety for renamed or removed classes.
+
+```typescript
+// styles.module.css.d.ts - generated by tools like typed-css-modules
+export const container: string;
+export const header: string;
+export const card: string;
+
+// Component.tsx
+import styles from "./styles.module.css";
+
+function Card({ title }: { title: string }) {
+  return (
+    <div className={styles.card}>
+      {" "}
+      {/* autocomplete, typo = compile error */}
+      <h2 className={styles.header}>{title}</h2>
+    </div>
+  );
+}
+```
+
+---
+
+## 9. Conclusion and Further Resources
+
+Web development is a multifaceted discipline that combines creativity with technical rigor. This deep dive has covered the essentials - from structuring content with HTML and crafting styles with CSS to building interactivity with JavaScript and ensuring your site looks great on every device. Modern additions like the Fetch API, Service Workers, Container Queries, and TypeScript push the discipline further, enabling offline-capable, type-safe, and truly responsive experiences that adapt at the component level rather than just the viewport level.
+
+Embracing semantic coding, accessibility, and performance optimization not only improves user experience but also future-proofs your projects.
 
 For even more in-depth study and practical examples, please refer to the detailed [Web Design & Development Study Notes](https://hoangsonw.notion.site/Web-Design-Development-Study-Notes-2ec7107162734af980ff80edc52a530e?pvs=74).
 

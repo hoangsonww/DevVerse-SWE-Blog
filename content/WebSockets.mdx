@@ -29,6 +29,30 @@ Traditional web communication is built around the HTTP request-response model, w
 
 Node.js, with its event-driven, non-blocking I/O model, is an excellent choice for building WebSocket servers. Combined with lightweight libraries such as [ws](https://www.npmjs.com/package/ws), Node.js makes it straightforward to develop and scale real-time applications.
 
+The following diagram compares the HTTP polling model with the WebSocket persistent connection:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Note over Client,Server: HTTP Polling
+    Client->>Server: GET /updates
+    Server-->>Client: No new data
+    Client->>Server: GET /updates
+    Server-->>Client: No new data
+    Client->>Server: GET /updates
+    Server-->>Client: New data available
+
+    Note over Client,Server: WebSocket
+    Client->>Server: HTTP Upgrade Request
+    Server-->>Client: 101 Switching Protocols
+    Server->>Client: Push update 1
+    Server->>Client: Push update 2
+    Client->>Server: Send message
+    Server->>Client: Push update 3
+```
+
 ---
 
 ## 2. Understanding WebSockets
@@ -50,6 +74,20 @@ WebSockets establish a full-duplex communication channel over a single TCP conne
 
 - **Stateful Connections:**
   Maintaining a continuous connection allows the server to push updates to clients instantly.
+
+The following state diagram shows the full lifecycle of a WebSocket connection from opening to closure:
+
+```mermaid
+stateDiagram-v2
+    [*] --> CONNECTING: new WebSocket called
+    CONNECTING --> OPEN: HTTP upgrade handshake succeeds
+    CONNECTING --> CLOSED: Handshake failed
+    OPEN --> OPEN: Send or receive message
+    OPEN --> CLOSING: close called or server closes
+    CLOSING --> CLOSED: Close frame exchanged
+    CLOSED --> CONNECTING: Reconnect attempt
+    CLOSED --> [*]: No reconnect
+```
 
 ---
 
@@ -184,6 +222,45 @@ Building real-time applications involves more than just setting up a basic conne
 - **Message Broadcasting:**
   Implement mechanisms to broadcast messages to multiple clients, which is common in chat applications or live updates. The server can loop through all active connections to send updates.
 
+The following diagram shows how WebSocket connections scale horizontally using Redis Pub/Sub to broadcast across server instances:
+
+```mermaid
+graph TD
+    C1[Client 1] --> LB[Load Balancer - Sticky Session]
+    C2[Client 2] --> LB
+    C3[Client 3] --> LB
+    LB --> SRV1[WebSocket Server 1]
+    LB --> SRV2[WebSocket Server 2]
+    LB --> SRV3[WebSocket Server 3]
+    SRV1 --> REDIS[Redis Pub/Sub Channel]
+    SRV2 --> REDIS
+    SRV3 --> REDIS
+    REDIS --> SRV1
+    REDIS --> SRV2
+    REDIS --> SRV3
+    Note1[Message from Client 1 on SRV1 broadcast to clients on SRV2 and SRV3 via Redis] -.-> REDIS
+```
+
+A token-based authentication flow for WebSocket connections validates the JWT during the HTTP upgrade before the persistent channel is opened:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant AuthSvc as Auth Service
+
+    Client->>Server: HTTP GET /ws - Upgrade: websocket - Authorization: Bearer JWT
+    Server->>AuthSvc: Validate JWT token
+    AuthSvc-->>Server: Token valid - user ID and roles
+    Server->>Server: Check rate limits and IP allowlist
+    Server-->>Client: 101 Switching Protocols
+    Note over Client,Server: Authenticated WebSocket channel open
+    Client->>Server: Subscribe to room orders-123
+    Server->>Server: Check user has access to orders-123
+    Server-->>Client: Subscribed
+    Server->>Client: Order update event
+```
+
 ### 5.2 Security
 
 - **Using Secure WebSockets:**
@@ -206,6 +283,31 @@ Building real-time applications involves more than just setting up a basic conne
 - **Graceful Shutdowns:**
   Design your server to handle shutdowns gracefully by notifying connected clients and allowing them to reconnect once the server is back online.
 
+The heartbeat and reconnection flow diagram shows how clients detect stale connections and recover automatically:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    loop Every 30 seconds
+        Client->>Server: Ping frame
+        Server-->>Client: Pong frame
+    end
+
+    Note over Client,Server: Connection drops unexpectedly
+
+    Client->>Client: Pong timeout detected
+    Client->>Client: Mark connection as closed
+    Client->>Client: Wait with exponential backoff
+    Client->>Server: Reconnect attempt 1
+    Server-->>Client: Connection refused or timeout
+    Client->>Client: Wait longer
+    Client->>Server: Reconnect attempt 2
+    Server-->>Client: 101 Switching Protocols
+    Note over Client,Server: Connection restored - resume state
+```
+
 ### 5.4 Monitoring and Logging
 
 - **Connection Metrics:**
@@ -220,6 +322,43 @@ Building real-time applications involves more than just setting up a basic conne
 ---
 
 ## 6. Use Cases for WebSockets
+
+The following diagram shows how a load balancer distributes WebSocket connections while maintaining sticky sessions per client:
+
+```mermaid
+graph TD
+    C1[Client 1 - connection A] --> LB[Load Balancer]
+    C2[Client 2 - connection B] --> LB
+    C3[Client 3 - connection C] --> LB
+    C4[Client 4 - connection D] --> LB
+    LB -->|Sticky by IP or cookie| SRV1[WebSocket Server 1]
+    LB -->|Sticky by IP or cookie| SRV2[WebSocket Server 2]
+    SRV1 -->|Hosts connections A and B| C1
+    SRV1 --> C2
+    SRV2 -->|Hosts connections C and D| C3
+    SRV2 --> C4
+    SRV1 --> REDIS[Shared Redis State]
+    SRV2 --> REDIS
+```
+
+A room-based topology groups connections so that messages broadcast only to members of the same room rather than to all connected clients:
+
+```mermaid
+graph TD
+    WS[WebSocket Server] --> RM[Room Manager]
+    C1[Client 1] -->|join room-A| WS
+    C2[Client 2] -->|join room-A| WS
+    C3[Client 3] -->|join room-B| WS
+    C4[Client 4] -->|join room-B| WS
+    RM --> RA[Room A - clients 1 and 2]
+    RM --> RB[Room B - clients 3 and 4]
+    C1 -->|message to room-A| WS
+    WS -->|broadcast| RA
+    RA --> C2
+    RA --> C1
+    RB --> C3
+    RB --> C4
+```
 
 WebSockets are ideal for a variety of real-time applications:
 
@@ -291,6 +430,21 @@ ws.on("message", (data) => {
 });
 ```
 
+The WebSocket wire frame structure shows the binary layout of each frame exchanged after the handshake:
+
+```mermaid
+graph LR
+    FRAME[WebSocket Frame] --> FIN[FIN bit - final fragment]
+    FRAME --> RSV[RSV1 RSV2 RSV3 - extensions]
+    FRAME --> OPCODE[Opcode - 0 continuation 1 text 2 binary 8 close 9 ping 10 pong]
+    FRAME --> MASK[MASK bit - 1 for client frames]
+    FRAME --> PAYLEN[Payload Length - 7 bit or 16 bit or 64 bit]
+    FRAME --> MKEY[Masking Key - 4 bytes if MASK set]
+    FRAME --> DATA[Payload Data - XOR masked by client]
+    MASK --> NOTE1[Clients must mask all frames]
+    MASK --> NOTE2[Servers must not mask frames]
+```
+
 ### 7.3 Integrating with Other Technologies
 
 - **Socket.io:**
@@ -317,9 +471,343 @@ While WebSockets offer significant advantages, there are challenges to be aware 
 - **Complexity in Error Handling:**
   Building robust reconnection and error-handling logic is essential but can add complexity to your codebase.
 
+The state diagram for message delivery ordering shows how a client handles out-of-order messages using sequence numbers:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: Connection open
+    Idle --> Receiving: Message arrives
+    Receiving --> InOrder: Sequence matches expected
+    Receiving --> Buffered: Sequence is ahead of expected
+    InOrder --> Processing: Deliver to application
+    Buffered --> Reorder: Wait for missing sequence
+    Reorder --> InOrder: Gap filled by late message
+    Reorder --> Timeout: Missing message timeout
+    Timeout --> Drop: Discard buffered messages
+    Processing --> Idle: Message handled
+    Drop --> Idle: Resume from current sequence
+```
+
 ---
 
-## 9. Future Directions
+## 9. Socket.io vs Raw ws: Choosing the Right Abstraction
+
+The `ws` library gives you direct protocol control, but Socket.io adds a feature layer that many production applications need. Understanding the tradeoffs is essential before committing to either approach.
+
+### 9.1 Feature Comparison
+
+| Capability                   | ws (raw) | Socket.io                         |
+| ---------------------------- | -------- | --------------------------------- |
+| Auto-reconnect               | Manual   | Built-in with exponential backoff |
+| Rooms and namespaces         | Manual   | First-class API                   |
+| Fallback to HTTP long-poll   | No       | Yes                               |
+| Binary data                  | Yes      | Yes                               |
+| Acknowledgements (RPC style) | Manual   | Built-in callbacks                |
+| Middleware support           | No       | Yes                               |
+| Broadcast to subset          | Manual   | `io.to(room).emit()`              |
+
+### 9.2 Socket.io Server with Rooms
+
+```javascript
+const { Server } = require("socket.io");
+const { createServer } = require("http");
+const express = require("express");
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: { origin: "*" },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+});
+
+io.on("connection", (socket) => {
+  console.log(`Client connected: ${socket.id}`);
+
+  // Join a named room
+  socket.on("join-room", (roomId, userId) => {
+    socket.join(roomId);
+    socket.to(roomId).emit("user-joined", { userId, socketId: socket.id });
+    console.log(`${userId} joined room ${roomId}`);
+  });
+
+  // Broadcast to everyone in the room except sender
+  socket.on("room-message", ({ roomId, message, author }) => {
+    socket
+      .to(roomId)
+      .emit("room-message", { message, author, timestamp: Date.now() });
+  });
+
+  // Acknowledgement pattern (RPC style)
+  socket.on("fetch-history", (roomId, callback) => {
+    const history = getMessageHistory(roomId); // your data layer
+    callback({ status: "ok", messages: history });
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`Client ${socket.id} disconnected: ${reason}`);
+  });
+});
+
+httpServer.listen(3000);
+```
+
+### 9.3 Socket.io Client with Reconnection Strategy
+
+```javascript
+import { io } from "socket.io-client";
+
+const socket = io("wss://api.example.com", {
+  auth: { token: localStorage.getItem("jwt") },
+  reconnection: true,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 30000,
+  randomizationFactor: 0.5,
+});
+
+socket.on("connect", () => {
+  console.log("Connected:", socket.id);
+  socket.emit("join-room", "channel-42", "user-007");
+});
+
+socket.on("room-message", ({ message, author, timestamp }) => {
+  renderMessage({ message, author, time: new Date(timestamp) });
+});
+
+socket.on("connect_error", (err) => {
+  console.error("Connection error:", err.message);
+  if (err.message === "unauthorized") {
+    redirectToLogin();
+  }
+});
+```
+
+```mermaid
+graph TD
+    CLIENT[Client Application] --> DECISION{Need fallback to HTTP polling?}
+    DECISION -->|Yes - corporate proxies or legacy browsers| SIO[Socket.io]
+    DECISION -->|No - modern browsers and no proxy restriction| WS[Raw ws library]
+    SIO --> ROOMS[Built-in rooms and namespaces]
+    SIO --> ACK[Acknowledgement callbacks]
+    SIO --> FALLBACK[Long-poll fallback transport]
+    WS --> PERF[Lower protocol overhead]
+    WS --> CONTROL[Full frame-level control]
+    WS --> SIMPLE[Simpler dependency tree]
+    ROOMS --> CHAT[Chat and collaboration apps]
+    FALLBACK --> ENTERPRISE[Enterprise environments]
+    PERF --> FINANCE[Tick data and gaming]
+    CONTROL --> IOT[IoT and binary protocols]
+```
+
+---
+
+## 10. WebSocket Compression with permessage-deflate
+
+For text-heavy applications (JSON APIs, chat), the `permessage-deflate` extension can reduce payload size by 60-80% with minimal CPU overhead.
+
+### 10.1. Enabling Compression on the Server
+
+```javascript
+const WebSocket = require("ws");
+
+const wss = new WebSocket.Server({
+  port: 8080,
+  perMessageDeflate: {
+    zlibDeflateOptions: {
+      chunkSize: 1024,
+      memLevel: 7,
+      level: 3, // Compression level 1-9. 3 is a good CPU/size tradeoff.
+    },
+    zlibInflateOptions: {
+      chunkSize: 10 * 1024,
+    },
+    clientNoContextTakeover: true, // Prevent context sharing across messages
+    serverNoContextTakeover: true,
+    serverMaxWindowBits: 10,
+    concurrencyLimit: 10,
+    threshold: 1024, // Only compress messages larger than 1 KB
+  },
+});
+
+wss.on("connection", (ws) => {
+  ws.on("message", (data, isBinary) => {
+    if (!isBinary) {
+      const json = JSON.parse(data.toString());
+      ws.send(JSON.stringify({ echo: json, compressed: true }));
+    }
+  });
+});
+```
+
+### 10.2. Compression Decision Tree
+
+The following decision tree shows how the server determines whether and how to apply DEFLATE compression based on message size and type:
+
+```mermaid
+graph TD
+    MSG[Outgoing Message] --> SIZECHECK{Message size over threshold?}
+    SIZECHECK -->|No - under 1 KB| SENDRAW[Send uncompressed frame]
+    SIZECHECK -->|Yes| TYPECHECK{Message type?}
+    TYPECHECK -->|Binary - already compressed PNG JPEG| SENDRAW
+    TYPECHECK -->|Text - JSON or HTML| DEFLATE[Apply DEFLATE compression]
+    DEFLATE --> CTXCHECK{Server context takeover enabled?}
+    CTXCHECK -->|Yes| SHAREDCTX[Reuse sliding window across messages]
+    CTXCHECK -->|No| FRESHCTX[Fresh compression context per message]
+    SHAREDCTX --> FRAME[Compressed WebSocket frame]
+    FRESHCTX --> FRAME
+    SENDRAW --> WIRE[Send over TCP]
+    FRAME --> WIRE
+```
+
+---
+
+## 11. Connection Pool Management and Backpressure
+
+Under heavy load, naively accepting unlimited connections causes memory exhaustion. A connection pool with backpressure signals prevents server overload.
+
+### 11.1. Connection Limiter
+
+```javascript
+const WebSocket = require("ws");
+
+const MAX_CONNECTIONS = 10000;
+const wss = new WebSocket.Server({ port: 8080, noServer: true });
+let connectionCount = 0;
+
+const httpServer = require("http").createServer();
+
+httpServer.on("upgrade", (request, socket, head) => {
+  if (connectionCount >= MAX_CONNECTIONS) {
+    socket.write("HTTP/1.1 503 Service Unavailable\r\n\r\n");
+    socket.destroy();
+    return;
+  }
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit("connection", ws, request);
+  });
+});
+
+wss.on("connection", (ws) => {
+  connectionCount++;
+  console.log(`Active connections: ${connectionCount}`);
+
+  // Apply per-connection send queue to prevent write buffer overflow
+  let sendQueue = [];
+  let isFlushing = false;
+
+  ws.sendQueued = function (data) {
+    sendQueue.push(data);
+    if (!isFlushing) flushQueue();
+  };
+
+  function flushQueue() {
+    if (sendQueue.length === 0) {
+      isFlushing = false;
+      return;
+    }
+    isFlushing = true;
+    const msg = sendQueue.shift();
+    ws.send(msg, (err) => {
+      if (err) console.error("Send error:", err);
+      flushQueue();
+    });
+  }
+
+  ws.on("close", () => {
+    connectionCount--;
+    sendQueue = [];
+  });
+});
+
+httpServer.listen(8080);
+```
+
+### 11.2. Connection Pool Lifecycle
+
+The following state diagram shows all the states a managed connection moves through, including backpressure handling and idle ping/pong health checks:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Accepting : Server starts
+    Accepting --> Handshaking : HTTP Upgrade received
+    Handshaking --> CheckLimit : Validate origin and auth
+    CheckLimit --> Rejected : Connection count at MAX
+    CheckLimit --> Active : Connection count below MAX
+    Active --> Sending : Message enqueued
+    Sending --> Active : Message sent successfully
+    Sending --> Backpressure : Write buffer full
+    Backpressure --> Sending : Buffer drained
+    Active --> Idle : No messages for 30 seconds
+    Idle --> PingSent : Send ping frame
+    PingSent --> Active : Pong received within timeout
+    PingSent --> Closing : Pong timeout
+    Closing --> Closed : Close frame exchanged
+    Rejected --> [*]
+    Closed --> [*]
+```
+
+---
+
+## 12. WebTransport: The Next-Generation Alternative
+
+WebTransport is a new browser API built on HTTP/3 and QUIC that addresses some fundamental limitations of WebSockets.
+
+### 12.1. Key Differences from WebSockets
+
+- **Multiple streams:** WebTransport supports multiple independent bidirectional and unidirectional byte streams over a single QUIC connection, eliminating head-of-line blocking.
+- **Datagrams:** Unreliable, unordered datagrams are first-class citizens, ideal for real-time game state or sensor telemetry where freshness matters more than completeness.
+- **0-RTT reconnection:** QUIC's 0-RTT feature allows session resumption without a full handshake, dramatically reducing reconnect latency.
+
+### 12.2. WebTransport Client Example
+
+```javascript
+// WebTransport is available in Chrome 97+ and Edge 97+
+const transport = new WebTransport("https://example.com:4433/ws");
+
+await transport.ready;
+console.log("WebTransport connection established");
+
+// Send a datagram (unreliable, low-latency)
+const writer = transport.datagrams.writable.getWriter();
+await writer.write(
+  new TextEncoder().encode(JSON.stringify({ type: "position", x: 42, y: 100 })),
+);
+
+// Open a reliable bidirectional stream
+const stream = await transport.createBidirectionalStream();
+const streamWriter = stream.writable.getWriter();
+await streamWriter.write(new TextEncoder().encode("reliable message"));
+
+// Read from stream
+const reader = stream.readable.getReader();
+const { value } = await reader.read();
+console.log("Received:", new TextDecoder().decode(value));
+
+transport.closed.then(() => console.log("Connection closed"));
+```
+
+The following diagram compares the two protocols and maps each to its ideal use case:
+
+```mermaid
+graph LR
+    CLIENT[Browser Client] --> WS_COMPARE{Protocol choice}
+    WS_COMPARE -->|Legacy support needed| WS[WebSocket over TCP]
+    WS_COMPARE -->|Modern browser and HTTP3 server| WT[WebTransport over QUIC]
+    WS --> ORDERED[Ordered reliable byte stream only]
+    WS --> HOL[Head-of-line blocking on packet loss]
+    WT --> STREAMS[Multiple independent streams]
+    WT --> DGRAM[Unreliable datagrams for game state]
+    WT --> QUIC_PERF[0-RTT reconnect and connection migration]
+    ORDERED --> CHAT[Chat and collaboration]
+    HOL --> LATENCY_ISSUE[Added latency under packet loss]
+    STREAMS --> MEDIA[Media and multiplayer gaming]
+    DGRAM --> TELEMETRY[IoT sensor telemetry]
+```
+
+---
+
+## 13. Future Directions
 
 Real-time web technologies are rapidly evolving. Here are some emerging trends:
 
@@ -337,7 +825,7 @@ Real-time web technologies are rapidly evolving. Here are some emerging trends:
 
 ---
 
-## 10. Conclusion
+## 14. Conclusion
 
 WebSockets have redefined how real-time communication is implemented in modern web applications. By establishing a persistent, bi-directional connection between the client and server, WebSockets overcome the limitations of traditional HTTP-based communication and enable rapid, interactive experiences.
 
@@ -347,7 +835,7 @@ Explore further enhancements with alternative libraries, serverless solutions, a
 
 ---
 
-## 11. Further Reading and Resources
+## 15. Further Reading and Resources
 
 - **Official Documentation:**
   [WebSocket API on MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)

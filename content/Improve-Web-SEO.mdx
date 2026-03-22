@@ -31,6 +31,24 @@ SEO is the practice of optimizing your online presence to achieve higher ranking
 
 The evolution of search engines - from keyword-matching algorithms to sophisticated AI-powered systems - has made SEO a dynamic field. Staying current with best practices is essential for long-term success.
 
+```mermaid
+graph TD
+    A[Publish or Update Content] --> B[Search Engine Crawler Discovers Page]
+    B --> C[Index Page and Extract Signals]
+    C --> D[Ranking Algorithm Evaluates Page]
+    D --> E[Assign Rank Based on Relevance and Authority]
+    E --> F[Display in SERP Results]
+    F --> G[User Clicks Through]
+    G --> H[User Engagement Signals - dwell time and bounce]
+    H --> D
+    C --> I[Technical Signals - speed and mobile and HTTPS]
+    C --> J[On-Page Signals - title and headings and keywords]
+    C --> K[Backlink Signals - authority and anchor text]
+    I --> D
+    J --> D
+    K --> D
+```
+
 ---
 
 ## 2. Keyword Research and Content Strategy
@@ -85,6 +103,28 @@ A robust content strategy not only drives organic traffic but also positions you
 
 - **Alt Text:** Include descriptive alt attributes to improve accessibility and help search engines understand image content.
 - **Compression and Responsive Images:** Use modern formats (e.g., WebP) and responsive image techniques to reduce load times.
+
+```mermaid
+graph TD
+    A[Core Web Vitals Audit] --> B[Largest Contentful Paint - LCP]
+    A --> C[Cumulative Layout Shift - CLS]
+    A --> D[Interaction to Next Paint - INP]
+    B --> E{LCP above 2.5s?}
+    E -->|Yes| F[Optimize Images - WebP and lazy load]
+    E -->|No| G[LCP Good]
+    F --> G
+    C --> H{CLS above 0.1?}
+    H -->|Yes| I[Reserve space for images and ads]
+    H -->|No| J[CLS Good]
+    I --> J
+    D --> K{INP above 200ms?}
+    K -->|Yes| L[Defer non-critical JS and reduce main thread work]
+    K -->|No| M[INP Good]
+    L --> M
+    G --> N[Pass Core Web Vitals]
+    J --> N
+    M --> N
+```
 
 ---
 
@@ -144,6 +184,25 @@ Implementing structured data can help search engines understand your content bet
 </script>
 ```
 
+```mermaid
+graph LR
+    A[Content Page] --> B[Add JSON-LD Script Tag]
+    B --> C[Define Schema Type]
+    C --> D{Schema Type}
+    D -->|Article| E[headline - datePublished - author]
+    D -->|Product| F[name - price - availability]
+    D -->|FAQ| G[Question and Answer pairs]
+    D -->|BreadcrumbList| H[item position and name]
+    E --> I[Validate with Rich Results Test]
+    F --> I
+    G --> I
+    H --> I
+    I --> J{Validation Passes?}
+    J -->|Yes| K[Eligible for Rich Snippet in SERP]
+    J -->|No| L[Fix Schema Errors]
+    L --> I
+```
+
 ---
 
 ## 5. Content Quality and User Engagement
@@ -173,6 +232,23 @@ User experience directly influences SEO rankings.
 ## 6. Link Building Strategies
 
 ### 6.1 Earning Quality Backlinks
+
+```mermaid
+graph TD
+    A[Link Building Strategy] --> B[Guest Blogging on Reputable Sites]
+    A --> C[Content Promotion via Social and Email]
+    A --> D[Create Linkable Resource Pages]
+    A --> E[Broken Link Building]
+    B --> F[Earn Quality Backlinks]
+    C --> F
+    D --> F
+    E --> F
+    F --> G[Audit Backlink Profile - Ahrefs or Moz]
+    G --> H{Toxic Links Found?}
+    H -- Yes --> I[Disavow via Google Search Console]
+    H -- No --> J[Monitor Domain Authority Growth]
+    I --> J
+```
 
 High-quality backlinks remain a top ranking factor:
 
@@ -214,6 +290,24 @@ For businesses targeting local customers:
 - **Local Citations:** Ensure your business name, address, and phone number (NAP) are consistent across directories.
 - **Reviews and Ratings:** Encourage satisfied customers to leave positive reviews.
 - **Localized Content:** Create content that addresses local events, news, or interests.
+
+```mermaid
+graph TD
+    A[Googlebot Crawl Budget] --> B[Crawl Rate Limit - server capacity]
+    A --> C[Crawl Demand - popularity and freshness]
+    B --> D{robots.txt Disallow?}
+    D -->|Yes| E[Skip URL - not crawled]
+    D -->|No| F[Crawl URL]
+    F --> G{URL in Sitemap?}
+    G -->|Yes| H[Higher Priority Crawl]
+    G -->|No| I[Lower Priority Crawl]
+    H --> J[Parse Links on Page]
+    I --> J
+    J --> K{Canonical Tag Present?}
+    K -->|Points elsewhere| L[Follow Canonical - do not index this URL]
+    K -->|Self-referencing| M[Index Page]
+    C --> F
+```
 
 ---
 
@@ -257,11 +351,383 @@ Search engines are increasingly using AI (e.g., Google’s BERT and MUM algorith
 
 ---
 
+### 10.3 Programmatic SEO
+
+Programmatic SEO generates thousands of unique, high-value pages from structured data rather than writing each page by hand. It is the technique behind Zapier's integration directory (700k+ pages), Nomad List's city profiles, and Tripadvisor's hotel pages.
+
+### 10.4. When to Use Programmatic SEO
+
+A good programmatic SEO opportunity has three characteristics:
+
+1. A large, structured dataset (products, locations, job titles, software integrations).
+2. A clear URL template with obvious search intent (e.g., `/tools/[tool-a]-vs-[tool-b]`).
+3. A realistic chance of ranking — the topic must not already be saturated by domain authorities you cannot compete with.
+
+### 10.5. Next.js Implementation
+
+```tsx
+// app/integrations/[tool-a]-vs-[tool-b]/page.tsx
+import { db } from "@/lib/db";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+interface Props {
+  params: { slug: string };
+}
+
+export async function generateStaticParams() {
+  // Build a page for every integration pair in the database
+  const pairs = await db.integrationPairs.findAll({
+    select: ["slugA", "slugB"],
+  });
+  return pairs.map((p) => ({ "tool-a": p.slugA, "tool-b": p.slugB }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const [toolA, toolB] = params.slug.split("-vs-");
+  const tools = await db.tools.findMany({
+    where: { slug: { in: [toolA, toolB] } },
+  });
+  if (tools.length < 2) return {};
+
+  return {
+    title: `${tools[0].name} vs ${tools[1].name}: Which is Better in 2025?`,
+    description: `Compare ${tools[0].name} and ${tools[1].name} on pricing, features, integrations, and ease of use.`,
+    openGraph: {
+      type: "article",
+      title: `${tools[0].name} vs ${tools[1].name}`,
+    },
+  };
+}
+
+export default async function ComparisonPage({ params }: Props) {
+  const [slugA, slugB] = params.slug.split("-vs-");
+  const data = await db.comparisons.findOne({ where: { slugA, slugB } });
+  if (!data) notFound();
+
+  return <ComparisonTemplate data={data} />;
+}
+```
+
+```mermaid
+graph TD
+    DB[Structured Database - 500 tools] --> PAIRS[Generate all N times N-1 pairs]
+    PAIRS --> FILTER[Filter: both tools have enough data]
+    FILTER --> SSG[generateStaticParams at build time]
+    SSG --> PAGES[Build 124750 static comparison pages]
+    PAGES --> CDN[Deploy to CDN]
+    CDN --> GOOGLE[Google crawls all pages]
+    GOOGLE --> INDEX[Index high-quality comparison pages]
+    INDEX --> RANK[Rank for long-tail comparison queries]
+    RANK --> TRAFFIC[Organic traffic at scale]
+```
+
+---
+
+### 10.4 International SEO and hreflang
+
+If your site targets multiple languages or regions, `hreflang` annotations tell Google which URL to serve to which audience. Missing or incorrect `hreflang` is one of the most common causes of international traffic loss.
+
+### 10.5. Implementing hreflang in Next.js
+
+```tsx
+// app/[locale]/blog/[slug]/page.tsx
+import type { Metadata } from "next";
+
+const SUPPORTED_LOCALES = ["en", "es", "fr", "de", "ja"];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string; slug: string };
+}): Promise<Metadata> {
+  const canonicalUrl = `https://example.com/${params.locale}/blog/${params.slug}`;
+
+  return {
+    alternates: {
+      canonical: canonicalUrl,
+      languages: Object.fromEntries(
+        SUPPORTED_LOCALES.map((locale) => [
+          locale,
+          `https://example.com/${locale}/blog/${params.slug}`,
+        ]),
+      ),
+    },
+  };
+}
+```
+
+Next.js renders this as:
+
+```html
+<link rel="canonical" href="https://example.com/en/blog/my-post" />
+<link
+  rel="alternate"
+  hreflang="en"
+  href="https://example.com/en/blog/my-post"
+/>
+<link
+  rel="alternate"
+  hreflang="es"
+  href="https://example.com/es/blog/my-post"
+/>
+<link
+  rel="alternate"
+  hreflang="fr"
+  href="https://example.com/fr/blog/my-post"
+/>
+<link
+  rel="alternate"
+  hreflang="x-default"
+  href="https://example.com/en/blog/my-post"
+/>
+```
+
+Always include `x-default` to specify the fallback for users not matching any localized version.
+
+---
+
+### 10.5 Core Web Vitals Optimization Code
+
+Google uses Core Web Vitals (LCP, CLS, INP) as ranking signals. Here are code-level fixes for the most common failures.
+
+### 10.6. Fixing LCP: Preload the Hero Image
+
+```tsx
+// app/layout.tsx
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  // Preload LCP image so it starts downloading before render
+};
+
+// Use next/image with priority for above-the-fold images
+import Image from "next/image";
+
+export function HeroBanner() {
+  return (
+    <Image
+      src="/hero.jpg"
+      alt="Hero banner"
+      width={1200}
+      height={600}
+      priority // sets fetchpriority="high" and disables lazy loading
+      placeholder="blur"
+      blurDataURL="data:image/jpeg;base64,/9j/4AAQ..." // low-quality placeholder
+    />
+  );
+}
+```
+
+### 10.7. Fixing CLS: Reserve Space for Dynamic Content
+
+```css
+/* Reserve space for ads or async-loaded content */
+.ad-slot {
+  min-height: 250px; /* match the expected ad height */
+  width: 100%;
+  background: #f0f0f0; /* placeholder background */
+}
+
+/* Reserve space for image carousels */
+.hero-carousel {
+  aspect-ratio: 16 / 9; /* prevents layout shift as images load */
+  overflow: hidden;
+}
+```
+
+### 10.8. Fixing INP: Defer Non-Critical JavaScript
+
+```tsx
+// components/analytics-widget.tsx
+"use client";
+import dynamic from "next/dynamic";
+
+// Load analytics widget only after the page is interactive
+const HeavyAnalytics = dynamic(() => import("./heavy-analytics"), {
+  ssr: false,
+  loading: () => <div className="analytics-placeholder" />,
+});
+
+export function AnalyticsSection() {
+  return (
+    <section>
+      <HeavyAnalytics />
+    </section>
+  );
+}
+```
+
+### 10.9. Using the Google Search Console API
+
+Automate ranking tracking and index coverage reporting programmatically:
+
+```javascript
+// scripts/fetch-search-console.mjs
+import { google } from "googleapis";
+
+const auth = new google.auth.GoogleAuth({
+  keyFile: "./service-account.json",
+  scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
+});
+
+const searchConsole = google.searchconsole({ version: "v1", auth });
+
+async function getTopQueries(siteUrl, days = 28) {
+  const endDate = new Date().toISOString().split("T")[0];
+  const startDate = new Date(Date.now() - days * 86400000)
+    .toISOString()
+    .split("T")[0];
+
+  const { data } = await searchConsole.searchanalytics.query({
+    siteUrl,
+    requestBody: {
+      startDate,
+      endDate,
+      dimensions: ["query"],
+      rowLimit: 100,
+      orderBy: [{ fieldName: "clicks", sortOrder: "DESCENDING" }],
+    },
+  });
+
+  return data.rows?.map((row) => ({
+    query: row.keys[0],
+    clicks: row.clicks,
+    impressions: row.impressions,
+    ctr: (row.ctr * 100).toFixed(1) + "%",
+    position: row.position.toFixed(1),
+  }));
+}
+
+const queries = await getTopQueries("https://example.com/");
+console.table(queries);
+```
+
+```mermaid
+graph LR
+    GSC[Google Search Console API] --> QUERIES[Top queries by clicks]
+    GSC --> COVERAGE[Index coverage report]
+    GSC --> CWV[Core Web Vitals field data]
+    QUERIES --> REPORT[Weekly SEO report script]
+    COVERAGE --> REPORT
+    CWV --> REPORT
+    REPORT --> SLACK[Post to Slack channel]
+    REPORT --> CSV[Export to Google Sheets]
+    CWV --> ALERT{Any page fails CWV?}
+    ALERT -->|Yes| TICKET[Create Jira ticket for engineering team]
+    ALERT -->|No| OK[All green - no action needed]
+```
+
+---
+
 ## 11. Conclusion
+
+The sequence diagram below shows how a voice search query flows from a smart speaker through Google to a featured snippet result:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Speaker as Smart Speaker
+    participant ASR as Speech Recognition
+    participant Google as Google Search
+    participant SERP as Featured Snippet
+    participant Site as Your Website
+
+    User->>Speaker: Ask question in natural language
+    Speaker->>ASR: Stream audio
+    ASR-->>Google: Transcribed query text
+    Google->>Google: Parse conversational intent
+    Google->>SERP: Find best answer box candidate
+    SERP->>Site: Evaluate structured content and schema
+    Site-->>SERP: Return featured snippet content
+    SERP-->>Google: Selected answer
+    Google-->>Speaker: Text-to-speech answer
+    Speaker-->>User: Spoken response
+```
+
+The diagram below shows how keyword intent is categorized and mapped to different content types to align with user goals:
+
+```mermaid
+graph TD
+    A[Keyword Research Output] --> B{Search Intent}
+    B -- Informational --> C[Blog Posts and How-To Guides]
+    B -- Navigational --> D[Brand Landing Pages]
+    B -- Commercial --> E[Comparison and Review Pages]
+    B -- Transactional --> F[Product Pages and CTAs]
+    C --> G[Target Long-Tail and Question Keywords]
+    D --> H[Optimize for Exact Brand Terms]
+    E --> I[Target Best vs Top vs vs Keywords]
+    F --> J[Target Buy Now and Pricing Keywords]
+    G --> K[Map to Content Calendar]
+    H --> K
+    I --> K
+    J --> K
+```
+
+The class diagram models the key entities in an SEO audit tool and how they relate to each other during a site crawl:
+
+```mermaid
+classDiagram
+    class CrawlJob {
+        +String siteUrl
+        +Date startedAt
+        +Int pagesCrawled
+        +start()
+        +stop()
+    }
+    class Page {
+        +String url
+        +Int statusCode
+        +String title
+        +String metaDescription
+        +List inboundLinks
+        +List outboundLinks
+    }
+    class SEOIssue {
+        +String type
+        +String severity
+        +String description
+        +Page affectedPage
+    }
+    class BacklinkProfile {
+        +Int domainAuthority
+        +Int totalBacklinks
+        +List referringDomains
+        +analyze()
+    }
+    CrawlJob --> Page : discovers
+    Page --> SEOIssue : generates
+    Page --> BacklinkProfile : has
+```
+
+The state diagram shows how a page progresses through Google's indexing pipeline after being published:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Published : Page goes live
+    Published --> Discovered : Googlebot finds URL via sitemap or link
+    Discovered --> Crawled : Googlebot fetches page content
+    Crawled --> Rendered : JavaScript rendered by headless Chrome
+    Rendered --> Indexed : Content extracted and added to index
+    Indexed --> Ranked : Signals evaluated and position assigned
+    Ranked --> Monitored : Ongoing crawl for changes
+    Monitored --> Crawled : Content change detected
+    Indexed --> Deindexed : noindex tag added or manual removal
+    Deindexed --> [*]
+```
 
 Improving SEO rankings is a multifaceted and ongoing endeavor. By implementing a robust strategy that includes thorough keyword research, compelling content creation, meticulous on-page and technical optimizations, ethical link-building practices, and continuous performance monitoring, you can enhance your site’s visibility and authority in search engines.
 
 SEO is not a one-time task but a continuous process of testing, learning, and adapting to new trends and algorithm changes. As search engines evolve, staying informed and proactive will enable you to maintain - and even improve - your rankings over time.
+
+**Key Takeaways:**
+
+- Programmatic SEO is the highest-leverage approach when you have structured data — one well-architected template can generate thousands of ranking pages.
+- `hreflang` correctness is binary: either all alternate URLs are reciprocally linked and the `x-default` is set, or Google ignores the whole set.
+- LCP is most often fixed by adding `priority` to the hero `<Image>` and preconnecting to image CDN origins.
+- CLS is most often fixed by adding explicit dimensions or `aspect-ratio` CSS to every image, video, and ad slot loaded after initial paint.
+- INP (replacing FID as of March 2024) measures responsiveness to all interactions — defer heavy JavaScript and break up long tasks to stay under the 200 ms budget.
+- The Google Search Console API enables automated SEO monitoring and alerting, replacing manual dashboard checks with data-driven workflows.
 
 ---
 

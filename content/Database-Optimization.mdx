@@ -21,13 +21,31 @@ In today's data-driven world, the performance of your database can be the single
 
 ---
 
-## Introduction
+## 1. Introduction
 
 As data volumes and application complexity grow, databases can quickly become performance bottlenecks if not properly tuned. Slow queries, high latency, and inefficient resource usage can lead to poor user experiences and increased operational costs. Optimizing databases is not a one-time task; it’s an ongoing process that involves continually refining your schema, queries, and server configurations. This guide provides a deep dive into various optimization techniques that can help you reduce query latency, enhance scalability, and improve overall system performance.
 
+The following diagram shows how a query flows through various optimization layers:
+
+```mermaid
+graph TD
+    Q[Incoming Query] --> QP[Query Parser]
+    QP --> QO[Query Optimizer]
+    QO --> IC{Index Available?}
+    IC -->|Yes| IS[Index Scan]
+    IC -->|No| FS[Full Table Scan]
+    IS --> CE[Cache Engine]
+    FS --> CE
+    CE --> CH{Cache Hit?}
+    CH -->|Yes| RES[Return Cached Result]
+    CH -->|No| DB[(Disk Read)]
+    DB --> CACHE[Store in Cache]
+    CACHE --> RES
+```
+
 ---
 
-## Indexing
+## 2. Indexing
 
 Indexes are the cornerstone of database optimization. They allow the database engine to quickly locate data without scanning entire tables.
 
@@ -56,7 +74,7 @@ CREATE INDEX idx_users_email ON users(email);
 
 ---
 
-## Caching
+## 3. Caching
 
 Caching is an effective technique to reduce the number of direct database queries by storing frequently accessed data in memory.
 
@@ -107,7 +125,7 @@ client.get("users", (err, cachedData) => {
 
 ---
 
-## Query Optimization
+## 4. Query Optimization
 
 Optimizing your SQL queries and database design is crucial for minimizing execution time and resource consumption.
 
@@ -134,7 +152,7 @@ SELECT order_id, order_date, total FROM orders WHERE customer_id = 123;
 
 ---
 
-## Partitioning and Sharding
+## 5. Partitioning and Sharding
 
 For large databases, splitting data into smaller, more manageable pieces can significantly improve performance and scalability.
 
@@ -152,9 +170,26 @@ For large databases, splitting data into smaller, more manageable pieces can sig
 - **Considerations:**
   Choose a sharding key that evenly distributes data and minimizes cross-shard queries.
 
+The following decision tree helps choose a sharding strategy based on data access patterns:
+
+```mermaid
+graph TD
+    START[Choose Sharding Strategy] --> Q1{Data access pattern?}
+    Q1 -->|By user or tenant| HASH[Hash-based Sharding]
+    Q1 -->|By time or range| RANGE[Range-based Sharding]
+    Q1 -->|By geography| GEO[Geo-based Sharding]
+    HASH --> H1[Shard 1 - users A-F]
+    HASH --> H2[Shard 2 - users G-N]
+    HASH --> H3[Shard 3 - users O-Z]
+    RANGE --> R1[Shard 1 - Jan to Mar]
+    RANGE --> R2[Shard 2 - Apr to Jun]
+    GEO --> G1[Shard US-East]
+    GEO --> G2[Shard EU-West]
+```
+
 ---
 
-## Connection Pooling
+## 6. Connection Pooling
 
 Connection pooling helps manage database connections by reusing existing connections rather than establishing new ones for every query.
 
@@ -166,6 +201,24 @@ Connection pooling helps manage database connections by reusing existing connect
   Multiple queries can be handled concurrently, boosting overall performance.
 - **Stability:**
   Efficient connection management prevents connection exhaustion, ensuring consistent performance.
+
+The following diagram illustrates how connection pooling works between application instances and the database:
+
+```mermaid
+graph TD
+    APP1[App Instance 1] --> POOL[Connection Pool]
+    APP2[App Instance 2] --> POOL
+    APP3[App Instance 3] --> POOL
+    POOL --> C1[Connection 1 - Active]
+    POOL --> C2[Connection 2 - Active]
+    POOL --> C3[Connection 3 - Idle]
+    POOL --> C4[Connection 4 - Idle]
+    POOL --> C5[Connection 5 - Waiting]
+    C1 --> DB[(Primary Database)]
+    C2 --> DB
+    C3 --> DB
+    C4 --> DB
+```
 
 ### Example (Using PostgreSQL in Node.js)
 
@@ -186,9 +239,27 @@ pool.query("SELECT NOW()", (err, res) => {
 
 ---
 
-## Denormalization and Data Modeling
+## 7. Denormalization and Data Modeling
 
 While normalization is important for reducing data redundancy, denormalization can be beneficial in read-heavy environments.
+
+The stages of query execution show how the database engine processes a query from parse to result delivery:
+
+```mermaid
+graph LR
+    SQL[SQL Query] --> PARSE[Parse - Syntax check]
+    PARSE --> ANALYZE[Analyze - Semantic check]
+    ANALYZE --> PLAN[Plan - Cost estimation]
+    PLAN --> OPT{Optimizer selects plan}
+    OPT --> SEQSCAN[Sequential Scan]
+    OPT --> IDXSCAN[Index Scan]
+    OPT --> IDXONLYSCAN[Index Only Scan]
+    SEQSCAN --> EXEC[Execute]
+    IDXSCAN --> EXEC
+    IDXONLYSCAN --> EXEC
+    EXEC --> SORT[Sort or Aggregate]
+    SORT --> RESULT[Return Result Set]
+```
 
 ### Considerations
 
@@ -199,7 +270,7 @@ While normalization is important for reducing data redundancy, denormalization c
 
 ---
 
-## Hardware and Configuration Optimizations
+## 8. Hardware and Configuration Optimizations
 
 Beyond software optimizations, proper hardware configuration and system tuning are essential.
 
@@ -216,7 +287,7 @@ Beyond software optimizations, proper hardware configuration and system tuning a
 
 ---
 
-## Monitoring and Maintenance
+## 9. Monitoring and Maintenance
 
 Regular monitoring and maintenance are vital to sustaining optimal database performance.
 
@@ -231,17 +302,347 @@ Regular monitoring and maintenance are vital to sustaining optimal database perf
 - **Regular Backups:**
   Schedule routine backups and performance audits to catch issues before they escalate.
 
+The following diagram shows the multi-layer caching architecture from CDN down to the database:
+
+```mermaid
+graph TD
+    USER[User Request] --> CDN[CDN Cache - Edge Layer]
+    CDN -->|Cache miss| LB[Load Balancer]
+    LB --> APP[Application Server]
+    APP --> L1[L1 Cache - In-Process Memory]
+    L1 -->|Cache miss| L2[L2 Cache - Redis or Memcached]
+    L2 -->|Cache miss| DB[(Primary Database)]
+    DB --> L2
+    L2 --> L1
+    L1 --> APP
+    APP --> CDN
+    CDN --> USER
+```
+
 ---
 
-## Conclusion
+## 10. Index Types and Selection
+
+Choosing the right index type for each workload is as important as deciding which columns to index:
+
+```mermaid
+graph TD
+    COL[Column to Index] --> Q1{Query pattern?}
+    Q1 -->|Equality lookups| HASH[Hash Index - O1 lookup]
+    Q1 -->|Range queries or sorting| BTREE[B-Tree Index - default]
+    Q1 -->|Full-text search| FTSIDX[Full-Text Index - GIN or TSVECTOR]
+    Q1 -->|Geospatial queries| GEO[GiST or SP-GiST Index]
+    Q1 -->|JSON or array contains| GIN[GIN Index - inverted]
+    BTREE --> W1{Write frequency?}
+    W1 -->|Low writes| PARTIAL[Partial Index - filter frequent values]
+    W1 -->|High writes| COVERING[Covering Index - include extra columns]
+    PARTIAL --> PERF[Reduced Index Size]
+    COVERING --> PERF2[Index-Only Scan Possible]
+```
+
+---
+
+## 11. Read Replica and Primary Routing
+
+Offloading reads to replicas reduces pressure on the primary and enables horizontal read scaling:
+
+```mermaid
+graph LR
+    APP[Application Layer] --> PROXY[Read-Write Proxy - PgBouncer or ProxySQL]
+    PROXY -->|Writes and transactions| PRIMARY[(Primary DB)]
+    PROXY -->|Read-only queries| R1[(Read Replica 1)]
+    PROXY -->|Read-only queries| R2[(Read Replica 2)]
+    PRIMARY -->|Streaming replication| R1
+    PRIMARY -->|Streaming replication| R2
+    R1 -->|Replication lag metric| MON[Monitoring - Prometheus]
+    R2 -->|Replication lag metric| MON
+    MON -->|Lag too high| ALERT[Alert - route reads back to primary]
+```
+
+---
+
+## 12. Slow Query Diagnosis Workflow
+
+Tracking and resolving slow queries follows a repeatable investigative cycle:
+
+```mermaid
+graph TD
+    LOG[Slow Query Log] --> ID[Identify Slowest Queries]
+    ID --> EXPLAIN[Run EXPLAIN ANALYZE]
+    EXPLAIN --> SCAN{Scan type?}
+    SCAN -->|Sequential scan on large table| ADDIDX[Add or Improve Index]
+    SCAN -->|Index scan but still slow| STATS[Update Table Statistics - ANALYZE]
+    SCAN -->|Nested loop with bad estimate| REWRITE[Rewrite Query or Use CTE]
+    ADDIDX --> VERIFY[Re-run EXPLAIN to verify plan change]
+    STATS --> VERIFY
+    REWRITE --> VERIFY
+    VERIFY --> BENCH[Benchmark with Realistic Data Load]
+    BENCH --> DONE{Performance acceptable?}
+    DONE -->|Yes| MONITOR[Add to Regression Test Suite]
+    DONE -->|No| EXPLAIN
+```
+
+---
+
+## 13. Database Normalization Forms
+
+Normal forms define how to remove redundancy from a relational schema step by step:
+
+```mermaid
+graph LR
+    UNF[Unnormalized Table - repeating groups] --> NF1[First Normal Form - atomic values only]
+    NF1 --> NF2[Second Normal Form - no partial dependencies]
+    NF2 --> NF3[Third Normal Form - no transitive dependencies]
+    NF3 --> BCNF[Boyce-Codd Normal Form - every determinant is a candidate key]
+    BCNF --> DENORM[Controlled Denormalization - for read performance]
+    NF1 --> EX1[Remove multi-valued columns]
+    NF2 --> EX2[Move non-key columns to their own table]
+    NF3 --> EX3[Extract transitive lookups to reference tables]
+    DENORM --> EX4[Duplicate columns to avoid joins on hot read paths]
+```
+
+---
+
+## 14. EXPLAIN ANALYZE Deep Dive
+
+`EXPLAIN ANALYZE` is the most powerful diagnostic tool available in PostgreSQL. It executes the query and annotates each plan node with actual timing and row count data, letting you compare the planner's estimates against reality.
+
+```sql
+-- Always wrap in a transaction when running on production to prevent side effects
+BEGIN;
+
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+  SELECT
+    o.order_id,
+    o.order_date,
+    c.email,
+    SUM(oi.quantity * oi.unit_price) AS total
+  FROM orders o
+  JOIN customers c  ON c.customer_id = o.customer_id
+  JOIN order_items oi ON oi.order_id = o.order_id
+  WHERE o.order_date >= NOW() - INTERVAL '30 days'
+    AND c.region = 'US-EAST'
+  GROUP BY o.order_id, o.order_date, c.email
+  ORDER BY total DESC
+  LIMIT 50;
+
+ROLLBACK;
+```
+
+A sample output and how to read it:
+
+```
+Sort  (cost=4821.33..4821.46 rows=50 width=72)
+      (actual time=38.201..38.210 rows=50 loops=1)
+  Sort Key: (sum(...)) DESC
+  Sort Method: top-N heapsort  Memory: 30kB
+  ->  HashAggregate  (cost=4818.12..4819.12 rows=50 width=72)
+                     (actual time=38.089..38.155 rows=50 loops=1)
+        Batches: 1  Memory Usage: 40kB
+        ->  Hash Join  (cost=120.44..4710.55 rows=10757 width=28)
+                       (actual time=1.823..35.114 rows=11203 loops=1)
+              Hash Cond: (oi.order_id = o.order_id)
+              ->  Seq Scan on order_items oi   <-- WARNING: sequential scan
+                  (cost=0.00..3840.00 rows=240000 width=16)
+                  (actual time=0.012..18.342 rows=240000 loops=1)
+```
+
+Key signals to look for:
+
+- **Rows estimate vs. actual:** A large discrepancy (e.g., estimated 5, actual 50000) means stale statistics. Run `ANALYZE table_name;`.
+- **Sequential Scan on large table:** If `rows` is large, add an index on the filtered/joined column.
+- **Nested Loop with large outer row count:** Consider rewriting as a hash join or adding a covering index.
+- **Sort Method: external merge:** The query is spilling to disk. Increase `work_mem` for this session.
+
+```sql
+-- Fix for the sequential scan above
+CREATE INDEX CONCURRENTLY idx_order_items_order_id
+  ON order_items (order_id);
+
+-- Fix for stale stats causing poor estimates
+ANALYZE customers;
+ANALYZE orders;
+```
+
+---
+
+## 15. Materialized Views
+
+A materialized view stores the result of a query physically on disk. It trades staleness for query speed — ideal for pre-aggregating expensive reports.
+
+```sql
+-- Create a materialized view for daily revenue by region
+CREATE MATERIALIZED VIEW mv_daily_revenue AS
+  SELECT
+    DATE_TRUNC('day', o.order_date) AS day,
+    c.region,
+    SUM(oi.quantity * oi.unit_price) AS revenue,
+    COUNT(DISTINCT o.order_id)        AS orders
+  FROM orders o
+  JOIN customers   c  ON c.customer_id  = o.customer_id
+  JOIN order_items oi ON oi.order_id    = o.order_id
+  GROUP BY 1, 2
+WITH DATA;
+
+-- Index the materialized view for fast dashboard queries
+CREATE INDEX idx_mv_daily_revenue_day_region
+  ON mv_daily_revenue (day, region);
+
+-- Refresh options
+REFRESH MATERIALIZED VIEW mv_daily_revenue;                -- blocks reads
+REFRESH MATERIALIZED VIEW CONCURRENTLY mv_daily_revenue;  -- non-blocking, needs unique index
+```
+
+```mermaid
+graph TD
+    A[Expensive JOIN or Aggregation Query] --> B{Run frequency?}
+    B -- Runs every page load --> C[Materialized View]
+    B -- Runs occasionally --> D[Regular View]
+    C --> E[CREATE MATERIALIZED VIEW WITH DATA]
+    E --> F[Add Indexes on the Materialized Table]
+    F --> G[Queries hit pre-computed result]
+    G --> H{Data freshness requirement?}
+    H -- Minutes of lag acceptable --> I[REFRESH CONCURRENTLY on a schedule]
+    H -- Must be real-time --> J[Use a regular view or incremental approach]
+    I --> K[pg_cron or application scheduler]
+    K --> E
+```
+
+---
+
+## 16. Vacuum, Autovacuum, and Table Bloat
+
+PostgreSQL's MVCC model never overwrites rows in place — it writes new versions. Dead tuples from updates and deletes accumulate until `VACUUM` reclaims them. Without regular vacuuming, tables balloon and index scans slow down.
+
+```sql
+-- See per-table vacuum status
+SELECT
+  relname                                          AS table,
+  n_dead_tup,
+  n_live_tup,
+  ROUND(n_dead_tup::numeric / NULLIF(n_live_tup, 0) * 100, 1) AS dead_pct,
+  last_autovacuum,
+  last_analyze
+FROM pg_stat_user_tables
+ORDER BY n_dead_tup DESC
+LIMIT 20;
+```
+
+Tuning autovacuum for high-write tables:
+
+```sql
+-- Override autovacuum thresholds per table
+ALTER TABLE orders SET (
+  autovacuum_vacuum_scale_factor    = 0.01,  -- vacuum when 1% of rows are dead (default 0.2)
+  autovacuum_analyze_scale_factor   = 0.005, -- analyze when 0.5% changed
+  autovacuum_vacuum_cost_delay      = 2      -- ms delay between cost-limit bursts (default 20)
+);
+```
+
+```mermaid
+graph LR
+    A[Row UPDATE or DELETE] --> B[Old Row Version Marked Dead]
+    B --> C[Dead Tuple Accumulates in Heap]
+    C --> D{Autovacuum Threshold Reached?}
+    D -- No --> C
+    D -- Yes --> E[Autovacuum Worker Starts]
+    E --> F[Mark Dead Tuples as Free Space]
+    F --> G[Update Free Space Map]
+    G --> H[New Inserts Reuse Freed Pages]
+    E --> I{Bloat Still High?}
+    I -- Yes --> J[VACUUM FULL - rewrites table]
+    J --> K[Table Shrinks on Disk]
+    I -- No --> L[Table Size Stays Controlled]
+```
+
+### Detecting Index Bloat
+
+```sql
+-- Estimate index bloat using pgstattuple (requires the extension)
+SELECT
+  schemaname,
+  tablename,
+  indexname,
+  pg_size_pretty(pg_relation_size(indexrelid)) AS index_size,
+  idx_scan,
+  idx_tup_read,
+  idx_tup_fetch
+FROM pg_stat_user_indexes
+ORDER BY pg_relation_size(indexrelid) DESC
+LIMIT 10;
+
+-- Rebuild a bloated index without locking reads
+REINDEX INDEX CONCURRENTLY idx_users_email;
+```
+
+---
+
+## 17. Real Query Optimization Case Study
+
+This is a before-and-after walkthrough of a slow reporting query on an e-commerce schema with 50 million order rows.
+
+**Before (12,300 ms):**
+
+```sql
+SELECT
+  DATE_TRUNC('month', o.created_at) AS month,
+  p.category,
+  SUM(oi.qty * oi.price)            AS revenue
+FROM orders o
+  JOIN order_items oi ON oi.order_id = o.id
+  JOIN products    p  ON p.id        = oi.product_id
+WHERE o.status = 'completed'
+GROUP BY 1, 2
+ORDER BY 1, 2;
+```
+
+`EXPLAIN ANALYZE` showed two sequential scans: one on `orders` (50M rows) filtering by `status`, and one on `order_items` (200M rows).
+
+**Fixes applied:**
+
+```sql
+-- 1. Partial index: only index rows where status = 'completed'
+CREATE INDEX CONCURRENTLY idx_orders_completed_created_at
+  ON orders (created_at)
+  WHERE status = 'completed';
+
+-- 2. Covering index on order_items to avoid heap fetches
+CREATE INDEX CONCURRENTLY idx_order_items_covering
+  ON order_items (order_id) INCLUDE (qty, price, product_id);
+
+-- 3. Rewrite using a CTE for clarity and planner hints
+WITH completed AS (
+  SELECT id, created_at
+  FROM orders
+  WHERE status = 'completed'
+    AND created_at >= '2023-01-01'  -- add time bound to limit scan
+)
+SELECT
+  DATE_TRUNC('month', c.created_at) AS month,
+  p.category,
+  SUM(oi.qty * oi.price)            AS revenue
+FROM completed c
+  JOIN order_items oi ON oi.order_id  = c.id
+  JOIN products    p  ON p.id         = oi.product_id
+GROUP BY 1, 2
+ORDER BY 1, 2;
+```
+
+**After (340 ms):** A 36x improvement purely from indexing strategy and a minimal query rewrite — no hardware changes required.
+
+---
+
+## 18. Conclusion
 
 Optimizing databases is a multi-faceted endeavor that involves careful planning and continuous improvement. By applying strategies such as effective indexing, robust caching, query optimization, partitioning, connection pooling, and hardware tuning, you can dramatically enhance the performance and scalability of your database systems. Regular monitoring and proactive maintenance further ensure that your databases continue to meet the demands of modern applications.
+
+The most impactful optimizations — partial indexes, covering indexes, materialized views, and well-tuned autovacuum — are all zero-downtime changes that can be applied to live production databases. Start with `EXPLAIN ANALYZE` to find the actual bottleneck, apply the targeted fix, then verify the plan changed. Repeat this cycle and you will see compounding improvements.
 
 Implementing these best practices will help you create a resilient, high-performance infrastructure capable of handling increasing data loads and complex query requirements. Remember, optimization is an ongoing process - continuous monitoring and iterative improvements are key to sustained success.
 
 ---
 
-## Further Reading and Resources
+## 19. Further Reading and Resources
 
 - **Indexing Best Practices:**
   - [PostgreSQL Indexing](https://www.postgresql.org/docs/current/indexes.html)

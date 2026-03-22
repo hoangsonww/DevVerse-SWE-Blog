@@ -63,6 +63,20 @@ A graph is defined by a set of nodes (V) and edges (E), where nodes represent en
 
 Several popular GNN architectures have been developed, each with unique advantages:
 
+```mermaid
+graph TD
+    A[Input Graph - Nodes and Edges] --> B[Initialize Node Features]
+    B --> C[Message Passing Layer]
+    C --> D[Aggregate Neighbor Messages]
+    D --> E[Update Node Embeddings]
+    E --> F{More Layers?}
+    F -- Yes --> C
+    F -- No --> G[Readout Function]
+    G --> H[Node Classification]
+    G --> I[Link Prediction]
+    G --> J[Graph Classification]
+```
+
 - **Graph Convolutional Networks (GCN):** Propagate features through a graph by aggregating information from a node's neighbors.
 - **Graph Attention Networks (GAT):** Use attention mechanisms to weight the importance of neighboring nodes, enhancing feature aggregation.
 - **GraphSAGE:** A sampling-based approach that generates node embeddings by aggregating neighborhood information using various functions (such as mean, LSTM, or pooling).
@@ -96,6 +110,21 @@ Social network data can be acquired from various sources:
 - **Citation Networks:** Data representing collaborations among researchers.
 - **E-commerce Networks:** User-product interaction data.
 - **Custom Crawled Data:** Specific datasets gathered via APIs and web scraping.
+
+```mermaid
+graph TD
+    A[Target Node v] --> B[Aggregate Neighbor Features]
+    B --> C[Neighbor u1 - feature vector]
+    B --> D[Neighbor u2 - feature vector]
+    B --> E[Neighbor u3 - feature vector]
+    C --> F[Aggregation Function - mean or sum or max]
+    D --> F
+    E --> F
+    F --> G[Combine with Self Feature of v]
+    G --> H[Apply Linear Transform W]
+    H --> I[Apply Activation - ReLU]
+    I --> J[Updated Embedding for v at layer l plus 1]
+```
 
 ### 3.2. Graph Construction
 
@@ -276,6 +305,21 @@ Conduct detailed error analysis to improve model robustness:
 - **Analyze Neighborhood Structure:** Determine whether overly sparse or densely connected nodes affect performance.
 - **Iterative Retraining:** Adjust data sampling, augmentation strategies, or model parameters based on identified error patterns.
 
+```mermaid
+graph LR
+    A[Raw Graph - nodes and edges] --> B[GNN Encoder - multiple layers]
+    B --> C[Node Embedding Matrix Z]
+    C --> D[Node u embedding]
+    C --> E[Node v embedding]
+    D --> F[Dot Product or MLP Scorer]
+    E --> F
+    F --> G[Link Score between u and v]
+    G --> H{Score above threshold?}
+    H -->|Yes| I[Predict Edge Exists]
+    H -->|No| J[Predict No Edge]
+    I --> K[Recommendation or Friend Suggestion]
+```
+
 ### 6.3. Model Interpretability
 
 Improving model interpretability builds trust in predictions:
@@ -287,6 +331,23 @@ Improving model interpretability builds trust in predictions:
 ---
 
 ## 7. Deployment and Production Considerations
+
+```mermaid
+graph TD
+    A[Trained GNN Model] --> B[Model Optimization]
+    B --> C[Pruning - remove redundant weights]
+    B --> D[Quantization - lower precision]
+    B --> E[Batched Inference - parallel graph segments]
+    C --> F[Serve via FastAPI or Flask]
+    D --> F
+    E --> F
+    F --> G[Docker Container]
+    G --> H[Kubernetes Cluster]
+    H --> I[Real-Time Metrics - latency and accuracy]
+    I --> J{Drift Detected?}
+    J -- Yes --> K[Trigger Re-Training Pipeline]
+    J -- No --> L[Continue Serving]
+```
 
 ### 7.1. Model Optimization for Inference
 
@@ -345,9 +406,408 @@ When deploying GNNs, consider the following:
 - **Privacy Preservation:** Apply differential privacy techniques to ensure user data remains secure.
 - **Transparency and Accountability:** Provide clear documentation and interpretability reports for stakeholders.
 
+```mermaid
+graph TD
+    A[Raw Social Graph Data] --> B[Node Feature Engineering]
+    B --> C[Train - Val - Test Split]
+    C --> D[Select GNN Architecture]
+    D --> E{Task Type}
+    E -->|Node Labels Given| F[GCN or GraphSAGE for Node Classification]
+    E -->|Edge Pairs Given| G[GAT for Link Prediction]
+    E -->|No Labels| H[Graph Autoencoder - unsupervised]
+    F --> I[Train with Cross-Entropy Loss]
+    G --> I
+    H --> I
+    I --> J[Evaluate on Validation Set]
+    J --> K{Metrics Adequate?}
+    K -->|No| L[Tune Hyperparameters]
+    L --> I
+    K -->|Yes| M[Test Set Evaluation and Deploy]
+```
+
 ---
 
-## 9. Best Practices for Implementing GNNs
+## 9. GCN vs GAT vs GraphSAGE Comparison
+
+Each architecture aggregates neighborhood information differently, which affects expressiveness and scalability:
+
+```mermaid
+graph TD
+    TASK[Graph Learning Task] --> ARCH{Aggregation Strategy}
+    ARCH -->|Fixed equal weights| GCN[GCN - spectral convolution]
+    ARCH -->|Learned attention weights| GAT[GAT - attention per neighbor]
+    ARCH -->|Sampled neighborhood| SAGE[GraphSAGE - inductive sampling]
+    GCN --> GCN1[Scalable on fixed graphs]
+    GCN --> GCN2[Sensitive to graph structure changes]
+    GAT --> GAT1[Weights high-signal neighbors more]
+    GAT --> GAT2[Higher memory due to attention heads]
+    SAGE --> SAGE1[Works on unseen nodes - inductive]
+    SAGE --> SAGE2[Suitable for very large graphs]
+    GCN1 --> CITE[Citation and knowledge graphs]
+    GAT1 --> SOCIAL[Social network influence tasks]
+    SAGE1 --> PROD[Product recommendation at scale]
+```
+
+---
+
+## 10. Community Detection Workflow
+
+Identifying communities in a social graph requires a different pipeline than supervised node classification:
+
+```mermaid
+graph LR
+    GRAPH[Social Graph] --> EMBED[Learn Node Embeddings - GNN Encoder]
+    EMBED --> CLUSTER[Clustering Algorithm]
+    CLUSTER -->|Partition-based| KMEANS[K-Means on embeddings]
+    CLUSTER -->|Hierarchical| AGGLOM[Agglomerative Clustering]
+    CLUSTER -->|Graph-native| LOUVAIN[Louvain Modularity Optimization]
+    KMEANS --> COMMUNITY[Community Assignments]
+    AGGLOM --> COMMUNITY
+    LOUVAIN --> COMMUNITY
+    COMMUNITY --> METRICS[Evaluate Modularity and NMI]
+    METRICS --> VIZ[Visualize with Gephi or pyvis]
+    VIZ --> INSIGHT[Identify influencer hubs and isolated clusters]
+```
+
+---
+
+## 11. Temporal GNN Update Cycle
+
+Dynamic social networks require periodic re-embedding as new edges and nodes appear:
+
+```mermaid
+sequenceDiagram
+    participant Stream as Event Stream - new follows and likes
+    participant GraphDB as Graph Store
+    participant TGNN as Temporal GNN
+    participant EmbStore as Embedding Store
+    participant Downstream as Downstream Tasks
+
+    Stream->>GraphDB: New edge - user A follows user B at time T
+    GraphDB->>GraphDB: Update adjacency and edge timestamps
+    GraphDB->>TGNN: Trigger incremental update for affected nodes
+    TGNN->>TGNN: Aggregate recent neighborhood with temporal decay
+    TGNN-->>EmbStore: Updated embeddings for user A and user B
+    Downstream->>EmbStore: Query embeddings for recommendation
+    EmbStore-->>Downstream: Fresh node vectors
+    Note over TGNN,EmbStore: Full re-embedding runs nightly for global consistency
+```
+
+---
+
+## 12. Graph Data Augmentation Strategies
+
+Augmenting graph data during training improves robustness and reduces overfitting:
+
+```mermaid
+graph TD
+    ORIG[Original Training Graph] --> AUG{Augmentation Type}
+    AUG -->|Add noise to connectivity| EDGEDROP[Random Edge Dropout - drop 10 to 20 percent]
+    AUG -->|Perturb features| FEATMASK[Feature Masking - zero out random dims]
+    AUG -->|Create synthetic connections| DIFFUSION[Graph Diffusion - add multi-hop edges]
+    AUG -->|Oversample minority subgraphs| SMOTE[GraphSMOTE for imbalanced classes]
+    EDGEDROP --> AUGVIEW[Augmented Graph View]
+    FEATMASK --> AUGVIEW
+    DIFFUSION --> AUGVIEW
+    SMOTE --> AUGVIEW
+    AUGVIEW --> CONTRAST[Contrastive Loss - SimCLR on graphs]
+    CONTRAST --> ROBUST[More Robust Node Embeddings]
+```
+
+---
+
+## 13. Heterogeneous Graph Networks
+
+Real-world graphs are rarely homogeneous. Social platforms, knowledge bases, and recommendation systems contain multiple node types (users, posts, hashtags, products) and multiple edge types (follows, likes, authored, purchased). Heterogeneous Graph Networks (HGNs) extend standard GNNs to handle these multi-relational structures.
+
+### 9.1 Relational Graph Convolutional Networks (R-GCN)
+
+R-GCN learns a separate weight matrix per relation type and sums their contributions at each node:
+
+```python
+from torch_geometric.nn import RGCNConv
+import torch
+import torch.nn.functional as F
+
+class RGCN(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_relations):
+        super().__init__()
+        self.conv1 = RGCNConv(in_channels, hidden_channels, num_relations)
+        self.conv2 = RGCNConv(hidden_channels, out_channels, num_relations)
+
+    def forward(self, x, edge_index, edge_type):
+        x = F.relu(self.conv1(x, edge_index, edge_type))
+        x = F.dropout(x, p=0.3, training=self.training)
+        return self.conv2(x, edge_index, edge_type)
+
+# num_relations is the number of distinct edge types in your heterogeneous graph
+model = RGCN(in_channels=64, hidden_channels=32, out_channels=8, num_relations=5)
+```
+
+### 9.2 HGT: Heterogeneous Graph Transformer
+
+HGT uses type-specific projection matrices and attention heads that account for both source node type and edge type, making it effective for knowledge graph completion:
+
+```python
+from torch_geometric.nn import HGTConv, Linear
+import torch
+
+class HGT(torch.nn.Module):
+    def __init__(self, metadata, hidden_channels, out_channels, num_heads, num_layers):
+        super().__init__()
+        self.lin_dict = torch.nn.ModuleDict()
+        for node_type in metadata[0]:
+            self.lin_dict[node_type] = Linear(-1, hidden_channels)
+
+        self.convs = torch.nn.ModuleList([
+            HGTConv(hidden_channels, hidden_channels, metadata, num_heads)
+            for _ in range(num_layers)
+        ])
+        self.lin = Linear(hidden_channels, out_channels)
+
+    def forward(self, x_dict, edge_index_dict):
+        x_dict = {nt: self.lin_dict[nt](x).relu_() for nt, x in x_dict.items()}
+        for conv in self.convs:
+            x_dict = conv(x_dict, edge_index_dict)
+        return self.lin(x_dict["user"])
+```
+
+```mermaid
+graph TD
+    subgraph HeterogeneousGraph
+        U1[User Node] -->|follows| U2[User Node]
+        U1 -->|liked| P1[Post Node]
+        P1 -->|tagged| T1[Hashtag Node]
+        U2 -->|authored| P2[Post Node]
+    end
+    U1 --> PROJ1[Type-specific projection W_user]
+    P1 --> PROJ2[Type-specific projection W_post]
+    T1 --> PROJ3[Type-specific projection W_tag]
+    PROJ1 --> ATT[Multi-head attention per relation type]
+    PROJ2 --> ATT
+    PROJ3 --> ATT
+    ATT --> AGG[Aggregated heterogeneous embedding]
+    AGG --> TASK[Downstream task - link prediction or classification]
+```
+
+---
+
+## 14. Temporal Graph Neural Networks
+
+Many social graphs evolve continuously: new friendships form, old ones dissolve, and interaction frequency shifts. Temporal GNNs model these dynamics by incorporating time as a first-class feature.
+
+### 14.1. Temporal Graph Attention (TGAT)
+
+TGAT encodes time differences with a functional time encoding and applies attention over a node's temporal neighborhood:
+
+```python
+import torch
+import numpy as np
+
+class TimeEncoder(torch.nn.Module):
+    """Encodes a scalar time delta as a d-dimensional vector using Bochner's theorem."""
+    def __init__(self, d_model):
+        super().__init__()
+        self.W = torch.nn.Linear(1, d_model)
+
+    def forward(self, t):
+        # t: (batch, 1) time delta in seconds
+        return torch.cos(self.W(t))
+
+class TemporalAttentionLayer(torch.nn.Module):
+    def __init__(self, feat_dim, time_dim, n_heads):
+        super().__init__()
+        self.time_encoder = TimeEncoder(time_dim)
+        self.attn = torch.nn.MultiheadAttention(feat_dim + time_dim, n_heads, batch_first=True)
+
+    def forward(self, src_feat, nbr_feats, nbr_times):
+        # Encode time deltas for all neighbors
+        time_enc = self.time_encoder(nbr_times.unsqueeze(-1))
+        # Concatenate node features with time encoding
+        nbr_repr = torch.cat([nbr_feats, time_enc], dim=-1)
+        query = src_feat.unsqueeze(1)
+        out, _ = self.attn(query, nbr_repr, nbr_repr)
+        return out.squeeze(1)
+```
+
+The following sequence diagram shows how a temporal graph event triggers an incremental embedding update cycle through the memory bank and downstream services:
+
+```mermaid
+sequenceDiagram
+    participant ES as Event Stream
+    participant GS as Graph Store
+    participant TGNN as Temporal GNN
+    participant MB as Memory Bank
+    participant DS as Downstream Service
+
+    ES->>GS: Edge event (u, v, t, features)
+    GS->>MB: Fetch last memory state for u and v
+    MB-->>GS: m_u, m_v at previous timestamps
+    GS->>TGNN: Forward pass with temporal neighborhood
+    TGNN->>TGNN: Apply time encoding to delta_t
+    TGNN->>TGNN: Temporal attention over recent neighbors
+    TGNN-->>MB: Update memory for u and v
+    DS->>MB: Query embedding for recommendation
+    MB-->>DS: Latest embedding vectors
+```
+
+---
+
+## 15. GNN Explainability
+
+Production GNN deployments in sensitive domains (credit scoring, healthcare, content moderation) require interpretable predictions. Three dominant approaches exist.
+
+### 15.1. GNNExplainer
+
+GNNExplainer learns a soft mask over edges and node features to identify the minimal subgraph that most influences a prediction:
+
+```python
+from torch_geometric.explain import Explainer, GNNExplainer
+
+explainer = Explainer(
+    model=model,
+    algorithm=GNNExplainer(epochs=200),
+    explanation_type="model",
+    node_mask_type="attributes",
+    edge_mask_type="object",
+    model_config=dict(
+        mode="multiclass_classification",
+        task_level="node",
+        return_type="log_probs",
+    ),
+)
+
+# Explain prediction for node index 5
+explanation = explainer(data.x, data.edge_index, index=5)
+print("Top edge mask:", explanation.edge_mask.topk(5).indices)
+print("Top feature importance:", explanation.node_mask[5].topk(3).indices)
+```
+
+The following diagram shows how each of the three explainability methods produces a human-readable audit artifact:
+
+```mermaid
+graph LR
+    PRED[GNN Prediction for node v] --> EXP{Explanation Method}
+    EXP -->|Mask optimization| GNNEXP[GNNExplainer - soft edge mask]
+    EXP -->|Surrogate model| GRAPHLIME[GraphLIME - kernel Hilbert space]
+    EXP -->|Perturbation| PGEXP[PGExplainer - generative mask network]
+    GNNEXP --> SUBGRAPH[Minimal important subgraph]
+    GRAPHLIME --> FEATURES[Most influential node features]
+    PGEXP --> PATTERN[Recurring explanatory patterns across nodes]
+    SUBGRAPH --> VIZ[Visualization with highlighted edges]
+    FEATURES --> VIZ
+    PATTERN --> VIZ
+    VIZ --> AUDIT[Human-readable audit report]
+```
+
+---
+
+## 16. Scaling GNNs to Billion-Node Graphs
+
+Industrial social graphs (LinkedIn, Facebook, Pinterest) contain billions of nodes. Standard full-batch GNN training is infeasible at this scale. Several techniques enable training at planet scale.
+
+### 16.1. Mini-Batch Neighbor Sampling with GraphSAGE
+
+```python
+from torch_geometric.loader import NeighborLoader
+from torch_geometric.nn import SAGEConv
+
+# Limit neighborhood to 15 nodes at hop 1, 10 at hop 2
+loader = NeighborLoader(
+    data,
+    num_neighbors=[15, 10],
+    batch_size=1024,
+    input_nodes=data.train_mask,
+)
+
+class GraphSAGE(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels):
+        super().__init__()
+        self.conv1 = SAGEConv(in_channels, hidden_channels)
+        self.conv2 = SAGEConv(hidden_channels, out_channels)
+
+    def forward(self, x, edge_index):
+        x = F.relu(self.conv1(x, edge_index))
+        return self.conv2(x, edge_index)
+
+model = GraphSAGE(64, 256, 10)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+for batch in loader:
+    optimizer.zero_grad()
+    out = model(batch.x, batch.edge_index)
+    loss = F.cross_entropy(out[:batch.batch_size], batch.y[:batch.batch_size])
+    loss.backward()
+    optimizer.step()
+```
+
+### 16.2. Cluster-GCN: Graph Partitioning for Scalability
+
+Cluster-GCN partitions the graph into dense subgraphs using METIS or random walk clustering. Each mini-batch processes one cluster, dramatically reducing inter-node communication. The following diagram illustrates this partitioning strategy:
+
+```mermaid
+graph TD
+    FULL[Full Billion-Node Graph] --> PARTITION[METIS or Louvain Partitioning]
+    PARTITION --> C1[Cluster 1 - dense subgraph]
+    PARTITION --> C2[Cluster 2 - dense subgraph]
+    PARTITION --> CN[Cluster N - dense subgraph]
+    C1 --> BATCH1[Mini-Batch 1 - self-contained]
+    C2 --> BATCH2[Mini-Batch 2 - self-contained]
+    CN --> BATCHN[Mini-Batch N - self-contained]
+    BATCH1 --> GCN[GCN Forward Pass]
+    BATCH2 --> GCN
+    BATCHN --> GCN
+    GCN --> GRAD[Gradient update - no inter-cluster message passing needed]
+    GRAD --> EMBED[Global node embedding table updated incrementally]
+```
+
+### 16.3. Distributed Training with PyTorch Geometric and DGL
+
+For graphs exceeding a single machine's memory, distributed GNN training partitions node feature tables and edge lists across multiple GPU nodes:
+
+```python
+# Pseudocode for DistDGL distributed setup
+import dgl
+import torch.distributed as dist
+
+dist.init_process_group(backend="nccl")
+local_rank = dist.get_rank()
+
+# Each process loads its shard of the graph
+graph_shard = dgl.distributed.DistGraph("ogbn-papers100M", part_config="partition.json")
+sampler = dgl.dataloading.NeighborSampler([10, 5])
+loader = dgl.dataloading.DistNodeDataLoader(
+    graph_shard, graph_shard.ndata["train_mask"].nonzero(),
+    sampler, batch_size=1000, shuffle=True
+)
+# Standard training loop proceeds with gradient synchronization via DDP
+```
+
+### 16.4. Production GNN Serving Architecture
+
+The following diagram shows the full offline-to-online serving pipeline, from GPU cluster training through feature store and model store to real-time inference and feedback loops:
+
+```mermaid
+graph TD
+    OFFLINE[Offline Training Pipeline] --> TRAIN[GNN Training on GPU Cluster]
+    TRAIN --> EXPORT[Export model weights and embedding table]
+    EXPORT --> FS[Feature Store - Redis or Feast]
+    EXPORT --> MS[Model Store - MLflow or SageMaker]
+    MS --> SERVE[Online Serving Layer]
+    FS --> SERVE
+    SERVE --> LOOKUP[Approximate Nearest Neighbor - FAISS or ScaNN]
+    SERVE --> INFER[Real-time GNN inference for new nodes]
+    LOOKUP --> RERANK[Re-ranking layer]
+    INFER --> RERANK
+    RERANK --> API[Recommendation or Classification API]
+    API --> CLIENT[Client Application]
+    CLIENT -->|User interaction feedback| STREAM[Kafka event stream]
+    STREAM --> OFFLINE
+```
+
+---
+
+## 17. Best Practices for Implementing GNNs
 
 - **Data Quality:** Use high-quality, representative, and thoroughly cleaned graph data.
 - **Model Selection:** Choose the GNN architecture that best fits the specific task - whether it is node classification, link prediction, or clustering.
@@ -358,13 +818,13 @@ When deploying GNNs, consider the following:
 
 ---
 
-## 10. Conclusion
+## 18. Conclusion
 
 Graph Neural Networks offer unmatched capabilities for unraveling the complex relationships present in social networks. By integrating detailed node and edge information with advanced deep learning techniques, GNNs enable nuanced and precise analyses across various applications, from community detection to influence prediction. This comprehensive guide has outlined the core theory, data processing methods, model architectures, advanced training strategies, evaluation techniques, and deployment considerations essential for applying GNNs in real-world scenarios. As research in this field continues to evolve, adopting innovative methodologies and adhering to ethical standards will be key to unlocking even deeper insights from complex relational data.
 
 ---
 
-## 11. Further Resources
+## 19. Further Reading
 
 - **PyTorch Geometric Documentation:** [https://pytorch-geometric.readthedocs.io](https://pytorch-geometric.readthedocs.io)
 - **Graph Neural Networks Survey Paper:** Explore surveys such as "A Comprehensive Survey on Graph Neural Networks" available on arXiv.

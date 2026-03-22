@@ -32,6 +32,43 @@ Rendering strategies have evolved significantly from the days when client-side J
 
 Let’s explore these strategies in detail.
 
+The following diagram compares the data flow of SSR, SSG, and ISR:
+
+```mermaid
+graph TD
+    subgraph SSR
+        A1[Browser Request] --> A2[Server Fetches Data]
+        A2 --> A3[Server Renders HTML]
+        A3 --> A4[Send HTML to Browser]
+    end
+    subgraph SSG
+        B1[Build Time] --> B2[Fetch All Data]
+        B2 --> B3[Generate Static HTML]
+        B3 --> B4[CDN Serves Pages]
+    end
+    subgraph ISR
+        C1[First Request] --> C2[Serve Cached Page]
+        C2 --> C3[Background Revalidation]
+        C3 --> C4[Update Cached Page]
+    end
+```
+
+The core distinction between these strategies comes down to when data is fetched — at build time or per request:
+
+```mermaid
+graph TD
+    A[Data Source - API or DB or CMS] --> B{When is data fetched?}
+    B --> C[Build Time - SSG and ISR]
+    B --> D[Request Time - SSR and CSR]
+    C --> E[npm run build executes]
+    E --> F[getStaticProps or getStaticPaths called]
+    F --> G[HTML files written to disk]
+    G --> H[Served from CDN - no server needed]
+    D --> I[getServerSideProps or API route called]
+    I --> J[Server renders HTML on demand]
+    J --> K[Sent directly to browser]
+```
+
 ---
 
 ## 2. Server-Side Rendering (SSR)
@@ -88,6 +125,21 @@ export default function SSRExample({ data }) {
 
 In this example, every request causes Next.js to execute `getServerSideProps`, ensuring that users always receive the most current data.
 
+Adding an edge cache layer dramatically reduces origin load by serving repeated SSR responses directly from the CDN:
+
+```mermaid
+graph LR
+    REQ[User Request] --> EDGE[Edge Cache - CDN]
+    EDGE --> HIT{Cache Hit?}
+    HIT -- Yes --> SERVE[Serve Cached Response]
+    HIT -- No --> ORIGIN[Next.js Server]
+    ORIGIN --> FETCH[Fetch Data - DB or API]
+    FETCH --> RENDER[Render HTML]
+    RENDER --> CCHEADER[Set Cache-Control header]
+    CCHEADER --> EDGE2[Store at Edge with TTL]
+    EDGE2 --> SERVE
+```
+
 ---
 
 ## 3. Static Site Generation (SSG)
@@ -141,6 +193,23 @@ export default function SSGExample({ data }) {
 ```
 
 This page is pre-built during the build process, meaning that subsequent requests result in very fast responses from a CDN.
+
+With dynamic routes, `getStaticPaths` drives the build — iterating over every known slug and calling `getStaticProps` for each one before writing the output to disk:
+
+```mermaid
+graph TD
+    A[Build Start] --> B[getStaticPaths called]
+    B --> C[Fetch all slugs from CMS or DB]
+    C --> D[Generate paths array]
+    D --> E[For each path - call getStaticProps]
+    E --> F[Fetch page-specific data]
+    F --> G[Render React component to HTML]
+    G --> H[Write HTML file to out directory]
+    H --> I{More paths?}
+    I -- Yes --> E
+    I -- No --> J[Build Complete]
+    J --> K[Deploy static files to CDN]
+```
 
 ---
 
@@ -200,6 +269,19 @@ export default function ISRExample({ data }) {
 
 With ISR, the page served is static, yet updates occur seamlessly in the background based on the revalidation interval.
 
+ISR uses a stale-while-revalidate pattern: the cached page is served immediately on every request, and regeneration runs in the background only after the revalidation window expires:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Fresh
+    Fresh --> Stale: Revalidation window expires
+    Stale --> Revalidating: New request arrives
+    Revalidating --> Fresh: Background render succeeds
+    Revalidating --> Stale: Render fails - keep old page
+    Stale --> Stale: Serve old page while revalidating
+    Fresh --> [*]: Page invalidated manually via API
+```
+
 ---
 
 ## 5. Deep Comparison: SSR vs. SSG vs. ISR
@@ -226,9 +308,37 @@ With ISR, the page served is static, yet updates occur seamlessly in the backgro
 - You need the performance benefits of static sites with the flexibility of dynamic updates.
 - The content is updated regularly but doesn’t require real-time data on every request.
 
+Use this decision tree to choose the right rendering strategy for a given page:
+
+```mermaid
+graph TD
+    START[New Page or Feature] --> Q1{Does content change per user?}
+    Q1 -->|Yes| SSR[Use SSR - getServerSideProps]
+    Q1 -->|No| Q2{How often does content change?}
+    Q2 -->|Never or rarely| SSG[Use SSG - getStaticProps]
+    Q2 -->|Every few minutes to hours| ISR[Use ISR - revalidate interval]
+    Q2 -->|Continuously - real time| SSR
+    SSG --> Q3{Need SEO?}
+    Q3 -->|Yes| SSG
+    Q3 -->|No| CSR[Consider CSR for interactive data]
+```
+
 ---
 
 ## 6. Best Practices and Real-World Considerations
+
+The hydration process diagram shows how a server-rendered HTML page gains interactivity on the client:
+
+```mermaid
+graph TD
+    SERVER[Server] --> HTML[Pre-rendered HTML sent to browser]
+    HTML --> PAINT[Browser paints page - First Contentful Paint]
+    PAINT --> JSLOAD[Browser downloads JavaScript bundle]
+    JSLOAD --> HYDRATE[React hydrates DOM - attaches event listeners]
+    HYDRATE --> INTERACTIVE[Page fully interactive]
+    Note1[Page is visible but not interactive during JS load] -.-> JSLOAD
+    Note2[Minimize JS bundle size to reduce Time to Interactive] -.-> INTERACTIVE
+```
 
 ### 6.1. Optimizing Performance and SEO
 
@@ -261,6 +371,24 @@ With ISR, the page served is static, yet updates occur seamlessly in the backgro
 
 ## 7. Advanced Topics and Future Directions
 
+The CDN caching architecture with ISR shows how static pages are distributed and invalidated across edge nodes:
+
+```mermaid
+graph TD
+    ORIGIN[Origin Server - Next.js] --> CACHE[Build static pages]
+    CACHE --> CDN1[CDN Edge - US East]
+    CACHE --> CDN2[CDN Edge - EU West]
+    CACHE --> CDN3[CDN Edge - Asia Pacific]
+    CDN1 --> USER1[User in New York]
+    CDN2 --> USER2[User in London]
+    CDN3 --> USER3[User in Tokyo]
+    ORIGIN --> REVAL[ISR revalidation triggered]
+    REVAL --> CDN1
+    REVAL --> CDN2
+    REVAL --> CDN3
+    Note1[Stale-while-revalidate pattern] -.-> REVAL
+```
+
 ### 7.1. Hybrid Rendering Strategies
 
 Many modern frameworks support hybrid rendering modes - combining SSR for dynamic sections with SSG/ISR for mostly static content. This flexibility allows you to optimize the user experience on a per-page basis.
@@ -273,11 +401,206 @@ Leveraging edge computing can bring your SSR logic closer to users, reducing lat
 
 PWAs benefit greatly from fast, pre-rendered content. Combining ISR with PWA techniques such as service workers can lead to offline capabilities and near-instant load times.
 
+Traditional SSR sends the entire HTML document only after all data fetches complete. Streaming SSR uses HTTP chunked transfer encoding to send HTML progressively as each part of the React tree resolves.
+
+### 7.4. How Streaming Works
+
+React 18's `renderToPipeableStream` and Next.js's built-in streaming support allow route segments to stream independently. Wrap slow components in `<Suspense>` to show a fallback immediately while the real content loads in the background.
+
+```tsx
+// app/dashboard/page.tsx (Next.js App Router)
+import { Suspense } from "react";
+import { RevenueChart } from "./revenue-chart";
+import { LatestInvoices } from "./latest-invoices";
+import { CardsSkeleton, RevenueChartSkeleton } from "@/components/skeletons";
+
+export default function Dashboard() {
+  return (
+    <main>
+      <h1>Dashboard</h1>
+      {/* This section streams in once the revenue data resolves */}
+      <Suspense fallback={<RevenueChartSkeleton />}>
+        <RevenueChart />
+      </Suspense>
+      {/* This section streams independently */}
+      <Suspense fallback={<CardsSkeleton />}>
+        <LatestInvoices />
+      </Suspense>
+    </main>
+  );
+}
+```
+
+```tsx
+// app/dashboard/revenue-chart.tsx — async Server Component
+async function RevenueChart() {
+  // This fetch can take 2s without blocking the rest of the page
+  const data = await fetch("https://api.example.com/revenue", {
+    cache: "no-store",
+  }).then((r) => r.json());
+
+  return <Chart data={data} />;
+}
+```
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant Server as Next.js Server
+
+    Browser->>Server: GET /dashboard
+    Server-->>Browser: Stream: <html><head>...</head><body> (immediate)
+    Server-->>Browser: Stream: Dashboard shell + Suspense fallback skeletons
+    Note over Server: Revenue fetch resolves (2s)
+    Server-->>Browser: Stream: <template> with RevenueChart HTML
+    Note over Server: Invoices fetch resolves (1s)
+    Server-->>Browser: Stream: <template> with LatestInvoices HTML
+    Server-->>Browser: Stream: </body></html>
+    Note over Browser: Page was visible and interactive from first chunk
+```
+
+This pattern means **Time to First Byte (TTFB)** stays low even when some data is slow, because the shell arrives immediately. The browser can parse and paint the skeleton while waiting for the data-dependent sections.
+
+### 7.5. Partial Prerendering (PPR)
+
+Partial Prerendering is an experimental Next.js feature that combines SSG and streaming SSR into a single request. The static shell is served from the CDN at near-zero latency, while dynamic "holes" are filled by streaming from the server.
+
+```tsx
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    ppr: true, // enable Partial Prerendering
+  },
+};
+
+module.exports = nextConfig;
+```
+
+```tsx
+// app/product/[id]/page.tsx
+import { Suspense } from "react";
+import { StaticProductInfo } from "./static-info";
+import { DynamicInventory } from "./inventory"; // reads real-time stock
+
+export default function ProductPage({ params }: { params: { id: string } }) {
+  return (
+    <div>
+      {/* Statically prerendered at build time */}
+      <StaticProductInfo id={params.id} />
+
+      {/* Dynamically streamed at request time */}
+      <Suspense fallback={<p>Loading stock…</p>}>
+        <DynamicInventory id={params.id} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+```mermaid
+graph LR
+    BUILD[Build Time] --> SHELL[Prerender static shell to CDN]
+    REQUEST[User Request] --> CDN[CDN serves shell instantly - ~0ms latency]
+    CDN --> STREAM[Server streams dynamic holes]
+    STREAM --> INVENTORY[Real-time stock data]
+    STREAM --> PRICE[Live pricing]
+    INVENTORY --> BROWSER[Browser fills holes progressively]
+    PRICE --> BROWSER
+    SHELL --> CDN
+```
+
+### 7.6. Edge Rendering
+
+Edge rendering executes Next.js route segments on distributed edge nodes (e.g., Cloudflare Workers, Vercel Edge Runtime) rather than a central origin server. This eliminates geographic latency for dynamic content.
+
+```tsx
+// app/personalized/page.tsx
+export const runtime = "edge"; // opt into Edge Runtime
+
+export default async function PersonalizedPage({
+  request,
+}: {
+  request: Request;
+}) {
+  const country = request.headers.get("cf-ipcountry") ?? "US";
+  const content = await fetchLocalizedContent(country);
+
+  return <LocalizedHero content={content} country={country} />;
+}
+```
+
+**Constraints of the Edge Runtime:** No Node.js built-ins (no `fs`, no `crypto` from `node:crypto`), 128 MB memory limit, and cold starts under 5 ms. Use it for personalization, A/B routing, and geo-based redirects — not for database-heavy workloads.
+
+### 7.7. Performance Comparison with Metrics
+
+| Strategy      | TTFB    | FCP     | LCP     | Best For                   |
+| ------------- | ------- | ------- | ------- | -------------------------- |
+| SSG (CDN)     | ~10 ms  | ~100 ms | ~300 ms | Marketing, docs, blogs     |
+| SSR (Origin)  | ~300 ms | ~400 ms | ~600 ms | Personalized pages         |
+| SSR (Edge)    | ~50 ms  | ~150 ms | ~350 ms | Geo-personalized pages     |
+| Streaming SSR | ~80 ms  | ~100 ms | varies  | Dashboards with mixed data |
+| PPR           | ~10 ms  | ~100 ms | ~200 ms | Product pages, hybrid      |
+| ISR (cached)  | ~10 ms  | ~100 ms | ~300 ms | E-commerce catalog         |
+
+_Values are illustrative P50 estimates for a global user base. Actual numbers depend on server location, data source latency, and payload size._
+
+```mermaid
+graph TD
+    A[Page Requirements] --> B{Has personalized data?}
+    B -->|Yes - per user| C{Latency sensitive?}
+    B -->|No| D{Data freshness?}
+    C -->|Yes - sub-100ms| EDGE[Edge Runtime SSR]
+    C -->|No| SSR[Origin SSR with Suspense streaming]
+    D -->|Static forever| SSG[SSG - getStaticProps]
+    D -->|Updates every few hours| ISR[ISR with revalidate]
+    D -->|Real-time| STREAM[Streaming SSR with no-store fetch]
+    SSG --> CDN[Deploy to CDN]
+    ISR --> CDN
+    EDGE --> EDGENET[Deploy to edge network]
+    SSR --> ORIGIN[Deploy to origin server]
+    STREAM --> ORIGIN
+```
+
 ---
 
 ## 8. Conclusion
 
-Choosing the right rendering strategy - SSR, SSG, or ISR - is essential for building modern, performant, and SEO-friendly web applications. SSR provides up-to-date dynamic content at the cost of higher server overhead, SSG offers blazing-fast static pages ideal for content that rarely changes, and ISR strikes an effective balance by allowing static content to be updated incrementally. By understanding these methods in depth, you can tailor your rendering approach to meet the unique demands of your project.
+The following sequence diagram shows the full request flow for each rendering strategy side by side:
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant CDN
+    participant Server
+
+    Note over Browser,Server: SSR Request Flow
+    Browser->>Server: GET /dashboard
+    Server->>Server: Fetch data and render HTML
+    Server-->>Browser: Full HTML response
+
+    Note over Browser,Server: SSG Request Flow
+    Browser->>CDN: GET /blog/post
+    CDN-->>Browser: Cached static HTML instant response
+
+    Note over Browser,Server: ISR Request Flow
+    Browser->>CDN: GET /products
+    CDN-->>Browser: Serve cached page
+    CDN->>Server: Background regeneration if stale
+    Server-->>CDN: Updated HTML stored in cache
+```
+
+Choosing the right rendering strategy - SSR, SSG, or ISR - is essential for building modern, performant, and SEO-friendly web applications. SSR provides up-to-date dynamic content at the cost of higher server overhead, SSG offers blazing-fast static pages ideal for content that rarely changes, and ISR strikes an effective balance by allowing static content to be updated incrementally. Streaming SSR and Partial Prerendering push the boundary further, decoupling shell delivery from data latency so users see meaningful content almost immediately.
+
+**Key Takeaways:**
+
+- SSG and ISR serve from CDN at ~10 ms TTFB — use them for any content that is not personalized.
+- SSR should be reserved for genuinely user-specific pages; wrap slow sections in `<Suspense>` to stream rather than block.
+- Partial Prerendering is the most exciting new primitive: it merges CDN-speed shells with server-streamed dynamic holes in a single page.
+- Edge Runtime brings dynamic rendering close to users, but its limited API surface means it is not a drop-in replacement for full Node.js SSR.
+- Measure real user Core Web Vitals (LCP, INP, CLS) in production, not just Lighthouse scores. The rendering strategy you choose has a direct, measurable effect on each metric.
+
+By understanding these methods in depth, you can tailor your rendering approach to meet the unique demands of your project.
 
 ---
 

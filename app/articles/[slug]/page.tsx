@@ -6,9 +6,28 @@ import TopicsList from "@/components/TopicsList";
 import TableOfContents from "@/components/TableOfContents";
 import RelatedPosts from "@/components/RelatedPosts";
 import ArticleVisitTracker from "@/components/ArticleVisitTracker";
+import ArticleMeta from "@/components/ArticleMeta";
 import { getRelatedPosts, getAllPosts } from "@/lib/rss";
 import { formatReadingLabel } from "@/utils/calculateReadingTime";
+import { createClient } from "@supabase/supabase-js";
 import "./article.css";
+
+async function getViewCount(slug: string): Promise<number> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    const { data } = await supabase
+      .from("article_views")
+      .select("view_count")
+      .eq("slug", slug)
+      .maybeSingle();
+    return data?.view_count ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
 interface Params {
   slug: string;
@@ -60,18 +79,36 @@ export default async function ArticlePage({ params }: PageProps) {
       ? formatReadingLabel(readingMinutes)
       : undefined;
 
+  const viewCount = await getViewCount(slug);
+
+  // Fetch view counts for related posts
+  let relatedViewCounts: Record<string, number> = {};
+  if (related.length > 0) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
+      const { data } = await supabase
+        .from("article_views")
+        .select("slug, view_count")
+        .in(
+          "slug",
+          related.map((p) => p.slug),
+        );
+      if (data) {
+        for (const row of data) {
+          relatedViewCounts[row.slug] = row.view_count;
+        }
+      }
+    } catch {
+      // Silently fail
+    }
+  }
+
   return (
     <>
-      <article
-        className="fade-down-article"
-        style={
-          readingLabel
-            ? ({
-                ["--reading-time" as any]: `"${readingLabel}"`,
-              } as React.CSSProperties)
-            : undefined
-        }
-      >
+      <article className="fade-down-article">
         <MDXComponent style={{ minWidth: "100%" }} />
         <TopicsList topics={topics} />
         {related.length > 0 ? (
@@ -81,7 +118,9 @@ export default async function ArticlePage({ params }: PageProps) {
               title: p.title,
               description: p.description,
               excerpt: p.excerpt,
+              topics: p.topics,
               readingMinutes: p.readingMinutes,
+              viewCount: relatedViewCounts[p.slug],
             }))}
           />
         ) : null}
@@ -90,6 +129,7 @@ export default async function ArticlePage({ params }: PageProps) {
       <TableOfContents />
       <FavButton articleSlug={slug} />
       <ArticleVisitTracker slug={slug} title={title} topics={topics} />
+      <ArticleMeta readingLabel={readingLabel} viewCount={viewCount} />
     </>
   );
 }

@@ -25,6 +25,18 @@ export default function RLAutonomousDrivingArticle({ children }) {
 
 Autonomous driving has evolved into one of the most exciting and challenging applications of modern artificial intelligence. Reinforcement learning (RL) plays a critical role in teaching machines to navigate complex environments, make real-time decisions, and optimize long-term performance. This article provides an exhaustive exploration of reinforcement learning in the context of autonomous driving. We cover theoretical underpinnings, simulation environment setup, algorithm selection, training strategies, evaluation metrics, and practical deployment considerations. Whether you are a researcher, developer, or industry professional, this guide offers an in-depth reference to harness RL techniques for self-driving applications.
 
+```mermaid
+graph TD
+    A[Environment - Road, Traffic, Obstacles] --> B[Observe State]
+    B --> C[RL Agent - Neural Network Policy]
+    C --> D[Select Action - Steer, Accelerate, Brake]
+    D --> E[Execute Action in Environment]
+    E --> F[Receive Reward Signal]
+    F --> G[Update Policy via Backprop]
+    G --> C
+    E --> A
+```
+
 ---
 
 ## 1. Introduction
@@ -78,6 +90,42 @@ Reinforcement learning problems are typically modeled as Markov Decision Process
 - A reward function that guides the learning process.
 - The objective is to learn a policy that maximizes the expected cumulative reward over time.
 
+The following diagram shows how a raw environment outcome is decomposed into a shaped reward signal covering collision penalties, lane keeping, speed targets, and comfort scores:
+
+```mermaid
+graph TD
+    A[Raw Environment Outcome] --> B[Collision Detected?]
+    B -- Yes --> C[Large Negative Reward]
+    B -- No --> D[Lane Keeping Score]
+    D --> E[Speed Within Target Range?]
+    E -- Yes --> F[Positive Speed Reward]
+    E -- No --> G[Speed Penalty]
+    F --> H[Comfort Score - jerk and lateral accel]
+    G --> H
+    C --> I[Total Shaped Reward Signal]
+    H --> I
+    I --> J[Agent Policy Update]
+```
+
+The following decision tree helps select the right RL algorithm based on action space type and the number of agents involved:
+
+```mermaid
+graph TD
+    A[Define Driving Task] --> B{Action Space Type?}
+    B --> C[Discrete - fixed steering angles]
+    B --> D[Continuous - smooth steering and throttle]
+    C --> E[DQN or Double DQN]
+    D --> F{Single or Multi Agent?}
+    F --> G[Single Agent]
+    F --> H[Multi Agent]
+    G --> I[PPO or DDPG or SAC]
+    H --> J[MADDPG or MAPPO]
+    E --> K[Train with Experience Replay]
+    I --> K
+    J --> K
+    K --> L[Evaluate in Simulation]
+```
+
 ---
 
 ## 3. Data Preparation and Simulation Environment Setup
@@ -117,6 +165,20 @@ Before training, the sensor data should be normalized and sometimes augmented:
 ---
 
 ## 4. Model Architectures and Algorithmic Approaches
+
+```mermaid
+graph LR
+    A[Sensor Inputs] --> B[Camera CNN]
+    A --> C[LiDAR Encoder]
+    A --> D[Radar Data]
+    B --> E[Feature Fusion Layer]
+    C --> E
+    D --> E
+    E --> F[Actor Network - Policy]
+    E --> G[Critic Network - Value]
+    F --> H[Continuous Actions - Steering and Speed]
+    G --> I[Value Estimate for Training]
+```
 
 ### 4.1. Selecting the Right RL Algorithm
 
@@ -245,6 +307,23 @@ for episode in range(episodes):
     print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")
 ```
 
+The following state diagram shows the full training loop, from experience collection and replay buffer storage through policy updates to convergence evaluation:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Initialize
+    Initialize --> CollectExperience: Policy initialized
+    CollectExperience --> StoreInBuffer: Step taken in environment
+    StoreInBuffer --> SampleBatch: Replay buffer updated
+    SampleBatch --> ComputeLoss: Mini-batch sampled
+    ComputeLoss --> Backpropagate: Loss calculated
+    Backpropagate --> UpdatePolicy: Gradients applied
+    UpdatePolicy --> CheckConvergence: Weights updated
+    CheckConvergence --> CollectExperience: Not converged
+    CheckConvergence --> EvaluateAgent: Convergence threshold met
+    EvaluateAgent --> [*]: Evaluation complete
+```
+
 ---
 
 ## 6. In-Depth Evaluation, Error Analysis, and Interpretability
@@ -273,6 +352,25 @@ Techniques to improve interpretability include:
 - **Saliency Maps:** Identify which parts of the visual input the agent focuses on.
 - **Policy Visualization:** Plot the decision boundaries learned by the network.
 - **Explainable AI Tools:** Utilize frameworks to pinpoint which sensor inputs most influence the agent's decisions.
+
+The following diagram shows the evaluation pipeline from running episodes through metric aggregation to deciding whether to approve or iterate:
+
+```mermaid
+graph LR
+    A[Trained RL Policy] --> B[Run Evaluation Episodes]
+    B --> C[Collect Episode Trajectories]
+    C --> D[Compute Cumulative Reward]
+    C --> E[Count Collision Events]
+    C --> F[Measure Lane Departure Rate]
+    D --> G[Aggregate Performance Report]
+    E --> G
+    F --> G
+    G --> H{Meets Safety Threshold?}
+    H -- No --> I[Analyze Failure Trajectories]
+    I --> J[Adjust Reward Function or Hyperparameters]
+    J --> A
+    H -- Yes --> K[Approve for Sim-to-Real Transfer]
+```
 
 ---
 
@@ -312,6 +410,21 @@ In real-world autonomous driving, interaction with other vehicles is crucial. Mu
 - **Cooperative Driving:** Training agents to communicate and coordinate.
 - **Competitive Scenarios:** Handling conflicts and ensuring safety in mixed traffic environments.
 
+The following diagram shows how domain randomization in simulation produces a robust policy that can be iteratively fine-tuned with real-world driving data:
+
+```mermaid
+graph LR
+    A[Train in Simulation - CARLA or AirSim] --> B[Domain Randomization]
+    B --> C[Vary Lighting and Weather and Texture]
+    C --> D[Robust Sim Policy]
+    D --> E[Deploy on Real Vehicle]
+    E --> F[Collect Real-World Data]
+    F --> G{Performance Gap?}
+    G -- Yes --> H[Fine-Tune with Real Data]
+    G -- No --> I[Policy Validated for Deployment]
+    H --> D
+```
+
 ### 8.2. Simulation-to-Real Transfer
 
 Transferring models from simulation to reality (Sim2Real) remains a key challenge:
@@ -323,6 +436,21 @@ Transferring models from simulation to reality (Sim2Real) remains a key challeng
 
 Hierarchical approaches break down complex driving tasks into simpler sub-tasks, allowing for more efficient learning.
 
+The following diagram shows how a safety shield layer intercepts the RL agent's proposed actions and enforces hard constraints before execution:
+
+```mermaid
+graph TD
+    A[RL Agent Proposes Action] --> B[Safety Shield Layer]
+    B --> C{Action Violates Constraint?}
+    C -- No --> D[Execute Action in Environment]
+    C -- Yes --> E[Override with Safe Fallback Action]
+    E --> F[Log Safety Intervention]
+    F --> G[Penalty Added to Reward Signal]
+    G --> H[Agent Learns to Avoid Violations]
+    D --> I[Continue Episode]
+    H --> A
+```
+
 ### 8.4. Ethical and Safety Considerations
 
 Ensure that autonomous driving systems adhere to stringent ethical standards:
@@ -331,9 +459,329 @@ Ensure that autonomous driving systems adhere to stringent ethical standards:
 - **Transparency:** Document decision-making processes and ensure accountability.
 - **Bias Mitigation:** Continuously audit the system for any unintended biases.
 
+The following diagram shows how hierarchical RL decomposes high-level navigation goals into sub-goals handled by a shared low-level controller:
+
+```mermaid
+graph TD
+    A[High-Level Planner] --> B[Navigate to Destination]
+    B --> C[Sub-Goal - Merge onto Highway]
+    B --> D[Sub-Goal - Follow Route]
+    B --> E[Sub-Goal - Park in Spot]
+    C --> F[Low-Level Controller]
+    D --> F
+    E --> F
+    F --> G[Steer Command]
+    F --> H[Throttle Command]
+    F --> I[Brake Command]
+    G --> J[Vehicle Actuators]
+    H --> J
+    I --> J
+```
+
 ---
 
-## 9. Best Practices for Reinforcement Learning in Autonomous Driving
+## 9. Sensor Fusion Architecture
+
+A real self-driving system never relies on a single modality. Sensor fusion combines camera, LiDAR, and radar data into a unified perception representation before passing it to the RL policy. The fusion layer must handle sensor dropout gracefully, since sensors can fail or be occluded during operation.
+
+### 9.1. Early, Mid, and Late Fusion
+
+```mermaid
+graph TD
+    CAM[Camera - RGB frames] --> CAMENC[ResNet50 or EfficientNet Encoder]
+    LIDAR[LiDAR - point cloud] --> LIDARENC[PointNet or VoxelNet Encoder]
+    RADAR[Radar - velocity + range] --> RADARENC[MLP Encoder]
+    CAMENC --> FUSEMETHOD{Fusion Strategy}
+    LIDARENC --> FUSEMETHOD
+    RADARENC --> FUSEMETHOD
+    FUSEMETHOD -->|Early Fusion| CONCAT[Concatenate raw features and encode jointly]
+    FUSEMETHOD -->|Mid Fusion| CROSS[Cross-Modal Attention Transformer]
+    FUSEMETHOD -->|Late Fusion| ENSEMBLE[Ensemble predictions from each modality]
+    CONCAT --> POLICY[RL Policy Network]
+    CROSS --> POLICY
+    ENSEMBLE --> POLICY
+```
+
+### 9.2. Cross-Modal Attention Fusion (Mid Fusion)
+
+Mid fusion via cross-modal attention is the preferred approach in production systems because it allows each modality to attend to features from other modalities, capturing correlations that early concatenation misses.
+
+```python
+import torch
+import torch.nn as nn
+
+class CrossModalFusion(nn.Module):
+    """Fuse camera and LiDAR features using cross-modal attention."""
+
+    def __init__(self, embed_dim: int = 256, num_heads: int = 8):
+        super().__init__()
+        self.camera_proj = nn.Linear(512, embed_dim)   # ResNet feature dim -> embed
+        self.lidar_proj  = nn.Linear(256, embed_dim)   # PointNet feature dim -> embed
+        self.attn_cam2lid = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+        self.attn_lid2cam = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+        self.norm = nn.LayerNorm(embed_dim)
+        self.out  = nn.Linear(embed_dim * 2, embed_dim)
+
+    def forward(
+        self,
+        cam_features: torch.Tensor,    # (B, N_cam, 512)
+        lidar_features: torch.Tensor,  # (B, N_lid, 256)
+    ) -> torch.Tensor:
+        cam   = self.camera_proj(cam_features)    # (B, N_cam, D)
+        lidar = self.lidar_proj(lidar_features)   # (B, N_lid, D)
+
+        # Camera attends to LiDAR
+        cam_fused, _   = self.attn_cam2lid(cam, lidar, lidar)
+        # LiDAR attends to Camera
+        lidar_fused, _ = self.attn_lid2cam(lidar, cam, cam)
+
+        # Pool and merge
+        cam_pool   = self.norm(cam_fused).mean(dim=1)    # (B, D)
+        lidar_pool = self.norm(lidar_fused).mean(dim=1)  # (B, D)
+
+        merged = torch.cat([cam_pool, lidar_pool], dim=-1)
+        return self.out(merged)   # (B, D)
+```
+
+### 9.3. Sensor Dropout Resilience
+
+During training, randomly zero out entire sensor inputs at a rate of 10-20% per modality. This forces the policy to learn to operate with partial observations, matching real-world reliability requirements.
+
+```python
+def apply_sensor_dropout(
+    cam_feat: torch.Tensor,
+    lid_feat: torch.Tensor,
+    rad_feat: torch.Tensor,
+    dropout_prob: float = 0.15,
+) -> tuple:
+    """Zero out entire sensor streams randomly during training."""
+    if torch.rand(1).item() < dropout_prob:
+        cam_feat = torch.zeros_like(cam_feat)
+    if torch.rand(1).item() < dropout_prob:
+        lid_feat = torch.zeros_like(lid_feat)
+    if torch.rand(1).item() < dropout_prob:
+        rad_feat = torch.zeros_like(rad_feat)
+    return cam_feat, lid_feat, rad_feat
+```
+
+---
+
+## 10. Sim-to-Real Transfer Challenges and Solutions
+
+The performance gap between simulation and reality is one of the biggest barriers to deploying RL-trained policies on physical vehicles. The gap arises from differences in sensor noise, actuator latency, road surface variation, and lighting conditions.
+
+### 10.1. Domain Randomization Strategy
+
+Domain randomization deliberately varies simulation parameters during training so the policy learns to be robust to a wide distribution of conditions, covering the real-world distribution as a subset.
+
+```python
+import random
+import numpy as np
+
+class DomainRandomizer:
+    """Apply randomized perturbations to simulation parameters each episode."""
+
+    def randomize_lighting(self, env):
+        """Vary sun angle, cloud cover, and time of day."""
+        env.set_sun_altitude(random.uniform(10, 80))          # degrees
+        env.set_cloud_coverage(random.uniform(0.0, 1.0))
+        env.set_fog_density(random.uniform(0.0, 0.3))
+
+    def randomize_road(self, env):
+        """Vary road friction and surface texture."""
+        friction = random.gauss(mu=0.8, sigma=0.15)
+        env.set_road_friction(np.clip(friction, 0.3, 1.2))
+
+    def randomize_camera(self, env):
+        """Add simulated camera noise and small mounting offsets."""
+        env.camera.set_noise(
+            blur_sigma=random.uniform(0.0, 1.5),
+            brightness_jitter=random.uniform(-0.2, 0.2),
+        )
+        env.camera.set_pose_offset(
+            x_noise=random.gauss(0, 0.02),   # meters
+            y_noise=random.gauss(0, 0.02),
+            yaw_noise=random.gauss(0, 0.5),  # degrees
+        )
+
+    def randomize_traffic(self, env, max_vehicles: int = 30):
+        """Spawn a random number of vehicles with random behaviors."""
+        n = random.randint(0, max_vehicles)
+        env.spawn_npc_vehicles(n, behavior=random.choice(["normal", "aggressive", "cautious"]))
+
+    def apply_all(self, env):
+        self.randomize_lighting(env)
+        self.randomize_road(env)
+        self.randomize_camera(env)
+        self.randomize_traffic(env)
+```
+
+### 10.2. Real-World Fine-Tuning Pipeline
+
+After a policy is trained in simulation, a small amount of real-world driving data is collected with a human safety driver. The policy is then fine-tuned on this real data using a lower learning rate, preserving the broad capability learned in simulation while adapting to the specific vehicle and sensor suite. The following diagram shows this iterative real-world fine-tuning pipeline:
+
+```mermaid
+graph LR
+    A[Sim-Trained Policy] --> B[Deploy with Safety Driver]
+    B --> C[Collect Real-World Trajectories - 10-50 hours]
+    C --> D[Label Unsafe Actions by Safety Driver Interventions]
+    D --> E[Fine-Tune on Real Data - LR 1e-5 for 5 epochs]
+    E --> F{Performance Gap Closed?}
+    F -- No --> B
+    F -- Yes --> G[Expanded Operational Design Domain]
+```
+
+---
+
+## 11. Safety Verification Methods
+
+Deploying a reinforcement learning policy on a physical vehicle requires formal safety verification beyond empirical testing. Three complementary approaches are used in production systems.
+
+### 11.1. Formal Safety Specifications with Signal Temporal Logic
+
+Signal Temporal Logic (STL) allows engineers to express safety invariants mathematically and verify that a policy satisfies them during simulation evaluation.
+
+```python
+# STL property: always keep distance >= 2m from the vehicle ahead
+# phi = G[0,T] (distance(t) >= 2.0)
+def verify_safe_following_distance(
+    trajectory: list,    # list of dicts with "time" and "distance_ahead"
+    min_dist: float = 2.0,
+    horizon: float = 30.0,
+) -> bool:
+    """Return True if the policy never violates the following distance constraint."""
+    relevant = [s for s in trajectory if s["time"] <= horizon]
+    return all(s["distance_ahead"] >= min_dist for s in relevant)
+
+# Run verification over 1000 evaluation episodes
+violations = 0
+for episode in evaluation_episodes:
+    if not verify_safe_following_distance(episode["trajectory"]):
+        violations += 1
+
+violation_rate = violations / len(evaluation_episodes)
+print(f"STL violation rate: {violation_rate:.4f}")
+assert violation_rate < 0.001, "Policy fails safety certification threshold"
+```
+
+### 11.2. Runtime Safety Shield
+
+A safety shield is a rule-based system that intercepts every action proposed by the RL policy and overrides it when the proposed action would cause an imminent constraint violation. The shield runs deterministically and can be formally verified, unlike the neural policy.
+
+```python
+class SafetyShield:
+    """Rule-based safety layer wrapping an RL policy."""
+
+    def __init__(self, min_ttc: float = 1.5):
+        self.min_ttc = min_ttc  # minimum time-to-collision in seconds
+
+    def compute_ttc(self, ego_speed: float, lead_distance: float, lead_speed: float) -> float:
+        relative_speed = ego_speed - lead_speed
+        if relative_speed <= 0:
+            return float("inf")  # closing gap
+        return lead_distance / relative_speed
+
+    def safe_action(
+        self,
+        proposed: dict,       # {"steering": float, "throttle": float, "brake": float}
+        obs: dict,            # sensor observations
+    ) -> dict:
+        ttc = self.compute_ttc(
+            obs["ego_speed"],
+            obs["lead_distance"],
+            obs["lead_speed"],
+        )
+        if ttc < self.min_ttc:
+            # Override: emergency braking, log intervention
+            return {"steering": proposed["steering"], "throttle": 0.0, "brake": 1.0}
+        return proposed
+```
+
+The following diagram shows how safety certification metrics are evaluated before approving a policy for limited real-world testing:
+
+```mermaid
+graph TD
+    POLICY[Trained RL Policy] --> SIMTEST[1000 Evaluation Episodes]
+    SIMTEST --> METRICS[Compute Safety Metrics]
+    METRICS --> TTC[TTC Violations per km]
+    METRICS --> COLL[Collision Rate per 1000 km]
+    METRICS --> LANEDEP[Unplanned Lane Departures per 100 km]
+    TTC --> THRESHOLD{All below threshold?}
+    COLL --> THRESHOLD
+    LANEDEP --> THRESHOLD
+    THRESHOLD -- No --> RETRAIN[Adjust Reward and Retrain]
+    THRESHOLD -- Yes --> HUMAN[Human Expert Evaluation Drives]
+    HUMAN --> DEPLOY[Limited Real-World Testing]
+```
+
+---
+
+## 12. Multi-Agent Coordination in Traffic
+
+Training a single RL agent in isolation produces policies optimized for a world where other vehicles behave according to scripted rules. Real traffic involves other autonomous agents, human drivers with unpredictable behavior, and coordination scenarios like merging and intersection crossing.
+
+### 12.1. MADDPG for Cooperative Intersection Crossing
+
+Multi-Agent DDPG (MADDPG) trains each vehicle's policy with a centralized critic during training (which observes all agents' states and actions) but decentralized execution at runtime (each vehicle acts on its own observations only).
+
+```python
+from stable_baselines3 import DDPG
+import numpy as np
+
+class IntersectionEnv:
+    """Simplified two-vehicle intersection crossing environment."""
+
+    def __init__(self, n_agents: int = 2):
+        self.n_agents = n_agents
+        self.agents   = [f"vehicle_{i}" for i in range(n_agents)]
+
+    def reset(self):
+        return {agent: self._obs(agent) for agent in self.agents}
+
+    def step(self, actions: dict):
+        new_obs, rewards, dones, infos = {}, {}, {}, {}
+        for agent, action in actions.items():
+            obs, rew, done, info = self._step_agent(agent, action)
+            new_obs[agent] = obs
+            rewards[agent] = rew
+            dones[agent]   = done
+            infos[agent]   = info
+        return new_obs, rewards, dones, infos
+
+    def _cooperative_reward(self, agent_id: str, reached_goal: bool, collision: bool) -> float:
+        """Reward structure that incentivizes throughput, not just individual goals."""
+        individual = 1.0 if reached_goal else (-5.0 if collision else 0.0)
+        # Small team reward for all agents clearing the intersection
+        team_bonus = 0.1 * sum(1 for a in self.agents if self._agent_cleared(a))
+        return individual + team_bonus
+```
+
+The following diagram shows the multi-agent coordination flow, where decentralized policies share a centralized critic during training to align cooperative rewards:
+
+```mermaid
+graph LR
+    V1[Vehicle 1 - RL Policy] --> OBS1[Observe local state]
+    V2[Vehicle 2 - RL Policy] --> OBS2[Observe local state]
+    V3[Vehicle 3 - RL Policy] --> OBS3[Observe local state]
+    OBS1 --> ACT1[Action - steer, throttle]
+    OBS2 --> ACT2[Action - steer, throttle]
+    OBS3 --> ACT3[Action - steer, throttle]
+    ACT1 --> ENV[Shared Environment - intersection]
+    ACT2 --> ENV
+    ACT3 --> ENV
+    ENV --> REW[Cooperative Reward Signal]
+    ENV --> CENCRITIC[Centralized Critic - training only]
+    CENCRITIC --> V1
+    CENCRITIC --> V2
+    CENCRITIC --> V3
+    REW --> V1
+    REW --> V2
+    REW --> V3
+```
+
+---
+
+## 13. Best Practices for Reinforcement Learning in Autonomous Driving
 
 - **Robust Simulation:** Use realistic and diverse simulation scenarios for training.
 - **Incremental Complexity:** Start with basic driving tasks and progressively add complexity.
@@ -343,13 +791,13 @@ Ensure that autonomous driving systems adhere to stringent ethical standards:
 
 ---
 
-## 10. Conclusion
+## 14. Conclusion
 
 Reinforcement learning stands at the forefront of autonomous driving research, offering innovative solutions to complex decision-making challenges on the road. This guide has presented a comprehensive exploration of the theoretical foundations, simulation environments, algorithmic strategies, and practical considerations required for building robust RL-based autonomous driving systems. By embracing advanced training techniques, thorough evaluation, and careful deployment practices, researchers and practitioners can pave the way for safer, more efficient self-driving vehicles. As the field evolves, continuous innovation and strict adherence to ethical standards will be key to achieving real-world success.
 
 ---
 
-## 11. Further Resources
+## 15. Further Resources
 
 - **Stable-Baselines3 Documentation:** [https://stable-baselines3.readthedocs.io](https://stable-baselines3.readthedocs.io)
 - **OpenAI Gym Documentation:** [https://gym.openai.com](https://gym.openai.com)
