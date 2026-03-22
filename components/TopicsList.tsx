@@ -50,33 +50,28 @@ export default function TopicsList({ topics }: TopicsListProps) {
   return (
     <div className="topics-wrapper">
       <div className="topics-header">
-        <FiTag size={18} className="topics-header-icon" />
-        <h2 className="topics-heading">Topics</h2>
+        <FiTag size={22} className="topics-header-icon" />
+        <div>
+          <h2 className="topics-heading">Topics</h2>
+          <p className="topics-subheading">
+            Themes and subjects covered in this article
+          </p>
+        </div>
       </div>
 
       <div className="topics-container">
-        {topics.map((topic) => {
-          const color = getColor(topic);
-          return (
-            <Link
-              key={topic}
-              href={`/home?topics=${encodeURIComponent(topic)}`}
-              className="topic-pill-link"
-            >
-              <span
-                className="topic-pill"
-                style={{
-                  borderColor: `${color}35`,
-                  background: `${color}0c`,
-                  color,
-                }}
-              >
-                {topic}
-                <FiArrowRight size={12} className="topic-arrow" />
-              </span>
-            </Link>
-          );
-        })}
+        {topics.map((topic) => (
+          <Link
+            key={topic}
+            href={`/home?topics=${encodeURIComponent(topic)}`}
+            className="topic-pill-link"
+          >
+            <span className="topic-pill">
+              {topic}
+              <FiArrowRight size={12} className="topic-arrow" />
+            </span>
+          </Link>
+        ))}
       </div>
 
       <p className="topics-hint">Click a topic to explore related articles</p>
@@ -97,7 +92,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
         .topics-header {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.6rem;
         }
 
         .topics-header :global(.topics-header-icon) {
@@ -105,16 +100,24 @@ export default function TopicsList({ topics }: TopicsListProps) {
         }
 
         .topics-heading {
-          font-size: 1.15rem;
-          font-weight: 700;
+          font-size: 1.5rem;
+          font-weight: 800;
           margin: 0;
           color: var(--text-color);
+          letter-spacing: -0.01em;
+        }
+
+        .topics-subheading {
+          margin: 0.15rem 0 0;
+          font-size: 0.88rem;
+          color: var(--text-color);
+          opacity: 0.55;
         }
 
         .topics-container {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.6rem;
         }
 
         :global(.topic-pill-link) {
@@ -125,38 +128,34 @@ export default function TopicsList({ topics }: TopicsListProps) {
           display: inline-flex;
           align-items: center;
           gap: 0.35rem;
-          padding: 0.4rem 0.85rem;
-          border-radius: 8px;
-          border: 1px solid;
-          font-size: 0.82rem;
-          font-weight: 600;
+          padding: 0.5rem 1rem;
+          border-radius: 9px;
+          border: 1px solid var(--border-color);
+          background: var(--background-color);
+          color: var(--text-color);
+          font-size: 0.88rem;
+          font-weight: 550;
           cursor: pointer;
           transition:
-            transform 0.15s ease,
-            box-shadow 0.15s ease,
+            border-color 0.15s ease,
             background 0.15s ease;
         }
 
         .topic-pill :global(.topic-arrow) {
-          opacity: 0;
-          transform: translateX(-4px);
-          transition:
-            opacity 0.15s ease,
-            transform 0.15s ease;
+          opacity: 0.4;
         }
 
         .topic-pill:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border-color: var(--link-color);
+          background: rgba(0, 112, 243, 0.06);
         }
 
         .topic-pill:hover :global(.topic-arrow) {
-          opacity: 1;
-          transform: translateX(0);
+          opacity: 0.7;
         }
 
         .topics-hint {
-          margin: 0;
+          margin: 0.5rem 0 0;
           font-size: 0.8rem;
           color: var(--text-color);
           opacity: 0.5;
