@@ -290,10 +290,31 @@ async function main() {
     );
   }
 
+  // --skip=N: skip the first N articles (for resuming after rate limit)
+  // --from=slug: skip all articles alphabetically before this slug
+  const args = process.argv.slice(2);
+  let skipCount = 0;
+  let fromSlug = null;
+  for (const arg of args) {
+    if (arg.startsWith("--skip=")) skipCount = parseInt(arg.split("=")[1]) || 0;
+    if (arg.startsWith("--from=")) fromSlug = arg.split("=")[1];
+  }
+
   const contentDir = path.join(process.cwd(), "content");
-  const files = (await fs.readdir(contentDir)).filter((file) =>
-    file.endsWith(".mdx"),
-  );
+  let files = (await fs.readdir(contentDir))
+    .filter((file) => file.endsWith(".mdx"))
+    .sort();
+
+  if (fromSlug) {
+    const idx = files.findIndex((f) => f.replace(/\.mdx$/, "") === fromSlug);
+    if (idx > 0) {
+      console.log(`Skipping ${idx} articles, resuming from ${fromSlug}`);
+      files = files.slice(idx);
+    }
+  } else if (skipCount > 0) {
+    console.log(`Skipping first ${skipCount} articles`);
+    files = files.slice(skipCount);
+  }
 
   if (!files.length) {
     console.log("No MDX files found to vectorize.");
