@@ -35,9 +35,14 @@ export async function POST(request: Request) {
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error("Chat API error:", error);
+    // Never return an error to the user — always provide a helpful response
     return NextResponse.json(
-      { error: "Failed to generate a response." },
-      { status: 500 },
+      {
+        answer:
+          "I'm having trouble connecting to my knowledge base right now. Please try again in a moment, or browse the articles directly from the home page.",
+        sources: [],
+      },
+      { status: 200 },
     );
   }
 }

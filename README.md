@@ -208,6 +208,10 @@ graph LR
 - **RAG Chatbot:** AI-powered chatbot using Pinecone vector database and Google Gemini for embeddings and answer generation. Includes bracket-style citations linking to source articles. See [RAG Chat & Vectorization](#rag-chat--vectorization).
 - **Local Fallback:** Lexical search fallback (`lib/rag-local.ts`) when vector search is unavailable.
 - **Article Vectorization:** Offline pipeline (`npm run vectorize:articles`) to embed and upsert articles into Pinecone with enriched metadata (author, date, views, reading time).
+- **Contextual Answers:** Gemini generates answers with relevant article chunks as context, improving accuracy and relevance.
+- **Citation Linking:** Bracket-style citations (e.g., `[1]`) in chat responses link back to source articles for easy reference.
+- **Chat History:** Maintains conversation history for more coherent multi-turn interactions.
+- **Graceful Degradation:** If RAG components are unavailable (e.g., missing API keys), the chatbot gracefully falls back to a local lexical search method without breaking the UI.
 
 ### UI & Navigation
 
