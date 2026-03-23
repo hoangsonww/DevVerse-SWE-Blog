@@ -72,6 +72,107 @@ const QUERY_EXPANSIONS: Record<string, string[]> = {
 
 let cachedLocalArticles: LocalArticleDocument[] | null = null;
 
+// TF-IDF index built once and cached
+let cachedIdfMap: Map<string, number> | null = null;
+let cachedChunkVectors:
+  | {
+      slug: string;
+      title: string;
+      url: string;
+      topics: string[];
+      chunkIndex: number;
+      chunk: string;
+      vector: Map<string, number>;
+    }[]
+  | null = null;
+
+function buildTfVector(tokens: string[]): Map<string, number> {
+  const tf = new Map<string, number>();
+  tokens.forEach((t) => tf.set(t, (tf.get(t) || 0) + 1));
+  const len = tokens.length || 1;
+  Array.from(tf.entries()).forEach(([k, v]) => tf.set(k, v / len));
+  return tf;
+}
+
+function buildTfIdfVector(
+  tf: Map<string, number>,
+  idf: Map<string, number>,
+): Map<string, number> {
+  const tfidf = new Map<string, number>();
+  Array.from(tf.entries()).forEach(([term, tfVal]) => {
+    tfidf.set(term, tfVal * (idf.get(term) || 0));
+  });
+  return tfidf;
+}
+
+function cosineSimilarity(
+  a: Map<string, number>,
+  b: Map<string, number>,
+): number {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  Array.from(a.entries()).forEach(([term, val]) => {
+    dot += val * (b.get(term) || 0);
+    normA += val * val;
+  });
+  Array.from(b.values()).forEach((val) => {
+    normB += val * val;
+  });
+  const denom = Math.sqrt(normA) * Math.sqrt(normB);
+  return denom === 0 ? 0 : dot / denom;
+}
+
+function buildTfIdfIndex(articles: LocalArticleDocument[]) {
+  if (cachedIdfMap && cachedChunkVectors) return;
+
+  // Chunk all articles
+  const allChunks: typeof cachedChunkVectors = [];
+  for (const article of articles) {
+    const chunks = chunkText(article.body);
+    for (let i = 0; i < chunks.length; i++) {
+      // Include title and topics in the chunk for better matching
+      const enriched = `${article.title} ${article.topics.join(" ")} ${chunks[i]}`;
+      const tokens = tokenize(enriched);
+      allChunks.push({
+        slug: article.slug,
+        title: article.title,
+        url: article.url,
+        topics: article.topics,
+        chunkIndex: i,
+        chunk: chunks[i],
+        vector: buildTfVector(tokens),
+      });
+    }
+  }
+
+  // Compute IDF: log(N / df) for each term
+  const N = allChunks.length;
+  const df = new Map<string, number>();
+  for (const entry of allChunks) {
+    const seen = new Set<string>();
+    Array.from(entry.vector.keys()).forEach((term) => {
+      if (!seen.has(term)) {
+        df.set(term, (df.get(term) || 0) + 1);
+        seen.add(term);
+      }
+    });
+  }
+
+  const idfMap = new Map<string, number>();
+  Array.from(df.entries()).forEach(([term, count]) => {
+    idfMap.set(term, Math.log(N / count));
+  });
+
+  // Convert all chunk TF vectors to TF-IDF
+  for (const entry of allChunks) {
+    entry.vector = buildTfIdfVector(entry.vector, idfMap);
+  }
+
+  cachedIdfMap = idfMap;
+  cachedChunkVectors = allChunks;
+}
+
 export function normalizeText(text: string) {
   return text
     .toLowerCase()
@@ -345,47 +446,91 @@ export function buildLocalSourcesFromDocuments(
   articles: LocalArticleDocument[],
   limit: number = 6,
 ): ChatSourceLike[] {
-  const rankedArticles = articles
-    .map((article) => ({
-      article,
-      score: getArticleMatchScore(query, article),
-    }))
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score);
+  // Build TF-IDF index if not cached
+  buildTfIdfIndex(articles);
 
-  if (!rankedArticles.length) {
+  if (!cachedIdfMap || !cachedChunkVectors || cachedChunkVectors.length === 0) {
     return [];
   }
 
-  const strongestScore = rankedArticles[0].score;
-  const selectedArticles =
-    strongestScore >= 40
-      ? rankedArticles.filter((entry) => entry.score >= strongestScore * 0.6)
-      : rankedArticles.slice(0, 2);
+  // Build TF-IDF query vector with expansion
+  const queryTokens = expandQueryTokens(query);
+  const queryTf = buildTfVector(queryTokens);
+  const queryVector = buildTfIdfVector(queryTf, cachedIdfMap);
 
-  const sources = selectedArticles.flatMap(({ article, score: articleScore }) =>
-    chunkText(article.body)
-      .map((chunk, chunkIndex) => ({
-        chunk,
-        chunkIndex,
-        score: articleScore + getChunkMatchScore(query, chunk, chunkIndex),
+  // Score every chunk by cosine similarity
+  const scored = cachedChunkVectors.map((entry) => {
+    const sim = cosineSimilarity(queryVector, entry.vector);
+
+    // Bonus for keyword matches in title/slug (helps exact matches)
+    const titleTokens = unique(tokenize(entry.title));
+    const keywordBonus = overlapCount(queryTokens, titleTokens) * 0.05;
+
+    return {
+      ...entry,
+      score: sim + keywordBonus,
+    };
+  });
+
+  // Rank by score, take top results
+  scored.sort((a, b) => b.score - a.score);
+
+  // Filter to meaningful matches (above a minimum threshold)
+  const threshold = 0.01;
+  const relevant = scored.filter((s) => s.score > threshold);
+
+  if (!relevant.length) {
+    // Fallback to old keyword scoring if TF-IDF finds nothing
+    const rankedArticles = articles
+      .map((article) => ({
+        article,
+        score: getArticleMatchScore(query, article),
       }))
-      .sort((left, right) => right.score - left.score)
-      .slice(0, Math.max(2, Math.ceil(limit / selectedArticles.length)))
-      .map(({ chunk, chunkIndex, score }) => ({
-        id: `${article.slug}#local-${chunkIndex}`,
-        title: article.title,
-        url: article.url,
-        snippet: chunk.replace(/\s+/g, " ").trim().slice(0, 520),
-        score,
-        chunkIndex,
-        topics: article.topics,
-      })),
-  );
+      .filter((entry) => entry.score > 0)
+      .sort((left, right) => right.score - left.score);
 
-  return sources
-    .sort((left, right) => right.score - left.score)
-    .slice(0, limit);
+    if (!rankedArticles.length) return [];
+
+    const top = rankedArticles.slice(0, 3);
+    return top
+      .flatMap(({ article, score: articleScore }) =>
+        chunkText(article.body)
+          .slice(0, 2)
+          .map((chunk, chunkIndex) => ({
+            id: `${article.slug}#local-${chunkIndex}`,
+            title: article.title,
+            url: article.url,
+            snippet: chunk.replace(/\s+/g, " ").trim().slice(0, 520),
+            score: articleScore,
+            chunkIndex,
+            topics: article.topics,
+          })),
+      )
+      .slice(0, limit);
+  }
+
+  // Deduplicate: take the best chunk per article, then fill
+  const seen = new Map<string, number>();
+  const results: ChatSourceLike[] = [];
+
+  for (const entry of relevant) {
+    if (results.length >= limit) break;
+    const articleCount = seen.get(entry.slug) || 0;
+    if (articleCount >= 3) continue; // max 3 chunks per article
+    seen.set(entry.slug, articleCount + 1);
+
+    results.push({
+      id: `${entry.slug}#local-${entry.chunkIndex}`,
+      title: entry.title,
+      url: entry.url,
+      snippet: entry.chunk.replace(/\s+/g, " ").trim().slice(0, 520),
+      score: entry.score,
+      chunkIndex: entry.chunkIndex,
+      topics: entry.topics,
+    });
+  }
+
+  return results;
 }
 
 export async function getLocalSourcesForQuery(
