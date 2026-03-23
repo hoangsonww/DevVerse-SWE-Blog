@@ -364,7 +364,8 @@ export async function buildChatResponse(
     console.error("Answer generation failed, returning sources only:", err);
     // Generation failed but we have sources — show them directly
     const fallbackLines = sources.map(
-      (s, i) => `**[${i + 1}] ${s.title}**\n${s.snippet}\n[Read more](${s.url})`,
+      (s, i) =>
+        `**[${i + 1}] ${s.title}**\n${s.snippet}\n[Read more](${s.url})`,
     );
     return {
       answer: `I found some relevant articles but could not generate a full answer right now. Here are the most relevant sources:\n\n${fallbackLines.join("\n\n")}`,
