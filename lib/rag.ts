@@ -340,21 +340,36 @@ export async function buildChatResponse(
   question: string,
   history: ChatHistoryMessage[] = [],
 ) {
-  const sources = await retrieveSources(question);
+  let sources: ChatSource[] = [];
+
+  try {
+    sources = await retrieveSources(question);
+  } catch (err) {
+    console.error("All retrieval methods failed:", err);
+  }
 
   if (!sources.length) {
     return {
       answer:
-        "I do not have enough information from the articles to answer that yet.",
+        "I could not find relevant articles to answer that question right now. Try rephrasing your question, or browse the articles directly on the home page.",
       sources: [],
     };
   }
 
-  const answer = await generateAnswer(question, history, sources);
-  const finalizedAnswer = ensureSourcesSection(answer, sources);
-
-  return {
-    answer: finalizedAnswer,
-    sources,
-  };
+  try {
+    const answer = await generateAnswer(question, history, sources);
+    const finalizedAnswer = ensureSourcesSection(answer, sources);
+    return { answer: finalizedAnswer, sources };
+  } catch (err) {
+    console.error("Answer generation failed, returning sources only:", err);
+    // Generation failed but we have sources — show them directly
+    const fallbackLines = sources.map(
+      (s, i) =>
+        `**[${i + 1}] ${s.title}**\n${s.snippet}\n[Read more](${s.url})`,
+    );
+    return {
+      answer: `I found some relevant articles but could not generate a full answer right now. Here are the most relevant sources:\n\n${fallbackLines.join("\n\n")}`,
+      sources,
+    };
+  }
 }

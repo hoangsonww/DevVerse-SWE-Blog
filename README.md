@@ -202,16 +202,34 @@ graph LR
 - **Mathematics Rendering:** Render mathematical equations using [KaTeX](https://katex.org/), [rehype-katex](https://github.com/remarkjs/rehype-katex), and [remark-math](https://github.com/remarkjs/remark-math).
 - **Syntax-Highlighted Code Blocks:** Code examples with language-aware syntax highlighting via `react-syntax-highlighter`.
 - **Table of Contents:** Auto-generated from `h2` and `h3` headings within each article.
+- **SEO Optimization:** Server-side rendering, static generation, meta tags, structured data, and auto-generated sitemaps for improved search engine visibility.
+- **RSS & Atom Feeds:** Syndication feeds auto-generated from MDX content for easy subscription.
+- **Image Optimization:** Next.js Image component for optimized loading and responsive images.
+- **PWA Support:** Offline capabilities and installability via `next-pwa`.
+- **Animations:** Smooth page transitions and interactive elements powered by Framer Motion.
+- **Dark Mode:** User-toggleable dark mode with a boot script to prevent flash of unstyled content.
+- **User Authentication:** Registration, login, password reset, and email verification powered by Supabase Auth.
+- **Favorites System:** Users can add articles to their favorites for easy access, with a dedicated favorites page and search/filter support.
+- **View Counts:** Supabase-backed view tracking with session-deduplicated counts displayed on article cards and detail pages. See [Article View Counts](#article-view-counts).
+- **Responsive Design:** Mobile-friendly layout with a focus on readability and usability across devices.
+- **Containerized Development:** Docker and Docker Compose configurations for an isolated development environment, along with VS Code Dev Container support for seamless setup.
+- **Linting & Formatting:** ESLint and Prettier configurations for consistent code quality and style across the project.
+- **GitHub Actions CI Pipeline:** Automated testing and linting on every push and pull request to maintain code quality.
+- **Comprehensive Documentation:** Detailed README with setup instructions, architectural overview, and contribution guidelines.
 
 ### AI-Powered Chat
 
 - **RAG Chatbot:** AI-powered chatbot using Pinecone vector database and Google Gemini for embeddings and answer generation. Includes bracket-style citations linking to source articles. See [RAG Chat & Vectorization](#rag-chat--vectorization).
 - **Local Fallback:** Lexical search fallback (`lib/rag-local.ts`) when vector search is unavailable.
 - **Article Vectorization:** Offline pipeline (`npm run vectorize:articles`) to embed and upsert articles into Pinecone with enriched metadata (author, date, views, reading time).
+- **Contextual Answers:** Gemini generates answers with relevant article chunks as context, improving accuracy and relevance.
+- **Citation Linking:** Bracket-style citations (e.g., `[1]`) in chat responses link back to source articles for easy reference.
+- **Chat History:** Maintains conversation history for more coherent multi-turn interactions.
+- **Graceful Degradation:** If RAG components are unavailable (e.g., missing API keys), the chatbot gracefully falls back to a local lexical search method without breaking the UI.
 
 ### UI & Navigation
 
-- **Redesigned Landing Page:** Gradient accent hero, two-column layout, stat cards with icons, and CTA buttons for exploring articles or chatting with the AI.
+- **Great Landing Page:** Gradient accent hero, two-column layout, stat cards with icons, and CTA buttons for exploring articles or chatting with the AI.
 - **Enhanced Article Cards:** Colored accent stripes, topic-specific icons, topic pills, view counts, favorite stars, and reading time -- all visible on every card.
 - **Favorites on Cards:** Star icon on every article card (not just the detail page), with portal-based tooltips for logged-in users.
 - **Custom Tooltip System:** Styled portal-based tooltips replacing browser defaults, used across the navbar, article cards, and favorite buttons.

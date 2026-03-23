@@ -185,13 +185,12 @@ export default function ChatPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch {
       const assistantMessage: ChatMessage = {
         id: `assistant-error-${Date.now()}`,
         role: "assistant",
         content:
-          error?.message ||
-          "Something went wrong while fetching an answer. Please try again.",
+          "I'm having trouble reaching the server right now. Please check your connection and try again, or browse the articles directly from the home page.",
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
