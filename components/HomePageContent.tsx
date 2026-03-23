@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ArticlesList from "./ArticlesList";
-import { motion } from "framer-motion";
-import Link from "next/link";
 import { FaGithub, FaLinkedin, FaGlobe, FaEnvelope } from "react-icons/fa";
 import { FiBook, FiCode, FiRefreshCw } from "react-icons/fi";
 
@@ -30,16 +28,86 @@ const chatCtaVariants = {
   },
 };
 
+function useCountUp(target: number, duration = 1200, delay = 0) {
+  const [count, setCount] = useState(0);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (target <= 0) return;
+    const delayTimer = setTimeout(() => {
+      let start = 0;
+      const step = Math.max(1, Math.floor(duration / target));
+      const timer = setInterval(() => {
+        start += 1;
+        setCount(start);
+        if (start >= target) {
+          clearInterval(timer);
+          setDone(true);
+        }
+      }, step);
+    }, delay);
+    return () => clearTimeout(delayTimer);
+  }, [target, duration, delay]);
+  return { count, done };
+}
+
+function TypewriterValue({
+  text,
+  delay = 0,
+}: {
+  text: string;
+  delay?: number;
+}) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  const [started, setStarted] = useState(false);
+  useEffect(() => {
+    const delayTimer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(delayTimer);
+  }, [delay]);
+  useEffect(() => {
+    if (!started) return;
+    let i = 0;
+    setDisplayed("");
+    const timer = setInterval(() => {
+      i += 1;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(timer);
+        setDone(true);
+      }
+    }, 80);
+    return () => clearInterval(timer);
+  }, [text, started]);
+  return (
+    <span>
+      {displayed}
+      {!done && started && <span className="tw-cursor">|</span>}
+    </span>
+  );
+}
+
 export default function HomePageContent({
   articles,
   viewCounts,
 }: HomePageContentProps) {
   const [visible, setVisible] = useState(false);
+  const { count: articleCount } = useCountUp(articles.length, 1200, 0);
 
   useEffect(() => {
     const timeout = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(timeout);
   }, []);
+
+  const handleBrowseClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      const el = document.getElementById("all-articles");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    },
+    [],
+  );
 
   return (
     <div
@@ -60,18 +128,22 @@ export default function HomePageContent({
               modern engineering.
             </h1>
             <p className="page-description">
-              Explore <strong>{articles.length}</strong> in-depth articles on
+              Explore <strong>{articleCount}</strong> in-depth articles on
               frameworks, distributed systems, AI, databases, and software
               architecture. Written for engineers who want to understand the{" "}
               <em>why</em>, not just the <em>how</em>.
             </p>
             <div className="page-hero-actions">
-              <Link href="/chat" className="page-hero-btn primary">
+              <a href="/chat" className="hero-cta hero-cta-primary">
                 Ask the AI chatbot
-              </Link>
-              <Link href="#all-articles" className="page-hero-btn secondary">
+              </a>
+              <a
+                href="#all-articles"
+                className="hero-cta hero-cta-secondary"
+                onClick={handleBrowseClick}
+              >
                 Browse articles
-              </Link>
+              </a>
             </div>
           </div>
           <div className="page-stats-col">
@@ -80,7 +152,7 @@ export default function HomePageContent({
                 <FiBook size={22} />
               </div>
               <div className="stat-content">
-                <span className="stat-value">{articles.length}</span>
+                <span className="stat-value">{articleCount}</span>
                 <span className="stat-label">Articles curated</span>
               </div>
             </div>
@@ -89,7 +161,9 @@ export default function HomePageContent({
                 <FiCode size={22} />
               </div>
               <div className="stat-content">
-                <span className="stat-value">CS + SWE</span>
+                <span className="stat-value">
+                  <TypewriterValue text="CS + SWE" delay={1300} />
+                </span>
                 <span className="stat-label">Core focus</span>
               </div>
             </div>
@@ -98,7 +172,9 @@ export default function HomePageContent({
                 <FiRefreshCw size={22} />
               </div>
               <div className="stat-content">
-                <span className="stat-value">Weekly</span>
+                <span className="stat-value">
+                  <TypewriterValue text="Weekly" delay={2200} />
+                </span>
                 <span className="stat-label">Fresh insights</span>
               </div>
             </div>
@@ -478,44 +554,6 @@ export default function HomePageContent({
           margin-top: 0.5rem;
         }
 
-        .page-hero-btn {
-          padding: 0.6rem 1.3rem;
-          border-radius: 10px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          text-decoration: none;
-          transition:
-            transform 0.15s ease,
-            box-shadow 0.15s ease;
-        }
-
-        .page-hero-btn:hover {
-          transform: translateY(-1px);
-          text-decoration: none;
-        }
-
-        .page-hero-btn.primary {
-          background: var(--link-color);
-          color: #fff;
-          box-shadow: 0 4px 14px rgba(0, 112, 243, 0.3);
-        }
-
-        .page-hero-btn.primary:hover {
-          box-shadow: 0 6px 20px rgba(0, 112, 243, 0.4);
-          color: #fff;
-        }
-
-        .page-hero-btn.secondary {
-          background: transparent;
-          color: var(--text-color);
-          border: 1px solid var(--border-color);
-        }
-
-        .page-hero-btn.secondary:hover {
-          border-color: var(--link-color);
-          color: var(--link-color);
-        }
-
         .page-stats-col {
           display: flex;
           flex-direction: column;
@@ -575,6 +613,24 @@ export default function HomePageContent({
           color: var(--text-color);
           opacity: 0.6;
           font-size: 0.8rem;
+        }
+
+        :global(.tw-cursor) {
+          display: inline-block;
+          color: #6366f1;
+          font-weight: 400;
+          animation: blink 0.7s step-end infinite;
+          margin-left: 1px;
+        }
+
+        :global(.dark .tw-cursor) {
+          color: #818cf8;
+        }
+
+        @keyframes blink {
+          50% {
+            opacity: 0;
+          }
         }
 
         @keyframes fadeSlideIn {
