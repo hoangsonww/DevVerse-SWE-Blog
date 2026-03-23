@@ -252,11 +252,11 @@ export default function ChatPage() {
     <div className={styles.page}>
       <div className={styles.wrap}>
         <section className={styles.hero}>
-          <h1 className={styles.title}>DevVerse RAG Chat</h1>
+          <h1 className={styles.title}>🤖 DevVerse RAG Chat</h1>
           <p className={styles.subtitle}>
             Ask questions about DevVerse articles. Responses include citations
             so you can jump straight to the sources. Powered by
-            Retrieval-Augmented Generation (RAG) and Pinecone vector database.
+            Retrieval-Augmented Generation and Pinecone Vector DB.
           </p>
         </section>
 

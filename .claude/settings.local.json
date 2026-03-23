@@ -1,9 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(npm install:*)",
-      "Bash(grep -r \"react-syntax-highlighter\\\\|SyntaxHighlighter\" /Users/davidnguyen/WebstormProjects/DevVerse-CS-Blog/app /Users/davidnguyen/WebstormProjects/DevVerse-CS-Blog/components --include=*.tsx --include=*.ts)"
-    ],
+    "allow": ["Bash(npm install:*)"],
     "deny": [],
     "ask": []
   }

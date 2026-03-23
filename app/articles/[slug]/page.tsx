@@ -69,7 +69,7 @@ export default async function ArticlePage({ params }: PageProps) {
     const all = await getAllPosts();
     const me = all.find((p) => p.slug === slug);
     readingMinutes = me?.readingMinutes;
-    related = await getRelatedPosts(slug, 4, 2);
+    related = await getRelatedPosts(slug, 8, 4);
   } catch {
     notFound();
   }
