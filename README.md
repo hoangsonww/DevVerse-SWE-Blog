@@ -8,7 +8,7 @@ A modern, high-performance full-stack blog built with [Next.js](https://nextjs.o
   </a>
 </p>
 
-<p align="center">
+<p align="center" style="cursor: pointer;">
   <strong>Visit DevVerse:</strong><br/>
   <a href="https://devverse-swe.vercel.app" target="_blank" rel="noopener">
     <img src="https://img.shields.io/badge/🌐%20DevVerse-devverse--swe.vercel.app-0070f3?style=flat-square&logo=vercel&logoColor=white" alt="Visit DevVerse" />
