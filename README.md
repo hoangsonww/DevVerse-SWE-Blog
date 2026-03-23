@@ -202,6 +202,20 @@ graph LR
 - **Mathematics Rendering:** Render mathematical equations using [KaTeX](https://katex.org/), [rehype-katex](https://github.com/remarkjs/rehype-katex), and [remark-math](https://github.com/remarkjs/remark-math).
 - **Syntax-Highlighted Code Blocks:** Code examples with language-aware syntax highlighting via `react-syntax-highlighter`.
 - **Table of Contents:** Auto-generated from `h2` and `h3` headings within each article.
+- **SEO Optimization:** Server-side rendering, static generation, meta tags, structured data, and auto-generated sitemaps for improved search engine visibility.
+- **RSS & Atom Feeds:** Syndication feeds auto-generated from MDX content for easy subscription.
+- **Image Optimization:** Next.js Image component for optimized loading and responsive images.
+- **PWA Support:** Offline capabilities and installability via `next-pwa`.
+- **Animations:** Smooth page transitions and interactive elements powered by Framer Motion.
+- **Dark Mode:** User-toggleable dark mode with a boot script to prevent flash of unstyled content.
+- **User Authentication:** Registration, login, password reset, and email verification powered by Supabase Auth.
+- **Favorites System:** Users can add articles to their favorites for easy access, with a dedicated favorites page and search/filter support.
+- **View Counts:** Supabase-backed view tracking with session-deduplicated counts displayed on article cards and detail pages. See [Article View Counts](#article-view-counts).
+- **Responsive Design:** Mobile-friendly layout with a focus on readability and usability across devices.
+- **Containerized Development:** Docker and Docker Compose configurations for an isolated development environment, along with VS Code Dev Container support for seamless setup.
+- **Linting & Formatting:** ESLint and Prettier configurations for consistent code quality and style across the project.
+- **GitHub Actions CI Pipeline:** Automated testing and linting on every push and pull request to maintain code quality.
+- **Comprehensive Documentation:** Detailed README with setup instructions, architectural overview, and contribution guidelines.
 
 ### AI-Powered Chat
 
