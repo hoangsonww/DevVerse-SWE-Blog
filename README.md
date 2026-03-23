@@ -229,7 +229,7 @@ graph LR
 
 ### UI & Navigation
 
-- **Redesigned Landing Page:** Gradient accent hero, two-column layout, stat cards with icons, and CTA buttons for exploring articles or chatting with the AI.
+- **Great Landing Page:** Gradient accent hero, two-column layout, stat cards with icons, and CTA buttons for exploring articles or chatting with the AI.
 - **Enhanced Article Cards:** Colored accent stripes, topic-specific icons, topic pills, view counts, favorite stars, and reading time -- all visible on every card.
 - **Favorites on Cards:** Star icon on every article card (not just the detail page), with portal-based tooltips for logged-in users.
 - **Custom Tooltip System:** Styled portal-based tooltips replacing browser defaults, used across the navbar, article cards, and favorite buttons.
