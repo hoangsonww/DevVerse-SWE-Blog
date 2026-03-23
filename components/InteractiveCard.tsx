@@ -26,30 +26,75 @@ function formatViewCount(count: number): string {
 }
 
 const TOPIC_COLORS: Record<string, string> = {
+  // AI family — purples
   "Artificial Intelligence": "#8b5cf6",
-  "Machine Learning": "#7c3aed",
+  "Machine Learning": "#a855f7",
   "Agentic AI": "#6d28d9",
   "LLM Engineering": "#7c3aed",
+  "Autonomous Systems": "#7c3aed",
+  "Future of AI": "#a855f7",
+  "Sentiment Analysis": "#c084fc",
+  // Web family — blues
+  "Web Development": "#3b82f6",
+  "Web Architecture": "#1d4ed8",
+  "Web Frameworks": "#6366f1",
+  Frontend: "#818cf8",
+  // Backend/infra — teals/greens
+  Backend: "#059669",
+  "Backend Development": "#047857",
+  Microservices: "#0d9488",
+  "API Development": "#0891b2",
+  // Data — greens/pinks
+  Databases: "#059669",
+  "Data Science": "#ec4899",
+  MLOps: "#db2777",
+  RAG: "#d946ef",
+  // DevOps family — cyans/oranges
   DevOps: "#0891b2",
   "CI/CD": "#0e7490",
   Docker: "#0ea5e9",
-  Kubernetes: "#0284c7",
-  Databases: "#059669",
-  Performance: "#10b981",
+  Containerization: "#0284c7",
+  Kubernetes: "#326ce5",
+  Automation: "#f97316",
+  "Infrastructure as Code": "#ea580c",
+  // Systems — blues/teals
+  "System Design": "#0284c7",
+  "Distributed Systems": "#0d9488",
+  "Event-Driven Architecture": "#0f766e",
+  Scalability: "#14b8a6",
+  // Security — reds
   Security: "#dc2626",
-  "Web Development": "#2563eb",
-  "Web Architecture": "#1d4ed8",
-  "Web Frameworks": "#3b82f6",
-  "Software Engineering": "#6366f1",
-  "Design Patterns": "#4f46e5",
-  Architecture: "#4338ca",
-  Backend: "#0d9488",
-  "Data Science": "#8b5cf6",
-  RAG: "#a855f7",
-  "System Design": "#6366f1",
-  Infrastructure: "#64748b",
-  "Distributed Systems": "#475569",
-  Automation: "#0891b2",
+  "User Authentication": "#b91c1c",
+  "Zero Trust": "#ef4444",
+  // SRE/Ops — oranges/reds
+  SRE: "#ef4444",
+  Reliability: "#f97316",
+  Operations: "#ea580c",
+  // Performance — amber
+  Performance: "#f59e0b",
+  SEO: "#eab308",
+  // Software eng — indigos
+  "Software Engineering": "#4f46e5",
+  "Design Patterns": "#7c3aed",
+  Architecture: "#6366f1",
+  // Specific tech — distinctive
+  "Tech Innovations": "#06b6d4",
+  "Mobile Development": "#f43f5e",
+  "Cloud Computing": "#0369a1",
+  Infrastructure: "#78716c",
+  "Technical Interviews": "#8b5cf6",
+  Web3: "#f59e0b",
+  Blockchain: "#f59e0b",
+  Concurrency: "#10b981",
+  "Asynchronous Programming": "#34d399",
+  "Rust Programming": "#ea580c",
+  "Apache Kafka": "#231f20",
+  MongoDB: "#10b981",
+  Redis: "#dc2626",
+  GraphQL: "#e535ab",
+  WebAssembly: "#654ff0",
+  "React Native": "#61dafb",
+  AI: "#8b5cf6",
 };
 
 const TOPIC_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -57,27 +102,79 @@ const TOPIC_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   "Machine Learning": FiCpu,
   "Agentic AI": FiCpu,
   "LLM Engineering": FiCpu,
+  "Sentiment Analysis": FiCpu,
+  AI: FiCpu,
   DevOps: FiTool,
   "CI/CD": FiTool,
+  Automation: FiZap,
+  Operations: FiTool,
   Databases: FiDatabase,
+  MongoDB: FiDatabase,
+  Redis: FiDatabase,
+  "Data Science": FiDatabase,
+  MLOps: FiDatabase,
   Performance: FiZap,
+  SEO: FiGlobe,
   Security: FiLock,
+  "User Authentication": FiLock,
+  "Zero Trust": FiLock,
   "Web Development": FiGlobe,
-  "Web Architecture": FiServer,
+  "Web Architecture": FiLayout,
   "Web Frameworks": FiLayout,
+  Frontend: FiLayout,
   "Software Engineering": FiCode,
   "Design Patterns": FiCode,
+  "Technical Interviews": FiCode,
   Architecture: FiServer,
-  Backend: FiServer,
-  "Data Science": FiDatabase,
   "System Design": FiServer,
-  Infrastructure: FiServer,
   "Distributed Systems": FiServer,
+  Microservices: FiServer,
+  Scalability: FiServer,
+  "Event-Driven Architecture": FiServer,
+  Backend: FiServer,
+  "Backend Development": FiServer,
+  "API Development": FiServer,
+  Infrastructure: FiTool,
+  "Infrastructure as Code": FiTool,
+  Docker: FiTool,
+  Containerization: FiTool,
+  Kubernetes: FiTool,
+  SRE: FiZap,
+  Reliability: FiZap,
+  "Cloud Computing": FiGlobe,
+  "Mobile Development": FiLayout,
+  "React Native": FiLayout,
+  "Tech Innovations": FiZap,
+  Web3: FiGlobe,
+  Blockchain: FiGlobe,
+  GraphQL: FiCode,
+  WebAssembly: FiCpu,
+  RAG: FiCpu,
+  Concurrency: FiZap,
+  "Rust Programming": FiCode,
+  "Apache Kafka": FiServer,
 };
+
+// Broad categories that many articles share — prefer a more specific second topic
+const BROAD_TOPICS = new Set([
+  "Artificial Intelligence",
+  "Web Development",
+  "Machine Learning",
+  "Tech Innovations",
+  "Web Frameworks",
+]);
+
+function pickAccentTopic(topics: string[]): string {
+  if (topics.length <= 1) return topics[0] || "default";
+  // If first topic is broad and second is more specific, use second
+  if (BROAD_TOPICS.has(topics[0]) && topics[1] && TOPIC_COLORS[topics[1]]) {
+    return topics[1];
+  }
+  return topics[0];
+}
 
 function getTopicColor(topic: string): string {
   if (TOPIC_COLORS[topic]) return TOPIC_COLORS[topic];
-  // Deterministic color from topic string
   let hash = 0;
   for (let i = 0; i < topic.length; i++) {
     hash = topic.charCodeAt(i) + ((hash << 5) - hash);
@@ -89,6 +186,9 @@ function getTopicColor(topic: string): string {
 function getTopicIcon(
   topics: string[],
 ): React.ComponentType<{ size?: number }> {
+  // Try accent topic first, then all topics
+  const accent = pickAccentTopic(topics);
+  if (TOPIC_ICONS[accent]) return TOPIC_ICONS[accent];
   for (const t of topics) {
     if (TOPIC_ICONS[t]) return TOPIC_ICONS[t];
   }
@@ -112,7 +212,8 @@ export default function InteractiveCard({
   readingTimeMinutes,
   viewCount,
 }: CardProps) {
-  const accentColor = getTopicColor(topics[0] || "default");
+  const accentTopic = pickAccentTopic(topics);
+  const accentColor = getTopicColor(accentTopic);
   const Icon = getTopicIcon(topics);
   const displayTopics = topics.slice(0, 3);
 

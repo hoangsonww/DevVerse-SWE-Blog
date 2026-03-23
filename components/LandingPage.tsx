@@ -322,17 +322,49 @@ export default function LandingPage({
               workflows designed for engineers who build and scale real
               products.
             </motion.p>
-            <motion.div className="hero-tags" variants={fadeUp}>
-              {[
-                "System design",
-                "Distributed systems",
-                "AI + retrieval",
-                "Performance",
-              ].map((tag) => (
-                <span key={tag} className="hero-tag">
-                  {tag}
-                </span>
-              ))}
+            <motion.div className="hero-marquee-wrapper" variants={fadeUp}>
+              <div className="hero-marquee">
+                <div className="hero-marquee-track">
+                  {[
+                    "System design",
+                    "Distributed systems",
+                    "AI + retrieval",
+                    "Performance",
+                    "Microservices",
+                    "DevOps",
+                    "Cloud architecture",
+                    "Machine learning",
+                    "Web frameworks",
+                    "Database internals",
+                    "Security",
+                    "CI/CD pipelines",
+                    "Edge computing",
+                    "Observability",
+                    "API design",
+                    "Containerization",
+                    "System design",
+                    "Distributed systems",
+                    "AI + retrieval",
+                    "Performance",
+                    "Microservices",
+                    "DevOps",
+                    "Cloud architecture",
+                    "Machine learning",
+                    "Web frameworks",
+                    "Database internals",
+                    "Security",
+                    "CI/CD pipelines",
+                    "Edge computing",
+                    "Observability",
+                    "API design",
+                    "Containerization",
+                  ].map((tag, i) => (
+                    <span key={`${tag}-${i}`} className="hero-tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </motion.div>
             <motion.div className="cta-row" variants={fadeUp}>
               <Link className="primary-cta" href="/home">
@@ -744,25 +776,81 @@ export default function LandingPage({
               curated learning paths and deep technical analysis.
             </p>
           </div>
-          <div className="topic-grid">
-            {[
-              "Algorithms",
-              "Data structures",
-              "System design",
-              "Distributed systems",
-              "Cloud engineering",
-              "AI and ML",
-              "Web performance",
-              "DevOps",
-              "Security",
-              "Databases",
-              "Frontend architecture",
-              "Backend engineering",
-            ].map((topic) => (
-              <span key={topic} className="topic-chip">
-                {topic}
-              </span>
-            ))}
+          <div className="topic-marquee-wrapper">
+            <div className="topic-marquee">
+              <div className="topic-marquee-track">
+                {[
+                  "Algorithms",
+                  "Data structures",
+                  "System design",
+                  "Distributed systems",
+                  "Cloud architecture",
+                  "AI and ML",
+                  "Web performance",
+                  "DevOps",
+                  "Security",
+                  "Databases",
+                  "Frontend frameworks",
+                  "Backend engineering",
+                  "Microservices",
+                  "Containerization",
+                  "Edge computing",
+                  "Observability",
+                  "API design",
+                  "CI/CD pipelines",
+                  "RAG and retrieval",
+                  "Event-driven systems",
+                  "Rust and Go",
+                  "GraphQL",
+                  "WebAssembly",
+                  "Blockchain",
+                  "LLM engineering",
+                  "Agentic AI",
+                  "Design patterns",
+                  "SRE and reliability",
+                  "Data pipelines",
+                  "WebSockets",
+                  "Kubernetes",
+                  "Docker",
+                  "Algorithms",
+                  "Data structures",
+                  "System design",
+                  "Distributed systems",
+                  "Cloud architecture",
+                  "AI and ML",
+                  "Web performance",
+                  "DevOps",
+                  "Security",
+                  "Databases",
+                  "Frontend frameworks",
+                  "Backend engineering",
+                  "Microservices",
+                  "Containerization",
+                  "Edge computing",
+                  "Observability",
+                  "API design",
+                  "CI/CD pipelines",
+                  "RAG and retrieval",
+                  "Event-driven systems",
+                  "Rust and Go",
+                  "GraphQL",
+                  "WebAssembly",
+                  "Blockchain",
+                  "LLM engineering",
+                  "Agentic AI",
+                  "Design patterns",
+                  "SRE and reliability",
+                  "Data pipelines",
+                  "WebSockets",
+                  "Kubernetes",
+                  "Docker",
+                ].map((topic, i) => (
+                  <span key={`${topic}-${i}`} className="topic-chip">
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </motion.section>
 

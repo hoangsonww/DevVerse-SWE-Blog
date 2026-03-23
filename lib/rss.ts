@@ -228,10 +228,109 @@ export async function getPostsByAuthor(author: string): Promise<BlogPost[]> {
   return posts.filter((p) => p.author.toLowerCase() === author.toLowerCase());
 }
 
+const STOP_WORDS_RELATED = new Set([
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "by",
+  "for",
+  "from",
+  "has",
+  "he",
+  "in",
+  "is",
+  "it",
+  "its",
+  "of",
+  "on",
+  "or",
+  "that",
+  "the",
+  "to",
+  "was",
+  "were",
+  "will",
+  "with",
+  "this",
+  "not",
+  "but",
+  "they",
+  "have",
+  "had",
+  "how",
+  "what",
+  "when",
+  "where",
+  "who",
+  "which",
+  "can",
+  "do",
+  "does",
+  "did",
+  "been",
+  "being",
+  "would",
+  "should",
+  "could",
+  "may",
+  "might",
+  "shall",
+  "into",
+  "over",
+  "about",
+  "your",
+  "our",
+  "their",
+  "more",
+  "most",
+  "than",
+  "then",
+  "also",
+  "just",
+  "very",
+  "deep",
+  "dive",
+  "guide",
+  "comprehensive",
+  "introduction",
+  "overview",
+  "article",
+  "using",
+  "modern",
+  "building",
+  "build",
+  "explore",
+  "exploring",
+]);
+
+function tokenizeForMatching(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOP_WORDS_RELATED.has(w));
+}
+
+function jaccardSimilarity(a: string[], b: string[]): number {
+  const setA = new Set(a);
+  const setB = new Set(b);
+  let intersection = 0;
+  setA.forEach((w) => {
+    if (setB.has(w)) intersection++;
+  });
+  const union = new Set(Array.from(setA).concat(Array.from(setB))).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
 export async function getRelatedPosts(
   slug: string,
-  limit = 4,
-  minCount = 2,
+  limit = 8,
+  minCount = 4,
 ): Promise<BlogPost[]> {
   const posts = await getAllPosts();
   const current = posts.find((p) => p.slug === slug);
@@ -241,16 +340,54 @@ export async function getRelatedPosts(
   if (others.length === 0) return [];
 
   const currentTopics = new Set(current.topics.map((t) => t.toLowerCase()));
+  const currentTitleTokens = tokenizeForMatching(current.title);
+  const currentDescTokens = tokenizeForMatching(current.description || "");
+  const currentContentTokens = tokenizeForMatching(
+    (current.content || "").slice(0, 2000),
+  );
 
   const withScores = others.map((p) => {
+    // 1. Topic overlap (strongest signal, weighted x3)
     const candidateTopics = new Set(p.topics.map((t) => t.toLowerCase()));
-    let shared = 0;
+    let topicOverlap = 0;
     currentTopics.forEach((t) => {
-      if (candidateTopics.has(t)) shared += 1;
+      if (candidateTopics.has(t)) topicOverlap += 1;
     });
+    const topicScore = topicOverlap * 3;
+
+    // 2. Title similarity (strong signal, weighted x2)
+    const titleTokens = tokenizeForMatching(p.title);
+    const titleSim = jaccardSimilarity(currentTitleTokens, titleTokens) * 2;
+
+    // 3. Description similarity
+    const descTokens = tokenizeForMatching(p.description || "");
+    const descSim = jaccardSimilarity(currentDescTokens, descTokens);
+
+    // 4. Content similarity (first 2000 chars for performance)
+    const contentTokens = tokenizeForMatching((p.content || "").slice(0, 2000));
+    const contentSim = jaccardSimilarity(currentContentTokens, contentTokens);
+
+    // 5. Reading time proximity (bonus if similar length)
+    const readingDiff = Math.abs(
+      (current.readingMinutes || 0) - (p.readingMinutes || 0),
+    );
+    const readingBonus = readingDiff <= 3 ? 0.5 : readingDiff <= 6 ? 0.2 : 0;
+
+    // 6. Recency bonus (newer articles get a small boost)
+    const daysSincePublished = Math.max(
+      0,
+      (Date.now() - new Date(p.date).getTime()) / (1000 * 60 * 60 * 24),
+    );
+    const recencyBonus = daysSincePublished < 90 ? 0.3 : 0;
+
     const score =
-      shared * 2 +
-      (p.author.toLowerCase() === current.author.toLowerCase() ? 1 : 0);
+      topicScore +
+      titleSim +
+      descSim +
+      contentSim +
+      readingBonus +
+      recencyBonus;
+
     return { post: p, score };
   });
 
@@ -259,10 +396,9 @@ export async function getRelatedPosts(
       if (b.score !== a.score) return b.score - a.score;
       return new Date(b.post.date).getTime() - new Date(a.post.date).getTime();
     })
-    .map((x) => x.post)
-    .filter((p) => p.slug !== slug);
+    .map((x) => x.post);
 
-  // If not enough strong matches, top up with recents (fallback)
+  // If not enough strong matches, top up with recents
   if (ranked.length < minCount) {
     const recents = others
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
