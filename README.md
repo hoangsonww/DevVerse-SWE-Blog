@@ -8,7 +8,7 @@ A modern, high-performance full-stack blog built with [Next.js](https://nextjs.o
   </a>
 </p>
 
-<p align="center">
+<p align="center" style="cursor: pointer;">
   <strong>Visit DevVerse:</strong><br/>
   <a href="https://devverse-swe.vercel.app" target="_blank" rel="noopener">
     <img src="https://img.shields.io/badge/🌐%20DevVerse-devverse--swe.vercel.app-0070f3?style=flat-square&logo=vercel&logoColor=white" alt="Visit DevVerse" />
@@ -113,6 +113,9 @@ graph TD
 To add more content, simply create new MDX files in the `content` directory and follow the existing structure. The blog is designed to be scalable, maintainable, and extensible, making it a great platform for sharing knowledge and insights within the tech community.
 
 Feel free to contribute your own articles, improve the existing content, or customize the blog to suit your needs. Refer to the [Contributing](#contributing) section for guidelines on how to contribute to this project.
+
+> [!NOTE]
+> All articles are written in MDX and stored in the `content` directory. The Next.js app compiles these MDX files into static pages at build time, while also extracting metadata for features like the article list, related posts, and the RAG chatbot. Articles must have substantial content (not just a placeholder) and should include proper headings (`h1`, `h2`, `h3`) + Mermaid diagrams to be considered valid for the main article library.
 
 ## Live Application
 
@@ -957,6 +960,24 @@ graph TD
 After adding or modifying articles, consider re-running `npm run vectorize:articles` to update the Pinecone index for the RAG chatbot.
 
 We welcome contributions that expand the content and cover a wide range of topics in computer science and software engineering! I hope this project can serve as a platform for sharing knowledge and insights within the tech community.
+
+### Requirements for new articles
+
+**All new articles must have:**
+- Substantial original content (at least 1000 words)
+- Proper metadata (title, description, topics)
+- Relevant topics and tags for discoverability
+- Accurate reading time estimation
+- Proper formatting and structure (headings, lists, etc.)
+- Relevant and high-quality content that provides value to readers interested in computer science and software engineering topics.
+- Clear writing and formatting examples, diagrams, and practical insights are highly encouraged to maintain the quality and value of the blog.
+- Adherence to the existing content style and structure for consistency.
+- At least 5 Mermaid charts + several blocks of code snippets to illustrate concepts and provide visual explanations.
+- A unique slug generated from the title (e.g., "my-new-article" for "My New Article") for URL routing.
+- Proper attribution for any external sources or references used in the article.
+- Compliance with the project's code of conduct and contribution guidelines.
+- Can be AI-assisted but must include substantial human-written content and insights to ensure originality and value for readers.
+- All contributions will be reviewed by the maintainers to ensure they meet the quality standards and align with the blog's focus on computer science and software engineering topics.
 
 ## License
 

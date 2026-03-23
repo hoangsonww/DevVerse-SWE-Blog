@@ -300,67 +300,79 @@ export default function ArticlesList({
   }, [normalizedSearch, selectedTopics, showCarousel, visitHistory]);
 
   const hasVisitHistory = visitHistory.length > 0;
-  const targetCarouselCount = Math.max(12, visibleCount);
+  const MAX_CAROUSEL = 9;
 
   const recommendedArticles = useMemo(() => {
     if (!hasVisitHistory) return [];
 
-    const visitedSlugs = new Set(visitHistory.map((item) => item.slug));
-    const visitedTopics = new Set(
-      visitHistory.flatMap((item) => item.topics ?? []),
-    );
-    const visitedTokens = new Set(
-      visitHistory.flatMap((item) => tokenizeText(item.title ?? "")),
-    );
+    const now = Date.now();
+    const DAY_MS = 86_400_000;
+    const visitedSlugs = new Set(visitHistory.map((v) => v.slug));
 
-    const scored = articles.map((article) => {
-      const topicScore = article.topics.filter((topic) =>
-        visitedTopics.has(topic),
-      ).length;
-      const titleScore = tokenizeText(article.title).filter((token) =>
-        visitedTokens.has(token),
-      ).length;
-      const descriptionScore = tokenizeText(
+    // Build weighted topic frequency map with recency decay.
+    // Recent visits contribute more than old ones.
+    const topicWeights = new Map<string, number>();
+    visitHistory.forEach((v) => {
+      const age = Math.max(0, now - (v.lastViewed ?? 0));
+      // Halve the weight every 7 days
+      const recency = Math.pow(0.5, age / (7 * DAY_MS));
+      (v.topics ?? []).forEach((topic) => {
+        topicWeights.set(topic, (topicWeights.get(topic) ?? 0) + recency);
+      });
+    });
+
+    // Build weighted token frequency map from visited titles
+    const tokenWeights = new Map<string, number>();
+    visitHistory.forEach((v) => {
+      const age = Math.max(0, now - (v.lastViewed ?? 0));
+      const recency = Math.pow(0.5, age / (7 * DAY_MS));
+      tokenizeText(v.title ?? "").forEach((token) => {
+        tokenWeights.set(token, (tokenWeights.get(token) ?? 0) + recency);
+      });
+    });
+
+    // Only recommend articles the user hasn't visited yet
+    const candidates = articles.filter((a) => !visitedSlugs.has(a.slug));
+
+    const scored = candidates.map((article) => {
+      // Topic relevance: sum of weights for matching topics
+      const topicScore = article.topics.reduce(
+        (sum, t) => sum + (topicWeights.get(t) ?? 0),
+        0,
+      );
+
+      // Title keyword overlap
+      const titleScore = tokenizeText(article.title).reduce(
+        (sum, t) => sum + (tokenWeights.get(t) ?? 0),
+        0,
+      );
+
+      // Description keyword overlap (lower weight)
+      const descTokens = tokenizeText(
         `${article.description ?? ""} ${article.excerpt ?? ""}`,
-      ).filter((token) => visitedTokens.has(token)).length;
+      );
+      const descScore = descTokens.reduce(
+        (sum, t) => sum + (tokenWeights.get(t) ?? 0),
+        0,
+      );
 
-      return {
-        article,
-        score: topicScore * 3 + titleScore * 2 + descriptionScore,
-      };
+      const score = topicScore * 3 + titleScore * 2 + descScore;
+      return { article, score };
     });
 
-    scored.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return a.article.title.localeCompare(b.article.title);
-    });
+    // Filter to only meaningfully relevant articles
+    scored.sort((a, b) => b.score - a.score);
+    const minScore = scored.length > 0 ? scored[0].score * 0.1 : 0;
 
-    const result: Article[] = [];
-    const seen = new Set<string>();
-    const pushArticle = (item: { article: Article }) => {
-      if (result.length >= targetCarouselCount) return;
-      if (seen.has(item.article.slug)) return;
-      result.push(item.article);
-      seen.add(item.article.slug);
-    };
-
-    const unvisited = scored.filter(
-      (item) => !visitedSlugs.has(item.article.slug),
-    );
-    const visited = scored.filter((item) =>
-      visitedSlugs.has(item.article.slug),
-    );
-
-    unvisited.filter((item) => item.score > 0).forEach(pushArticle);
-    unvisited.filter((item) => item.score <= 0).forEach(pushArticle);
-    visited.forEach(pushArticle);
-
-    return result;
-  }, [articles, hasVisitHistory, targetCarouselCount, visitHistory]);
+    return scored
+      .filter((item) => item.score > minScore)
+      .slice(0, MAX_CAROUSEL)
+      .map((item) => item.article);
+  }, [articles, hasVisitHistory, visitHistory]);
 
   const carouselArticles = hasVisitHistory
     ? recommendedArticles
-    : displayedArticles.slice(0, targetCarouselCount);
+    : articles.slice(0, MAX_CAROUSEL);
 
   const carouselPages = useMemo(() => {
     if (!showCarousel) return [];
@@ -412,6 +424,17 @@ export default function ArticlesList({
 
   return (
     <div>
+      {showCarousel && (
+        <div id="all-articles" className="all-articles-heading">
+          <div className="all-articles-accent-bar" aria-hidden="true" />
+          <p className="all-articles-kicker">Library</p>
+          <h2 className="all-articles-title">All Articles</h2>
+          <p className="all-articles-subtitle">
+            Browse the full collection - search, filter by topic, or just scroll
+          </p>
+        </div>
+      )}
+
       <div className="search-filter-shell fade-slide-up">
         <div className="search-filter-header">
           <div>
@@ -585,14 +608,6 @@ export default function ArticlesList({
             ))}
           </div>
         </section>
-      )}
-
-      {showCarousel && (
-        <div className="all-articles-heading">
-          <div className="all-articles-divider" aria-hidden="true" />
-          <h2 className="all-articles-title">All Articles</h2>
-          <div className="all-articles-divider" aria-hidden="true" />
-        </div>
       )}
 
       {/* Articles Grid */}
@@ -943,31 +958,51 @@ export default function ArticlesList({
         }
 
         .all-articles-heading {
-          margin: 2.8rem 0 2.2rem;
-          display: grid;
-          gap: 0.6rem;
-          place-items: center;
+          margin: 2.8rem 0 1.8rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           text-align: center;
+          gap: 0.35rem;
+          scroll-margin-top: 2rem;
         }
 
-        .all-articles-divider {
-          height: 1px;
-          width: min(360px, 70%);
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(0, 112, 243, 0.4),
-            transparent
-          );
+        .all-articles-accent-bar {
+          width: 48px;
+          height: 4px;
+          border-radius: 4px;
+          background: linear-gradient(135deg, #6366f1, #3b82f6);
+          margin-bottom: 0.5rem;
+        }
+
+        .all-articles-kicker {
+          margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #6366f1;
+        }
+
+        :global(.dark) .all-articles-kicker {
+          color: #818cf8;
         }
 
         .all-articles-title {
           margin: 0;
-          font-size: clamp(1.6rem, 2.4vw, 2rem);
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          font-weight: 700;
+          font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+          font-weight: 800;
+          letter-spacing: -0.02em;
           color: var(--text-color);
+          line-height: 1.2;
+        }
+
+        .all-articles-subtitle {
+          margin: 0.25rem 0 0;
+          font-size: 1rem;
+          color: var(--text-color);
+          opacity: 0.6;
+          line-height: 1.5;
         }
 
         .articles-carousel {
@@ -1102,6 +1137,10 @@ export default function ArticlesList({
           justify-content: center;
           gap: 0.5rem;
           margin-top: 1.3rem;
+          flex-wrap: wrap;
+          max-width: 100%;
+          overflow: hidden;
+          padding: 0 0.5rem;
         }
 
         .carousel-dot {
@@ -1153,6 +1192,19 @@ export default function ArticlesList({
           .carousel-controls {
             width: 100%;
             justify-content: flex-start;
+          }
+
+          .carousel-pagination {
+            gap: 0.35rem;
+          }
+
+          .carousel-dot {
+            width: 8px;
+            height: 8px;
+          }
+
+          .carousel-dot.active {
+            width: 20px;
           }
         }
       `}</style>
