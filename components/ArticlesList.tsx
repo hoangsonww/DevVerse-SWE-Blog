@@ -297,7 +297,7 @@ export default function ArticlesList({
   useEffect(() => {
     if (!showCarousel) return;
     setCarouselPage(0);
-  }, [normalizedSearch, selectedTopics, showCarousel, visitHistory]);
+  }, [showCarousel, visitHistory]);
 
   const hasVisitHistory = visitHistory.length > 0;
   const MAX_CAROUSEL = 9;
@@ -435,84 +435,6 @@ export default function ArticlesList({
         </div>
       )}
 
-      <div className="search-filter-shell fade-slide-up">
-        <div className="search-filter-header">
-          <div>
-            <p className="search-filter-kicker">{headerKicker}</p>
-            <h2 className="search-filter-title">{headerTitle}</h2>
-            <p className="search-filter-subtitle">{headerSubtitle}</p>
-          </div>
-          <button className="filter-tip" type="button" aria-label="Filter tips">
-            <FaInfoCircle aria-hidden="true" />
-            <span className="filter-tooltip">
-              Select multiple topics to narrow results. Articles shown will
-              match every selected topic so you can stay focused.
-            </span>
-          </button>
-        </div>
-
-        {showSearch && (
-          <div className={`search-field ${isSearchFocused ? "focused" : ""}`}>
-            <FaSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search articles, frameworks, or tools..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-              className="search-input"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="search-clear"
-                aria-label="Clear search"
-              >
-                <FaTimes />
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="filter-topics">
-          <button
-            className={`topic-btn all-topics ${selectedTopics.length === 0 ? "selected" : ""}`}
-            onClick={clearSelection}
-          >
-            <FaTags />
-            All Topics
-          </button>
-
-          {topicsToShow.map((topic) => (
-            <button
-              key={topic}
-              className={`topic-btn ${selectedTopics.includes(topic) ? "selected" : ""}`}
-              onClick={() => toggleTopic(topic)}
-            >
-              <FaTags />
-              {topic}
-            </button>
-          ))}
-
-          {selectedTopics.length > 0 && (
-            <button className="topic-btn clear-btn" onClick={clearSelection}>
-              <FaTimes />
-              Clear Selection
-            </button>
-          )}
-
-          {visibleTopicsCount < allTopics.length && (
-            <button
-              className="topic-btn more-btn"
-              onClick={() => setVisibleTopicsCount((prev) => prev + 10)}
-            >
-              More Topics ...
-            </button>
-          )}
-        </div>
-      </div>
-
       {showCarousel && totalCarouselPages > 0 && (
         <section className="articles-carousel">
           <div className="carousel-header">
@@ -609,6 +531,84 @@ export default function ArticlesList({
           </div>
         </section>
       )}
+
+      <div className="search-filter-shell fade-slide-up">
+        <div className="search-filter-header">
+          <div>
+            <p className="search-filter-kicker">{headerKicker}</p>
+            <h2 className="search-filter-title">{headerTitle}</h2>
+            <p className="search-filter-subtitle">{headerSubtitle}</p>
+          </div>
+          <button className="filter-tip" type="button" aria-label="Filter tips">
+            <FaInfoCircle aria-hidden="true" />
+            <span className="filter-tooltip">
+              Select multiple topics to narrow results. Articles shown will
+              match every selected topic so you can stay focused.
+            </span>
+          </button>
+        </div>
+
+        {showSearch && (
+          <div className={`search-field ${isSearchFocused ? "focused" : ""}`}>
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search articles, frameworks, or tools..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              className="search-input"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="search-clear"
+                aria-label="Clear search"
+              >
+                <FaTimes />
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="filter-topics">
+          <button
+            className={`topic-btn all-topics ${selectedTopics.length === 0 ? "selected" : ""}`}
+            onClick={clearSelection}
+          >
+            <FaTags />
+            All Topics
+          </button>
+
+          {topicsToShow.map((topic) => (
+            <button
+              key={topic}
+              className={`topic-btn ${selectedTopics.includes(topic) ? "selected" : ""}`}
+              onClick={() => toggleTopic(topic)}
+            >
+              <FaTags />
+              {topic}
+            </button>
+          ))}
+
+          {selectedTopics.length > 0 && (
+            <button className="topic-btn clear-btn" onClick={clearSelection}>
+              <FaTimes />
+              Clear Selection
+            </button>
+          )}
+
+          {visibleTopicsCount < allTopics.length && (
+            <button
+              className="topic-btn more-btn"
+              onClick={() => setVisibleTopicsCount((prev) => prev + 10)}
+            >
+              More Topics ...
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Articles Grid */}
       <div className="article-grid">{displayedCardElements}</div>
