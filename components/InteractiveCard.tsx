@@ -216,6 +216,7 @@ export default function InteractiveCard({
   const accentColor = getTopicColor(accentTopic);
   const Icon = getTopicIcon(topics);
   const displayTopics = topics.slice(0, 3);
+  const extraCount = topics.length - displayTopics.length;
 
   return (
     <Link href={`/articles/${slug}`} className="interactive-card-link">
@@ -254,6 +255,18 @@ export default function InteractiveCard({
                   {t}
                 </span>
               ))}
+              {extraCount > 0 && (
+                <span
+                  className="interactive-card-topic-pill interactive-card-topic-more"
+                  style={{
+                    background: `${accentColor}14`,
+                    color: accentColor,
+                    borderColor: `${accentColor}30`,
+                  }}
+                >
+                  +{extraCount}
+                </span>
+              )}
             </div>
           )}
 
