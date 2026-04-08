@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 import {
   FiCpu,
   FiCode,
@@ -219,7 +219,10 @@ export default function InteractiveCard({
   const extraCount = topics.length - displayTopics.length;
 
   return (
-    <Link href={`/articles/${slug}`} className="interactive-card-link">
+    <TransitionLink
+      href={`/articles/${slug}`}
+      className="interactive-card-link"
+    >
       <div
         className="interactive-card"
         style={{ "--card-accent": accentColor } as React.CSSProperties}
@@ -434,6 +437,6 @@ export default function InteractiveCard({
           border-color: var(--card-accent, #4dabf7);
         }
       `}</style>
-    </Link>
+    </TransitionLink>
   );
 }

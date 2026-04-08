@@ -7,6 +7,7 @@ import { FiUser } from "react-icons/fi";
 import { toast } from "react-toastify";
 import Tooltip from "./Tooltip";
 import { createPortal } from "react-dom";
+import { usePageTransition } from "@/provider/PageTransitionProvider";
 
 const UserMenu: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -21,6 +22,7 @@ const UserMenu: React.FC = () => {
     maxWidth: number;
   } | null>(null);
   const router = useRouter();
+  const { triggerExit } = usePageTransition();
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -129,7 +131,7 @@ const UserMenu: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/auth/login");
+    triggerExit("/auth/login");
     toast.success("Logged out successfully", { theme: "colored" });
   };
 
@@ -216,7 +218,7 @@ const UserMenu: React.FC = () => {
                   label="Login"
                   onClick={() => {
                     setMenuOpen(false);
-                    router.push("/auth/login");
+                    triggerExit("/auth/login");
                   }}
                 />
 
@@ -224,7 +226,7 @@ const UserMenu: React.FC = () => {
                   label="Register"
                   onClick={() => {
                     setMenuOpen(false);
-                    router.push("/auth/register");
+                    triggerExit("/auth/register");
                   }}
                 />
               </div>

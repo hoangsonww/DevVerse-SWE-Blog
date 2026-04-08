@@ -6,6 +6,7 @@ import { TranslateMenuProvider } from "@/components/TranslateMenuProvider";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { DarkModeProvider } from "@/provider/DarkModeProvider";
+import { PageTransitionProvider } from "@/provider/PageTransitionProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Analytics } from "@vercel/analytics/react";
@@ -189,27 +190,29 @@ export default function RootLayout({
       <body className={inter.className}>
         <Analytics />
         <DarkModeProvider>
-          <TranslateMenuProvider>
-            <div style={{ position: "relative", zIndex: 99999 }}>
-              <ConditionalNavbar />
-            </div>
-            <ToastContainer
-              position="bottom-center"
-              autoClose={2000}
-              hideProgressBar={false}
-              closeOnClick
-              pauseOnHover={false}
-              pauseOnFocusLoss={false}
-              draggable={false}
-              theme="light"
-              toastStyle={{
-                fontFamily: "Inter, sans-serif",
-              }}
-              limit={3}
-            />
-            <ConditionalMain>{children}</ConditionalMain>
-            <Footer />
-          </TranslateMenuProvider>
+          <PageTransitionProvider>
+            <TranslateMenuProvider>
+              <div style={{ position: "relative", zIndex: 99999 }}>
+                <ConditionalNavbar />
+              </div>
+              <ToastContainer
+                position="bottom-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                closeOnClick
+                pauseOnHover={false}
+                pauseOnFocusLoss={false}
+                draggable={false}
+                theme="light"
+                toastStyle={{
+                  fontFamily: "Inter, sans-serif",
+                }}
+                limit={3}
+              />
+              <ConditionalMain>{children}</ConditionalMain>
+              <Footer />
+            </TranslateMenuProvider>
+          </PageTransitionProvider>
         </DarkModeProvider>
       </body>
     </html>

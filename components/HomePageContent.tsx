@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import ArticlesList from "./ArticlesList";
+import TransitionLink from "./TransitionLink";
 import { FaGithub, FaLinkedin, FaGlobe, FaEnvelope } from "react-icons/fa";
 import { FiBook, FiCode, FiRefreshCw } from "react-icons/fi";
 
@@ -134,9 +135,12 @@ export default function HomePageContent({
               <em>why</em>, not just the <em>how</em>.
             </p>
             <div className="page-hero-actions">
-              <a href="/chat" className="hero-cta hero-cta-primary">
+              <TransitionLink
+                href="/chat"
+                className="hero-cta hero-cta-primary"
+              >
                 Ask the AI chatbot
-              </a>
+              </TransitionLink>
               <a
                 href="#all-articles"
                 className="hero-cta hero-cta-secondary"

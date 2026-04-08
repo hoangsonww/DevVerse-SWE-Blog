@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { signIn } from "@/supabase/auth";
 import { motion } from "framer-motion";
 import { FaSignInAlt, FaEye, FaEyeSlash } from "react-icons/fa";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import { toast } from "react-toastify";
+import { usePageTransition } from "@/provider/PageTransitionProvider";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -15,6 +16,7 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const router = useRouter();
+  const { triggerExit } = usePageTransition();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -23,7 +25,7 @@ const LoginPage: React.FC = () => {
       toast.error(error.message, { theme: "colored" });
     } else {
       toast.success("Signed in successfully!", { theme: "colored" });
-      router.push("/home");
+      triggerExit("/home");
     }
     setLoading(false);
   };
@@ -178,7 +180,7 @@ const LoginPage: React.FC = () => {
         >
           <p>
             Don't have an account?{" "}
-            <Link
+            <TransitionLink
               href="/auth/register"
               style={{
                 color: "var(--link-color)",
@@ -187,11 +189,11 @@ const LoginPage: React.FC = () => {
               }}
             >
               Register
-            </Link>
+            </TransitionLink>
           </p>
           <p>
             Forgot your password?{" "}
-            <Link
+            <TransitionLink
               href="/auth/reset"
               style={{
                 color: "var(--link-color)",
@@ -200,7 +202,7 @@ const LoginPage: React.FC = () => {
               }}
             >
               Reset Password
-            </Link>
+            </TransitionLink>
           </p>
         </div>
       </motion.div>

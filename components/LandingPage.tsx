@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 import { motion } from "framer-motion";
 import {
   FiArrowUpRight,
@@ -367,13 +367,13 @@ export default function LandingPage({
               </div>
             </motion.div>
             <motion.div className="cta-row" variants={fadeUp}>
-              <Link className="primary-cta" href="/home">
+              <TransitionLink className="primary-cta" href="/home">
                 Explore the library
                 <FiArrowUpRight />
-              </Link>
-              <Link className="secondary-cta" href="/chat">
+              </TransitionLink>
+              <TransitionLink className="secondary-cta" href="/chat">
                 Ask the chatbot
-              </Link>
+              </TransitionLink>
             </motion.div>
             <motion.div className="hero-metrics" variants={fadeUp}>
               <div className="metric">
@@ -434,10 +434,10 @@ export default function LandingPage({
                 </ul>
               </div>
             </div>
-            <Link className="panel-cta" href="/home">
+            <TransitionLink className="panel-cta" href="/home">
               Browse the library
               <FiArrowUpRight />
-            </Link>
+            </TransitionLink>
           </motion.div>
         </motion.section>
 
@@ -638,10 +638,10 @@ export default function LandingPage({
               <li>Get a concise, cited response.</li>
               <li>Jump directly into the source.</li>
             </ol>
-            <Link className="split-cta" href="/chat">
+            <TransitionLink className="split-cta" href="/chat">
               Try the chatbot
               <FiArrowUpRight />
-            </Link>
+            </TransitionLink>
           </div>
         </motion.section>
 
@@ -974,13 +974,13 @@ export default function LandingPage({
               </p>
             </div>
             <div className="cta-row">
-              <Link className="primary-cta" href="/home">
+              <TransitionLink className="primary-cta" href="/home">
                 Enter the library
                 <FiArrowUpRight />
-              </Link>
-              <Link className="secondary-cta" href="/chat">
+              </TransitionLink>
+              <TransitionLink className="secondary-cta" href="/chat">
                 Ask a question
-              </Link>
+              </TransitionLink>
             </div>
           </div>
         </motion.section>
@@ -1004,9 +1004,9 @@ export default function LandingPage({
 
             <div className="landing-footer-links">
               <span className="landing-footer-label">Explore</span>
-              <Link href="/home">Library</Link>
-              <Link href="/chat">Chatbot</Link>
-              <Link href="/favorites">Favorites</Link>
+              <TransitionLink href="/home">Library</TransitionLink>
+              <TransitionLink href="/chat">Chatbot</TransitionLink>
+              <TransitionLink href="/favorites">Favorites</TransitionLink>
             </div>
 
             <div className="landing-footer-links">
@@ -1025,12 +1025,12 @@ export default function LandingPage({
 
             <div className="landing-footer-cta">
               <span className="landing-footer-label">Start learning</span>
-              <Link className="footer-cta primary" href="/home">
+              <TransitionLink className="footer-cta primary" href="/home">
                 Enter the library
-              </Link>
-              <Link className="footer-cta secondary" href="/chat">
+              </TransitionLink>
+              <TransitionLink className="footer-cta secondary" href="/chat">
                 Ask a question
-              </Link>
+              </TransitionLink>
             </div>
           </div>
 
