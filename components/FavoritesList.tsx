@@ -8,6 +8,7 @@ import ArticlesList from "./ArticlesList";
 import { Article } from "@/lib/articles";
 import { getFavoriteSlugs } from "@/supabase/favorites";
 import { FaSpinner } from "react-icons/fa";
+import { usePageTransition } from "@/provider/PageTransitionProvider";
 
 interface FavoritesListProps {
   articles: Article[];
@@ -25,6 +26,7 @@ export default function FavoritesList({
   const [filteredFavorites, setFilteredFavorites] = useState<Article[]>([]);
   const viewCounts = serverViewCounts ?? {};
   const router = useRouter();
+  const { triggerExit } = usePageTransition();
 
   useEffect(() => {
     setMounted(true);
@@ -39,7 +41,7 @@ export default function FavoritesList({
         toast.error("Please log in to view your favorites", {
           theme: "colored",
         });
-        router.push("/auth/login");
+        triggerExit("/auth/login");
         return;
       }
       setUser(session.user);

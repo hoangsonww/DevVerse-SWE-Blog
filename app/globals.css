@@ -1733,3 +1733,39 @@ a.interactive-card-link:hover {
     0 4px 15px rgba(129, 140, 248, 0.22);
   color: #818cf8 !important;
 }
+
+/* ── Page Transitions ── */
+.page-transition {
+  will-change: opacity;
+}
+
+.page-transition--enter {
+  animation: pageEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.page-transition--visible {
+  opacity: 1;
+}
+
+.page-transition--exit {
+  animation: pageExit 0.22s ease-in both;
+  pointer-events: none;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pageExit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

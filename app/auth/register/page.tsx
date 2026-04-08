@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { signUp } from "@/supabase/auth";
 import { motion } from "framer-motion";
 import { FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { usePageTransition } from "@/provider/PageTransitionProvider";
 
 const RegisterPage: React.FC = () => {
   const [displayName, setDisplayName] = useState<string>("");
@@ -20,6 +21,7 @@ const RegisterPage: React.FC = () => {
     useState<boolean>(false);
 
   const router = useRouter();
+  const { triggerExit } = usePageTransition();
 
   const handleRegister = async () => {
     if (!displayName.trim()) {
@@ -40,7 +42,7 @@ const RegisterPage: React.FC = () => {
       toast.error(error.message, { theme: "colored" });
     } else {
       toast.success("Account created! Please login.", { theme: "colored" });
-      router.push("/auth/login");
+      triggerExit("/auth/login");
     }
     setLoading(false);
   };
@@ -271,7 +273,7 @@ const RegisterPage: React.FC = () => {
         >
           <p>
             Already have an account?{" "}
-            <Link
+            <TransitionLink
               href="/auth/login"
               style={{
                 color: "var(--link-color)",
@@ -280,11 +282,11 @@ const RegisterPage: React.FC = () => {
               }}
             >
               Login
-            </Link>
+            </TransitionLink>
           </p>
           <p>
             Forgot your password?{" "}
-            <Link
+            <TransitionLink
               href="/auth/reset"
               style={{
                 color: "var(--link-color)",
@@ -293,7 +295,7 @@ const RegisterPage: React.FC = () => {
               }}
             >
               Reset Password
-            </Link>
+            </TransitionLink>
           </p>
         </div>
       </motion.div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useContext, useEffect, useState } from "react";
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 import { usePathname, useRouter } from "next/navigation";
 import {
   FiHome,
@@ -13,6 +13,7 @@ import {
   FiHeart,
 } from "react-icons/fi";
 import { DarkModeContext } from "@/provider/DarkModeProvider";
+import { usePageTransition } from "@/provider/PageTransitionProvider";
 import UserMenu from "./UserMenu";
 import TranslateMenu from "./TranslateMenu";
 import Tooltip from "./Tooltip";
@@ -31,6 +32,7 @@ export default function Navbar() {
   const isLandingPage = segments.length === 0;
   const isHomePage = isLandingPage || segments[0] === "home";
   const { darkMode, setDarkMode } = useContext(DarkModeContext);
+  const { triggerExit } = usePageTransition();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
@@ -56,7 +58,7 @@ export default function Navbar() {
   } else if (segments[0] === "home") {
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <Link
+        <TransitionLink
           href="/"
           style={{
             color: "var(--link-color)",
@@ -67,7 +69,7 @@ export default function Navbar() {
         >
           <FiHome />
           <span>Home</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
         <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
           <FiBook />
@@ -79,7 +81,7 @@ export default function Navbar() {
     if (segments.length === 1) {
       breadcrumb = (
         <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Link
+          <TransitionLink
             href="/"
             style={{
               color: "var(--link-color)",
@@ -90,9 +92,9 @@ export default function Navbar() {
           >
             <FiHome />
             <span>Home</span>
-          </Link>
+          </TransitionLink>
           <FiChevronRight />
-          <Link
+          <TransitionLink
             href="/home"
             style={{
               color: "var(--link-color)",
@@ -103,13 +105,13 @@ export default function Navbar() {
           >
             <FiBook />
             <span>Articles</span>
-          </Link>
+          </TransitionLink>
         </span>
       );
     } else {
       breadcrumb = (
         <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Link
+          <TransitionLink
             href="/"
             style={{
               color: "var(--link-color)",
@@ -120,9 +122,9 @@ export default function Navbar() {
           >
             <FiHome />
             <span>Home</span>
-          </Link>
+          </TransitionLink>
           <FiChevronRight />
-          <Link
+          <TransitionLink
             href="/home"
             style={{
               color: "var(--link-color)",
@@ -133,7 +135,7 @@ export default function Navbar() {
           >
             <FiBook />
             <span>Articles</span>
-          </Link>
+          </TransitionLink>
           <FiChevronRight />
           <span>{formatSegment(segments[1])}</span>
         </span>
@@ -150,7 +152,7 @@ export default function Navbar() {
 
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <Link
+        <TransitionLink
           href="/"
           style={{
             color: "var(--link-color)",
@@ -161,9 +163,9 @@ export default function Navbar() {
         >
           <FiHome />
           <span>Home</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
-        <Link
+        <TransitionLink
           href="/home"
           style={{
             color: "var(--link-color)",
@@ -174,7 +176,7 @@ export default function Navbar() {
         >
           <FiBook />
           <span>Articles</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
         <span>{authPage}</span>
       </span>
@@ -182,7 +184,7 @@ export default function Navbar() {
   } else if (segments[0] === "favorites") {
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <Link
+        <TransitionLink
           href="/"
           style={{
             color: "var(--link-color)",
@@ -193,9 +195,9 @@ export default function Navbar() {
         >
           <FiHome />
           <span>Home</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
-        <Link
+        <TransitionLink
           href="/home"
           style={{
             color: "var(--link-color)",
@@ -206,7 +208,7 @@ export default function Navbar() {
         >
           <FiBook />
           <span>Articles</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
         <span>Favorites</span>
       </span>
@@ -214,7 +216,7 @@ export default function Navbar() {
   } else if (segments[0] === "chat") {
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <Link
+        <TransitionLink
           href="/"
           style={{
             color: "var(--link-color)",
@@ -225,9 +227,9 @@ export default function Navbar() {
         >
           <FiHome />
           <span>Home</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
-        <Link
+        <TransitionLink
           href="/home"
           style={{
             color: "var(--link-color)",
@@ -238,7 +240,7 @@ export default function Navbar() {
         >
           <FiBook />
           <span>Articles</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
         <FiMessageSquare />
         <span>Chat</span>
@@ -248,7 +250,7 @@ export default function Navbar() {
     // ANY unmatched URL => show 404 crumb
     breadcrumb = (
       <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <Link
+        <TransitionLink
           href="/"
           style={{
             color: "var(--link-color)",
@@ -259,7 +261,7 @@ export default function Navbar() {
         >
           <FiHome />
           <span>Home</span>
-        </Link>
+        </TransitionLink>
         <FiChevronRight />
         <span>404 Not Found</span>
       </span>
@@ -338,7 +340,7 @@ export default function Navbar() {
           <Tooltip text="Open Chatbot" position="bottom">
             <div
               className="icon-btn"
-              onClick={() => router.push("/chat")}
+              onClick={() => triggerExit("/chat")}
               aria-label="Open Chatbot"
             >
               <FiMessageSquare size={24} />
@@ -348,7 +350,7 @@ export default function Navbar() {
             <Tooltip text="View Favorites" position="bottom">
               <div
                 className="icon-btn"
-                onClick={() => router.push("/favorites")}
+                onClick={() => triggerExit("/favorites")}
                 aria-label="View Favorites"
               >
                 <FiHeart size={24} />

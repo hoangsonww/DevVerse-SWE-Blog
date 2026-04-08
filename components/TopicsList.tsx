@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import TransitionLink from "./TransitionLink";
 import { FiTag, FiArrowRight } from "react-icons/fi";
 
 interface TopicsListProps {
@@ -61,7 +61,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
 
       <div className="topics-container">
         {topics.map((topic) => (
-          <Link
+          <TransitionLink
             key={topic}
             href={`/home?topics=${encodeURIComponent(topic)}`}
             className="topic-pill-link"
@@ -70,7 +70,7 @@ export default function TopicsList({ topics }: TopicsListProps) {
               {topic}
               <FiArrowRight size={12} className="topic-arrow" />
             </span>
-          </Link>
+          </TransitionLink>
         ))}
       </div>
 

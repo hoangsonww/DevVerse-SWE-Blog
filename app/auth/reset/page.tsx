@@ -5,9 +5,10 @@ import { verifyEmailExists, resetPassword } from "@/supabase/auth";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { FaUnlockAlt, FaEye, FaEyeSlash } from "react-icons/fa";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { usePageTransition } from "@/provider/PageTransitionProvider";
 
 const ResetPasswordPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -20,6 +21,7 @@ const ResetPasswordPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
+  const { triggerExit } = usePageTransition();
 
   const handleVerifyEmail = async () => {
     if (!email.trim()) {
@@ -57,7 +59,7 @@ const ResetPasswordPage: React.FC = () => {
       toast.success("Password updated successfully! Please login.", {
         theme: "colored",
       });
-      router.push("/auth/login");
+      triggerExit("/auth/login");
     }
     setLoading(false);
   };
@@ -337,7 +339,7 @@ const ResetPasswordPage: React.FC = () => {
         >
           <p>
             Suddenly remembered your password?{" "}
-            <Link
+            <TransitionLink
               href="/auth/login"
               style={{
                 color: "var(--link-color)",
@@ -346,11 +348,11 @@ const ResetPasswordPage: React.FC = () => {
               }}
             >
               Login
-            </Link>
+            </TransitionLink>
           </p>
           <p>
             Need an account?{" "}
-            <Link
+            <TransitionLink
               href="/auth/register"
               style={{
                 color: "var(--link-color)",
@@ -359,7 +361,7 @@ const ResetPasswordPage: React.FC = () => {
               }}
             >
               Register
-            </Link>
+            </TransitionLink>
           </p>
         </div>
       </motion.div>
